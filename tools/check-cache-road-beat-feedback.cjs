@@ -1,4 +1,4 @@
-// Native ground paint over real resolved song opportunities. Timing fixtures
+// Minimal road paint and retained HUD over real resolved song opportunities.
 // isolate presentation; they are not device FPS or player-acceptance evidence.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const crypto=require('node:crypto');
@@ -15,6 +15,7 @@ GlobalFonts.registerFromPath(path.join(root,'assets/studies/visual-overhaul/refe
 function prepared(value=25) {
   const r=rig();load(r.context,'src/game/cache-road-adrenaline.js');
   load(r.context,'src/game/cache-road-beat-feedback.js');
+  load(r.context,'src/game/cache-road-instruments.js');
   r.road.state.adrenaline=r.B.CacheRoadAdrenaline.create({value});
   return r;
 }
@@ -62,23 +63,43 @@ function draw(receipt,age,{reduced=false,flashes=true}={}) {
   assert(H.drawReceipt(ctx,s,{projection,reduced,road:r.road}));
   assert.equal(JSON.stringify(s),before,'ground animation cannot advance/spend/reward any state');
   assert.equal(ctx.filter,'none');assert.equal(ctx.shadowBlur,0);
-  assert(counters.paths<=20&&counters.vertices<=75&&counters.arcs<=2,
-    'a maximum perfect impact remains bounded to small native geometry');
+  assert.deepEqual(counters,{paths:0,vertices:0,arcs:0},'ground receipts submit no replacement geometry');
+  assert.deepEqual(texts,[],'ground outcomes are no longer duplicated over the next road cue');
   return {data:Buffer.from(ctx.getImageData(0,0,1920,1080).data),texts:[...texts],counters:copy(counters)};
 }
 const p80=draw(perfect,80),p360=draw(perfect,360),good=draw(g.road.state.beatFeedback,80);
-assert(p80.texts.includes('PERFECT'));assert(p80.texts.includes('+20 ADRENALINE'));
-assert(good.texts.includes('ON BEAT'));assert(good.texts.includes('+15 ADRENALINE'));
-assert.notEqual(hash(p80.data),hash(p360.data),'impact resolves into a sustained receipt on the shared clock');
-assert.notEqual(hash(p80.data),hash(good.data),'good and perfect have distinct visible landings');
+assert.deepEqual(p80.data,p360.data);assert.deepEqual(p80.data,good.data);
+assert(p80.data.every(value=>value===0),'removed ground receipts leave no pixels, including old fallback ink');
 assert.deepEqual(p80.data,draw(perfect,80).data,'paused/repeated time has identical production pixels');
 assert.deepEqual(draw(perfect,100,{reduced:true}).data,draw(perfect,600,{reduced:true}).data,
   'Reduced Motion retains readable fixed success paint');
 assert.deepEqual(draw(perfect,100,{flashes:false}).data,draw(perfect,600,{flashes:false}).data,
   'Flashes Off also retains a steady bounded receipt');
-assert(draw(capped.road.state.beatFeedback,80).texts.includes('+5 ADRENALINE'));
-const missed=draw(miss.road.state.beatFeedback,80);assert(missed.texts.includes('MISSED'));
-assert(missed.texts.includes('NEXT ONE'));assert.equal(missed.counters.arcs,0);
+assert.equal(draw(capped.road.state.beatFeedback,80).texts.length,0);
+const missed=draw(miss.road.state.beatFeedback,80);assert.equal(missed.texts.length,0);
+// Observe the existing production HUD over the actual earned state. It owns
+// the result and true capped gain; the removed road paint is not its model.
+function drawHUD(fixture,receipt,age,{reduced=false,flashes=true}={},state=fixture.road.state) {
+  ctx.reset();ctx.clearRect(0,0,1920,1080);texts.length=0;
+  fixture.w.BARCODE_RENDER_QUALITY={flashes};
+  const live=fixture.road.state,s={...state,beatFeedback:copy(receipt),elapsedMs:receipt.atMs+age},before=JSON.stringify(s);
+  try {fixture.road.state=s;fixture.B.CacheRoadGuidance.draw(ctx,fixture.road,{reduced});}
+  finally {fixture.road.state=live;}
+  assert.equal(JSON.stringify(s),before,'actual HUD cannot advance, spend or reward state');
+  return {data:Buffer.from(ctx.getImageData(0,0,1920,1080).data),texts:[...texts]};
+}
+const hudPerfect=drawHUD(r,perfect,80),hudGood=drawHUD(g,g.road.state.beatFeedback,80);
+assert(hudPerfect.texts.includes('PERFECT')&&hudPerfect.texts.includes('+20'));
+assert(hudGood.texts.includes('ON BEAT')&&hudGood.texts.includes('GOOD')&&hudGood.texts.includes('+15'));
+assert.notEqual(hash(hudPerfect.data),hash(hudGood.data),'real Good/Perfect outcomes remain distinct in the HUD');
+assert.deepEqual(hudPerfect.data,drawHUD(r,perfect,80).data,'paused HUD pixels remain fixed');
+assert.deepEqual(drawHUD(r,perfect,100,{reduced:true}).data,drawHUD(r,perfect,600,{reduced:true}).data);
+assert.deepEqual(drawHUD(r,perfect,100,{flashes:false}).data,drawHUD(r,perfect,600,{flashes:false}).data);
+const cappedHUD=drawHUD(capped,capped.road.state.beatFeedback,80);
+assert(cappedHUD.texts.includes('+5')&&!cappedHUD.texts.includes('+20'),'HUD advertises only the actual capped gain');
+const missedHUD=drawHUD(miss,miss.road.state.beatFeedback,80);
+assert(missedHUD.texts.includes('MISSED')&&missedHUD.texts.includes('MISS'));
+assert(!missedHUD.texts.some(value=>/^[-+]\d+$/.test(value)),'first-miss grace invents no HUD loss');
 // Each road action keeps its actual preferred keyboard/controller label,
 // and the four painted badge silhouettes remain visibly distinguishable.
 const originalInput=r.w.inputManager,originalUI=r.B.GamepadUI,originalSettings=r.B.ControllerSettings;
@@ -256,18 +277,20 @@ function compareNextTarget(fixture,{age,reduced=false,flashes=true,windowLane=nu
   assert.deepEqual(targetPixels,reference,'earned paint never changes the next target timing ink');
   assert(helper.drawReceipt(ctx,state,args));
   assert.deepEqual(Buffer.from(ctx.getImageData(rect.x,rect.y,rect.w,rect.h).data),reference,
-    'same-lane compact ticket and adjacent-lane impact leave the entire measured next target untouched');
+    'handled ground receipts leave the entire measured next target untouched');
   assert.equal(JSON.stringify(state),untouched);
-  assert(texts.includes(earned.kind==='miss'?'MISSED':earned.kind==='perfect'?'PERFECT':'ON BEAT'));
+  assert.deepEqual(texts,targetTexts,'no previous outcome text is inserted into the next ground target');
+  const hud=drawHUD(c,earned,age,{reduced,flashes},state);
+  assert(hud.texts.includes(earned.kind==='miss'?'MISS':earned.kind==='perfect'?'PERFECT':'GOOD'),
+    'the actual meter keeps the previous real outcome while the next target is readable');
   if(earned.kind==='miss') {
-    assert(texts.includes(earned.delta<0?String(earned.delta):'NEXT ONE'));
-    if(earned.delta<0)assert(texts.includes('ADRENALINE'));
-    else assert(!texts.some(value=>/^[-+]\d+$/.test(value)),'real grace never invents a loss');
-  } else assert(texts.includes(next.lane===earned.lane?`+${earned.delta}`:`+${earned.delta} ADRENALINE`));
+    if(earned.delta<0)assert(hud.texts.includes(String(earned.delta)));
+    else assert(!hud.texts.some(value=>/^[-+]\d+$/.test(value)),'real grace never invents a loss');
+  } else assert(hud.texts.includes(earned.delta>0?`+${earned.delta}`:'MAX'));
   if(windowLane!==null)assert(targetTexts.includes(windowLane===next.lane?'PRESS':'CHANGE LANE'));
   consecutive.push({sameLane:next.lane===earned.lane,quality:earned.kind,age,reduced,flashes,
     priorId:fixture.prior.id,nextId:next.id,instruction:instruction.value,
-    delta:earned.delta,measuredInstructionWidth:instruction.width,protectedHalfWidth:halfWidth,wholeScene});
+    delta:earned.delta,hudQuality:true,measuredInstructionWidth:instruction.width,protectedHalfWidth:halfWidth,wholeScene});
 }
 for(const [sameLane,offsetMs] of [[false,150],[true,0]]) {
   const fixture=consecutiveRig(sameLane,offsetMs),{c,earned}=fixture;
@@ -340,15 +363,16 @@ const outArg=process.argv.find(arg=>arg.startsWith('--output='));
 if(outArg) {
   const out=path.resolve(outArg.slice(9));assert(!out.startsWith(root+path.sep));fs.mkdirSync(out,{recursive:true});
   const sheet=createCanvas(1440,960),sc=sheet.getContext('2d');sc.fillStyle='#10202d';sc.fillRect(0,0,1440,960);
-  const fixtures=[['Perfect-Impact',perfect,80,{}],['Perfect-Sustain',perfect,360,{}],
-    ['Good',g.road.state.beatFeedback,80,{}],['Capped-Gain',capped.road.state.beatFeedback,80,{}],
-    ['Miss',miss.road.state.beatFeedback,80,{}],['Quiet',perfect,360,{reduced:true}]];
+  const fixtures=[['Perfect-HUD',perfect,80,{},r],['Perfect-Sustain',perfect,360,{},r],
+    ['Good',g.road.state.beatFeedback,80,{},g],['Capped-Gain',capped.road.state.beatFeedback,80,{},capped],
+    ['Miss',miss.road.state.beatFeedback,80,{},miss],['Quiet',perfect,360,{reduced:true},r]];
   for(let i=0;i<fixtures.length;i++) {
-    const [name,receipt,age,options]=fixtures[i];draw(receipt,age,options);
-    // Tight crop keeps the actual native road-plane response readable.
+    const [name,receipt,age,options,owner]=fixtures[i];draw(receipt,age,options);
+    drawHUD(owner,receipt,age,options);
+    // Retained outcome/meter ink lives in the unchanged HUD.
     const x=i%2*720,y=Math.floor(i/2)*320;
     sc.fillStyle='#dbf4df';sc.font='18px Oxanium';sc.fillText(name,x+18,y+25);
-    sc.drawImage(canvas,350,755,1250,305,x,y+40,720,176);
+    sc.drawImage(canvas,0,140,720,310,x,y+40,720,176);
     fs.writeFileSync(path.join(out,name+'.png'),canvas.toBuffer('image/png'));
   }
   fs.writeFileSync(path.join(out,'Ground-Feedback.png'),sheet.toBuffer('image/png'));
@@ -356,7 +380,7 @@ if(outArg) {
   const roadBefore=JSON.stringify(r.road.state);r.road.draw(rc);assert.equal(JSON.stringify(r.road.state),roadBefore);
   fs.writeFileSync(path.join(out,'Production-Road.png'),roadCanvas.toBuffer('image/png'));
   fs.writeFileSync(path.join(out,'receipt.json'),JSON.stringify({passed:true,sourceHashes,
-    labels:p80.texts,perfectWork:p80.counters,goodWork:good.counters,missWork:missed.counters,
+    labels:hudPerfect.texts,perfectWork:p80.counters,goodWork:good.counters,missWork:missed.counters,
     badgePixels,consecutive,precedingONEQuiet:true,trueONEPress:true,used,limits:'Native presentation fixtures on actual earned production pad receipts; controlled host and staged review time. Consecutive current-v4 chart updates and judgments are production, with physical lanes isolated; accepted-window overlap cases additionally hold receipt age as a presentation stress fixture. No human, physical-controller, browser or device frame-pacing acceptance.'},null,2)+'\n');
 }
 for(const [file,digest] of Object.entries(sourceHashes))assert.equal(hash(fs.readFileSync(file)),digest);

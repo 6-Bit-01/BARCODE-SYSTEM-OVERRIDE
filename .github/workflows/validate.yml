@@ -16,16 +16,61 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run check:syntax:all
+      - name: Verify standalone website package
+        run: |
+          python3 tools/build-standalone.py --output "$RUNNER_TEMP/system-override" --receipt "$RUNNER_TEMP/standalone-build-receipt.json"
+          node tools/check-standalone-build.js "$RUNNER_TEMP/system-override"
+      - name: Check fresh actual GPU game with default Chromium backend
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node tools/check-cache-road-gpu-browser.cjs "$RUNNER_TEMP/system-override" "$RUNNER_TEMP/cache-road-gpu-browser/fresh" fresh
+      - name: Check earned boss Continue with default Chromium backend
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node tools/check-cache-road-gpu-browser.cjs "$RUNNER_TEMP/system-override" "$RUNNER_TEMP/cache-road-gpu-browser/boss" boss
+      - name: Upload actual GPU game evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cache-road-gpu-browser-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/standalone-build-receipt.json
+            ${{ runner.temp }}/cache-road-gpu-browser
+          if-no-files-found: ignore
       - name: Check Cache Road music in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: npm run check:cache-road-browser
-      - name: Check combat chase in real Chromium
+      - name: Check native fallback combat functionality; record timing diagnostics
         env:
           CHROME_BIN: /usr/bin/google-chrome
           CACHE_COMBAT_BROWSER_OUTPUT: ${{ runner.temp }}/cache-combat-browser
           CACHE_COMBAT_BROWSER_REQUIRE_HOSTED: '1'
+          CACHE_NATIVE_FALLBACK_DIAGNOSTIC: '1'
         run: npm run check:cache-combat-browser
+      - name: Report actual GPU acceptance and native fallback timing separately
+        if: always()
+        env:
+          GPU_EVIDENCE_ROOT: ${{ runner.temp }}/cache-road-gpu-browser
+          NATIVE_TIMING_RECEIPT: ${{ runner.temp }}/cache-combat-browser/Native-Fallback-Timing.json
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('Actual built GPU checks use the default Chromium backend. Software, unavailable, or unidentified GL remains performanceUnexercised; native fallback timings do not accept GPU performance.\n\n')
+              for scenario in ['fresh', 'boss']:
+                  receipt = Path(os.environ['GPU_EVIDENCE_ROOT']) / scenario / 'performance-gate.json'
+                  gate = json.loads(receipt.read_text()) if receipt.exists() else {}
+                  functional_receipt = receipt.with_name('functional-gate.json')
+                  functional = json.loads(functional_receipt.read_text()) if functional_receipt.exists() else {}
+                  summary.write(f"- Actual GPU {scenario}: {gate.get('status', 'not recorded')}; {gate.get('backend', 'see checker artifacts')}; budget {gate.get('budgetMs', 'not recorded')} ms.\n")
+                  summary.write(f"  Actual GPU gameplay functionality: {functional.get('status', 'not recorded')}; bootstrap: {gate.get('bootstrap', {}).get('status', 'see checker artifacts')} at {gate.get('bootstrap', {}).get('stage', 'see checker artifacts')}.\n")
+                  summary.write(f"  Final direct present accepted: {gate.get('directPresentAccepted', 'not recorded')}; zero canvas copies: {gate.get('zeroCanvasCopies', 'not recorded')}; both views accepted: {gate.get('fullyGpuAccepted', 'not recorded')}.\n")
+              receipt = Path(os.environ['NATIVE_TIMING_RECEIPT'])
+              timing = json.loads(receipt.read_text()) if receipt.exists() else {}
+              summary.write(f"- Native chase/boss timingPass: {timing.get('timingPass', 'not recorded')}; performanceAcceptance: false (diagnostic).\n")
+          PY
       - name: Check music automation in real Chromium
         env:
           CHROME_BIN: /usr/bin/google-chrome
@@ -152,14 +197,24 @@ jobs:
       - name: Export current source pack
         env:
           PACK_RECEIPT: ${{ runner.temp }}/source-pack-tests.json
+          CACHE_COMBAT_RECEIPT: ${{ runner.temp }}/cache-combat-browser/Combat-Browser-Checks.json
+          GPU_EVIDENCE_ROOT: ${{ runner.temp }}/cache-road-gpu-browser
         run: |
           python3 - <<'PY'
           import json, os
           from pathlib import Path
+          combat = json.loads(Path(os.environ['CACHE_COMBAT_RECEIPT']).read_text())
+          gpu = {
+              scenario: {
+                  'functional': json.loads((Path(os.environ['GPU_EVIDENCE_ROOT']) / scenario / 'functional-gate.json').read_text()),
+                  'performance': json.loads((Path(os.environ['GPU_EVIDENCE_ROOT']) / scenario / 'performance-gate.json').read_text())
+              } for scenario in ['fresh', 'boss']
+          }
           Path(os.environ['PACK_RECEIPT']).write_text(json.dumps({
               'revision': os.environ['GITHUB_SHA'],
               'automatedTests': {'npm test': 'passed', 'npm run check:syntax:all': 'passed', 'npm run check:cache-road-browser': 'passed (real MP3s, missing local asset recovery, Drive catch and collision bus recovery)', 'node tools/check-music-audibility.cjs': 'passed (controlled and original MP3s)', 'node tools/check-background-browser.cjs': 'passed', 'node tools/check-intro-browser.cjs': 'passed', 'node tools/check-settings-browser.cjs': 'passed', 'node tools/check-cache-bridge-browser.cjs': 'passed (eight hosted byte-identical paintings, shared Canvas, production bridge input and final Drive guard)', 'MODE_SFX_REVIEW=1 node tools/check-music-audibility.cjs': 'passed'},
-              'cacheCombatBrowser': 'passed (fresh v4 real shoulder/trigger controls, actual attacks/12HP rig, earned saves, and consecutive chase/boss shared-loop frames with raster flush within 33.33ms median; hosted byte-verified art, controlled host clock, not Makko/device acceptance)',
+              'cacheCombatBrowser': {'functionalPassed': combat['functionalPassed'], 'nativeTiming': combat['nativeTiming'], 'performanceAcceptance': False, 'rendererContract': 'native fallback diagnostic; actual GPU checks recorded separately'},
+              'cacheRoadGPUBrowser': gpu,
               'cachePursuitBrowser': 'passed (production gamepad race, three-system boss defeat, real painted art, shared Canvas/RAF and paused state; staged visual diagnostics separately labelled)',
               'cacheEndingBrowser': 'passed (four hosted byte-identical paintings, production shared Canvas/input/RAF/audio and silent ending reload)',
               'cacheEncountersBrowser': 'passed (four hosted byte-identical sprites, native Drive/steering/Echo, shared Canvas and three explicitly staged production draw screenshots)',

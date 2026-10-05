@@ -32,6 +32,7 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/presentation-assets.js",
+    "src/engine/level-scene-resources.js",
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
@@ -73,6 +74,10 @@
     "src/game/cache-road-beat-feedback.js",
     "src/game/cache-road-cinematics.js",
     "src/game/cache-road-render-budget.js",
+    "src/vendor/pixi-8.22.0/pixi.min.js",
+    "src/engine/cache-road-texture-bank.js",
+    "src/engine/cache-road-gpu-renderer.js",
+    "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
@@ -118,6 +123,7 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/presentation-assets.js",
+    "src/engine/level-scene-resources.js",
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
@@ -159,6 +165,10 @@
     "src/game/cache-road-beat-feedback.js",
     "src/game/cache-road-cinematics.js",
     "src/game/cache-road-render-budget.js",
+    "src/vendor/pixi-8.22.0/pixi.min.js",
+    "src/engine/cache-road-texture-bank.js",
+    "src/engine/cache-road-gpu-renderer.js",
+    "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",
@@ -177,8 +187,10 @@
   ],
   "unloadedRepositoryJs": [
     "src/core/game-manager.js",
+    "src/engine/cache-road-texture-worker.js",
     "src/engine/game-logic.js",
     "src/engine/jammer-arrow-indicator.js",
+    "src/engine/standalone-sprites.js",
     "src/game/cache-road-districts.js",
     "src/game/cache-road-puppet-study.js",
     "src/game/jammer-arrow.js",
@@ -191,6 +203,7 @@
     "src/game/music-controls.js",
     "src/game/rhythm-fixed.js",
     "src/game/simple-jammer.js",
+    "src/vendor/basis-2.50/basis_transcoder.js",
     "test-rhythm-functionality.js",
     "test-rhythm-system-verification.js",
     "tools/audit-external-assets.js",
@@ -233,6 +246,8 @@
     "tools/check-runtime-lifecycle.js",
     "tools/check-smart-box-motion.js",
     "tools/check-solid-ledges.js",
+    "tools/check-standalone-build.js",
+    "tools/check-standalone-sprites.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-street-depth.js",
     "tools/check-syntax.js",
@@ -346,6 +361,10 @@
       },
       {
         "file": "src/engine/presentation-assets.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/level-scene-resources.js",
         "status": "pass"
       },
       {
@@ -513,6 +532,22 @@
         "status": "pass"
       },
       {
+        "file": "src/vendor/pixi-8.22.0/pixi.min.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/cache-road-texture-bank.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/cache-road-gpu-renderer.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/cache-road-gpu-context.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-proof.js",
         "status": "pass"
       },
@@ -575,11 +610,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 83,
+        "index": 88,
         "status": "pass"
       },
       {
-        "index": 85,
+        "index": 90,
         "status": "pass"
       }
     ]
@@ -615,6 +650,12 @@
       ]
     },
     {
+      "host": "cdn.jsdelivr.net",
+      "sourceFiles": [
+        "src/vendor/pixi-8.22.0/pixi.min.js"
+      ]
+    },
+    {
       "host": "dcnmwoxzefwqmvvkpqap.supabase.co",
       "sourceFiles": [
         "src/engine/level-01-music-profile.js"
@@ -638,6 +679,13 @@
       ]
     },
     {
+      "host": "localhost",
+      "sourceFiles": [
+        "src/engine/standalone-sprites.js",
+        "tools/check-standalone-sprites.js"
+      ]
+    },
+    {
       "host": "raw.githubusercontent.com",
       "sourceFiles": [
         "index.html",
@@ -655,9 +703,22 @@
       ]
     },
     {
+      "host": "www.opensource.org",
+      "sourceFiles": [
+        "src/vendor/pixi-8.22.0/pixi.min.js"
+      ]
+    },
+    {
+      "host": "www.pixijs.com",
+      "sourceFiles": [
+        "src/vendor/pixi-8.22.0/pixi.min.js"
+      ]
+    },
+    {
       "host": "www.w3.org",
       "sourceFiles": [
-        "src/engine/presentation-assets.js"
+        "src/engine/presentation-assets.js",
+        "src/vendor/pixi-8.22.0/pixi.min.js"
       ]
     }
   ],
@@ -701,7 +762,7 @@
     {
       "global": "window.gameLoop",
       "file": "src/core/loop.js",
-      "line": 86,
+      "line": 88,
       "loaded": true
     },
     {
@@ -827,13 +888,13 @@
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 547,
+      "line": 550,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 564,
+      "line": 567,
       "loaded": true
     },
     {
@@ -893,7 +954,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 212,
+      "line": 214,
       "loaded": true
     },
     {
@@ -959,6 +1020,7 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/presentation-assets.js",
+    "src/engine/level-scene-resources.js",
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
@@ -1000,6 +1062,10 @@
     "src/game/cache-road-beat-feedback.js",
     "src/game/cache-road-cinematics.js",
     "src/game/cache-road-render-budget.js",
+    "src/vendor/pixi-8.22.0/pixi.min.js",
+    "src/engine/cache-road-texture-bank.js",
+    "src/engine/cache-road-gpu-renderer.js",
+    "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
     "src/game/lost-data.js",

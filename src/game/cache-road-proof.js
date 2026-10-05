@@ -388,6 +388,42 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         lensRadius:args.width*radius,poolRadius:args.height*.21};
     });
   }
+  function beginGpuScene(nativeCtx,options) {
+    const hud=B.CacheRoadCinematics?.hudContextInfo?.(nativeCtx),frameCtx=hud?.frameContext||nativeCtx;
+    let scene=null;
+    if(nativeCtx&&!nativeCtx.isGpuScene&&frameCtx===window.renderer?.ctx&&
+      frameCtx.canvas?.width===1920&&frameCtx.canvas?.height===1080) {
+      // Keep the proxy as the recorder's source: it exposes the authored
+      // logical alpha. Only submission uses the underlying shared context.
+      if(options?.kind==='rear'&&options.direct)options.opacity=hud?.opacity??1;
+      try {scene=B.CacheRoadGPU?.begin?.(nativeCtx,options)||null;}
+      catch {scene=null;}
+    }
+    if(!scene&&options?.kind==='rear'&&options.direct)
+      B.CacheRoadGPU?.rejectFrame?.('direct-rear-capture-unavailable');
+    return scene;
+  }
+  function finishGpuScene(gpuCtx,nativeCtx,options) {
+    const frameCtx=B.CacheRoadCinematics?.hudContextInfo?.(nativeCtx)?.frameContext||nativeCtx;
+    let rendered=false;
+    try {rendered=B.CacheRoadGPU?.render?.(gpuCtx.commands,frameCtx,options)===true;}
+    catch {rendered=false;B.CacheRoadGPU?.rejectFrame?.('scene-submit-error');}
+    // The captured original operations are also the same-frame fallback.
+    // The native camera's enclosing save/restore remains its existing owner.
+    if(rendered)gpuCtx.applyState(nativeCtx);
+    else gpuCtx.replay(nativeCtx);
+    return rendered;
+  }
+  let gpuMirrorClip=null;
+  function exactGpuMirrorClip(ctx,x,y,w,h) {
+    if(!gpuMirrorClip) {
+      const recorder=new B.CacheRoadGPUContext(ctx);
+      recorder.setTransform(1,0,0,1,0,0);
+      mirrorOutline(recorder,x,y,w,h);recorder.clip();recorder.fillRect(x,y,1,1);
+      gpuMirrorClip=recorder.commands[0].clips[0];
+    }
+    return gpuMirrorClip;
+  }
   function copySampledWorldPixels(ctx,width,height,budget,preferPixels=true) {
     return copyOpaqueCanvasPixels(ctx,0,0,width,height,0,0,1920,1080,budget,
       preferPixels&&width<=480&&height<=270);
@@ -718,6 +754,48 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
     return fixed;
   }
+  // Keep the whole level's textures resident before its first playable frame.
+  // These are the same original sources used by both painters, including the
+  // complete rear actor atlases. Level 1 and unrelated artwork stay outside
+  // this bounded Level 2 source set.
+  const GPU_ROUTE_COMMON = [
+    'cacheDistantCity','cacheMidCity','cacheOutskirts','cacheFly1','cacheFly3',
+    'cacheOuterGround','cacheRollingGrain','cacheLocalStreet','cacheBlacktop',
+    'cacheJoinLTurn','cacheJoinRTurn','cacheJoinLCurb','cacheJoinRCurb',
+    'cacheJoinLStreetWall','cacheJoinRStreetWall','cacheJoinLEndcap','cacheJoinREndcap',
+    'cacheGroundClusterL1','cacheGroundClusterL2','cacheGroundClusterL3',
+    'cacheGroundClusterR1','cacheGroundClusterR2','cacheGroundClusterR3','cachePylon',
+    'cacheDecalCrosswalk','cacheDecalStopLine','cacheDecalDrainage',
+    'cacheDecalLoadingBay','cacheDecalServiceStencil','cacheDecalWetRepairPatch',
+    'cacheResidentialPaving','cachePlantedGravelCourt','cacheServiceCourtPaving',
+    'cacheSidewalk','cacheParapet',
+    'cacheFreight','cacheCourier','cacheBarricade','cacheRival','cacheAudit',
+    'cacheSweeper','cacheTrike','cacheShuttle','cacheBrakeReflection',
+    'cacheDamagedExhaust','cacheSpeedMist','cacheCombatBike','cacheCombatHostiles',
+    'cacheCombatBikeCrash','cacheCombatBlast','cacheBloodSplatter',
+    'cachePursuitRig','cachePursuitImpact',
+    'cachePersonCrateCarrierTravel','cachePersonHandheldPlayerTravel'
+  ];
+  function gpuLevelKeys() {
+    const keys=new Set(GPU_ROUTE_COMMON);
+    for(const area of SCENERY) {
+      const key=area.plate?.art[0]||area.scene?.art[0]||
+        (area.place?.kind!=='parking'?
+          (SIDE_VARIANTS[area.place?.variant]?.art||PLACE_ART[area.place?.kind])?.[0]:null);
+      if(key)keys.add(key);
+      if(area.plate&&AMBIENT_PLATES.has(area.plate)) {
+        const family=area.plate.family;
+        keys.add('cacheAmbient'+family[0].toUpperCase()+family.slice(1));
+      }
+    }
+    for(const {item} of STREET_ITEMS) {
+      const key=item.id===undefined?item.key:
+        pedestrianTravel(item,{elapsedMs:0},false)?.key||PEDESTRIANS[item.id]?.[0];
+      if(key)keys.add(key);
+    }
+    return [...keys];
+  }
+  const GPU_LEVEL_KEYS=gpuLevelKeys();
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const smooth = value => {const t=clamp(value,0,1);return t*t*(3-2*t);};
@@ -814,6 +892,20 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         (d[0]-a[0])/256,(d[1]-a[1])/256]);
     };
     const far = profile(progress-reach);
+    const nativeRearContext=ctx,gpuRearOptions={kind:'rear',direct:B.CacheRoadGPU?.directFrameActive?.()===true,
+      viewport:{x:x-12,y:y-12,width:w+24,height:h+24}};
+    if(gpuRearOptions.direct)gpuRearOptions.glassClip=exactGpuMirrorClip(ctx,x,y,w,h);
+    const gpuRearContext=beginGpuScene(nativeRearContext,gpuRearOptions);
+    if(gpuRearContext) {
+      ctx=gpuRearContext;
+      if(gpuRearOptions.direct) {
+        // Supply the same glass backdrop within the complete blur footprint.
+        // Cache's face and the glass markings remain on the foreground Canvas.
+        const glass=ctx.createLinearGradient(0,y,0,y+h);
+        glass.addColorStop(0,'#0e1b2d');glass.addColorStop(.53,'#394a60');glass.addColorStop(1,'#10232e');
+        ctx.fillStyle=glass;ctx.fillRect(x-12,y-12,w+24,h+24);
+      }
+    }
     // Blur the completed reflection once on the existing display Canvas.
     // Per-object filters repeatedly allocate/rasterize intermediate surfaces.
     const mirrorTransform=ctx.getTransform?.();
@@ -1088,6 +1180,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       drawCrosswalkPerson(ctx,person,{x:laneX(person.lane,p),y:p.y,height:8+37*p.t,reduced});
     }
     ctx.restore();
+    if(gpuRearContext) {
+      const rendered=finishGpuScene(gpuRearContext,nativeRearContext,gpuRearOptions);
+      ctx=nativeRearContext;
+      if(rendered&&gpuRearOptions.direct) {
+        ctx.save();mirrorOutline(ctx,x,y,w,h);ctx.clip();ctx.clearRect(x,y,w,h);ctx.restore();
+        return;
+      }
+    }
     if(compositeBlur) {
       const m=mirrorTransform,xs=[],ys=[];
       for(const [px,py]of [[x,y],[x+w,y],[x,y+h],[x+w,y+h]]) {
@@ -1110,7 +1210,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // Crop the opaque native source before applying the same single blur.
         // Original self-copy preserves all other caller/viewport semantics.
         if(pixelBudget)pixelBudget.mirrorPixelCopyUsed=copyOpaqueCanvasPixels(ctx,
-          sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy,pixelBudget,opaqueNative);
+          sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy,pixelBudget,false);
         else ctx.drawImage(ctx.canvas,sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy);
         ctx.restore();
       }
@@ -1140,7 +1240,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     glass.addColorStop(0, '#0e1b2d'); glass.addColorStop(.53, '#394a60');
     glass.addColorStop(1, '#10232e');
     ctx.fillStyle = glass; ctx.fillRect(x, y, w, h);
-    const priorRasterDetail=B.PresentationAssets?.setRasterDetail?.(ctx,boundedClip?.25:1)??1;
+    const priorRasterDetail=B.PresentationAssets?.setRasterDetail?.(ctx,1)??1;
     try {drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose,opaqueBackdrop,pixelBudget);}
     finally {B.PresentationAssets?.setRasterDetail?.(ctx,priorRasterDetail);}
     // Cache sits on the driver's side. His eyes face the windshield
@@ -2264,7 +2364,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.armResultControls();this.resumeEnding({fresh:true});return true;
     },
     finishIntro() {
-      if (!this.active || this.status !== 'playing' || this.introMs === null ||
+      if (!this.active || this.presentationPreparing || this.status !== 'playing' || this.introMs === null ||
           window.isPaused || window.gameState?.paused) return false;
       const staged=this.chapter?.encounterVersion===4&&!!B.CacheRoadCinematics;
       this.introMs = null;this.handoffMs=staged?0:null;
@@ -2421,6 +2521,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         this.status = this.state.status; this.active = true;
         this.introMs = !resume && this.status === 'playing' ? 0 : null;
         this.handoffMs=null;this.outroMs=null;this.cinematicLane=this.state.lanePos;
+        await this.preparePresentation();
+        if(entryGeneration!==this.entryGeneration)return {ok:false,reason:'handoff-cancelled'};
         this.setHint();
         B.Campaign.intermission = false; B.Campaign.run = null;
         window.gameState.victory = false; window.gameState.gameOver = false;
@@ -2534,7 +2636,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       return !!result?.ok;
     },
     dispose() {
+      this.cancelPresentation?.();this.cancelPresentation=null;
       this.entryGeneration=(this.entryGeneration||0)+1;this.pending=false;
+      this.presentationGeneration=(this.presentationGeneration||0)+1;
+      this.presentationPreparing=false;this.gpuLevelSources=null;this.presentationResult=null;
+      B.CacheRoadGPU?.releaseLevel?.();
+      if(this.active)B.PresentationAssets?.releaseScene?.();
       window.audioSystem?.stopRoadEngine?.();
       const hint = document.querySelector?.('.hint');
       if (hint && this.oldHint !== null) hint.textContent = this.oldHint;
@@ -2568,9 +2675,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // A retry deliberately resumes at the saved bar. Steering never seeks.
       window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
       this.selectMusicProfile();
-      window.audioSystem?.startRuntimeGameplayMusic?.();
       this.checkpoint(this.status === 'playing' && fromCheckpoint ? saved.checkpointId : 'road-start');
       window.inputManager?.resetActionEdges?.();
+      const retryState=this.state,generation=this.entryGeneration;
+      const startMusic=()=>{
+        if(!this.active||this.state!==retryState||generation!==this.entryGeneration||this.exiting||
+            window.isPaused||window.gameState?.paused)return;
+        window.audioSystem?.startRuntimeGameplayMusic?.();
+        window.inputManager?.resetActionEdges?.();
+      };
+      if(window.renderer?.ctx&&B.CacheRoadGPU?.warmup)
+        this.preparePresentation().then(startMusic,startMusic);
+      else startMusic();
       return true;
     },
     resultButtons() {
@@ -2637,6 +2753,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       return false;
     },
     keyDown(e) {
+      if(this.presentationPreparing) {e.preventDefault?.();return true;}
       if(this.outroMs!=null) {
         const key=e.key.toLowerCase();
         if(key==='p') {e.preventDefault?.();if(!e.repeat)B.RuntimeLifecycle?.togglePause?.();return true;}
@@ -3126,7 +3243,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.rivalWarning=s.combatDanger>0;
     },
     handleActions(actions) {
-      if (!this.active || this.status !== 'playing' || this.exiting || this.introMs !== null) return;
+      if (!this.active || this.presentationPreparing || this.status !== 'playing' || this.exiting || this.introMs !== null) return;
       const s = this.state;
       const steer=Number(!!actions.move_right?.held)-Number(!!actions.move_left?.held);
       s.steer=steer*(this.handoffMs!=null?B.CacheRoadCinematics?.pose('handoff',this.handoffMs)?.controlRatio||0:1);
@@ -3277,7 +3394,66 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.cue('pickup', { intensity: .6, pan: (opportunity.lane - 1.5) * .14 });
       return true;
     },
+    async preparePresentation() {
+      const ctx=window.renderer?.ctx;
+      if(!this.active||!this.state||!ctx||!B.CacheRoadGPU?.warmup)return;
+      this.cancelPresentation?.();
+      const generation=this.presentationGeneration=(this.presentationGeneration||0)+1;
+      const cancelled={cancelled:true};
+      const cancellation=new Promise(resolve=>{this.cancelPresentation=()=>resolve(cancelled);});
+      const awaitOwned=pending=>Promise.race([pending,cancellation]);
+      this.presentationPreparing=true;
+      try {
+        this.draw(ctx);
+        // Level 1's atlas resources are no longer used by this scene. The
+        // lifecycle reloads them before a later Level 1 or Level 3 start.
+        B.StandaloneSprites?.suspend?.();
+        window.parallaxBackground?.disposeSkyAnimation?.();
+        if(B.LevelSceneResources?.releaseLevel1) {
+          const released=await awaitOwned(B.LevelSceneResources.releaseLevel1());
+          if(generation!==this.presentationGeneration||!this.active)return;
+          this.sceneReleaseReport=released;
+        }
+        const keys=GPU_LEVEL_KEYS;
+        if(B.PresentationAssets?.selectRoadScene) {
+          await awaitOwned(B.PresentationAssets.selectRoadScene(keys));
+          if(generation!==this.presentationGeneration||!this.active)return;
+        }
+        const sources=B.PresentationAssets?.waitForGpuSources?
+          await awaitOwned(B.PresentationAssets.waitForGpuSources(keys)):
+          B.PresentationAssets?.gpuSources?.(keys)||[];
+        if(sources===cancelled||generation!==this.presentationGeneration||!this.active)return;
+        this.gpuLevelSources=sources;
+        const result=await awaitOwned(B.CacheRoadGPU.warmup(ctx,sources,
+          {rearViewport:{x:626,y:0,width:714,height:141},
+            cancelled:()=>generation!==this.presentationGeneration||!this.active}));
+        if(result===cancelled||generation!==this.presentationGeneration||!this.active)return;
+        const available=new Set(sources.map(source=>source.key));
+        const missingKeys=keys.filter(key=>!available.has(key));
+        this.presentationResult={...result,requestedSources:keys.length,
+          missingKeys,complete:missingKeys.length===0};
+        return this.presentationResult;
+      } finally {
+        if(generation===this.presentationGeneration) {
+          this.presentationPreparing=false;
+          this.cancelPresentation=null;
+          window.inputManager?.resetActionEdges?.();
+        }
+      }
+    },
     update(delta) {
+      if(this.presentationPreparing)return;
+      // GPU resources are prepared by the existing update owner, never by
+      // scene drawing or a second animation loop. The first draw records the
+      // actual production context when an alternate startup owns the Canvas.
+      const gpuFrameContext=this.gpuFrameContext||window.renderer?.ctx;
+      if(this.active&&gpuFrameContext)try {
+        if(B.CacheRoadGPU&&this.state) {
+          B.CacheRoadGPU.prepare(gpuFrameContext,
+            this.gpuLevelSources||B.PresentationAssets?.gpuSources?.(GPU_LEVEL_KEYS)||[]);
+        }
+      }
+      catch { /* The current frame retains its complete native painter. */ }
       if(this.active&&this.outroMs!=null&&!this.exiting) {
         const dt=Math.min(100,Math.max(0,delta));
         if(!dt||window.isPaused||window.gameState?.paused)return;
@@ -3584,6 +3760,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     },
     draw(ctx) {
       if (!ctx || !this.active) return;
+      if(this.presentationPreparing) {
+        B.CacheRoadGPU?.hide?.();
+        ctx.save();ctx.setTransform(1,0,0,1,0,0);
+        ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';
+        ctx.fillStyle='#07121f';ctx.fillRect(0,0,1920,1080);
+        ctx.fillStyle='#a4f2d7';ctx.textAlign='center';ctx.font='bold 30px Oxanium, monospace';
+        ctx.fillText('PREPARING ROUTE',960,540);ctx.restore();return;
+      }
       const live=this.state,cinema=this.cinematicPose();
       const s=cinema?{...live,progress:live.progress+cinema.progressOffset,
         visualLane:cinema.kind==='handoff'?live.visualLane:cinema.car.lane,
@@ -3591,20 +3775,28 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         steer:cinema.kind==='handoff'?live.steer:cinema.car.steer,
         elapsedMs:cinema.kind==='opening'?this.introMs:cinema.kind==='outro'?live.elapsedMs+this.outroMs:live.elapsedMs}:live;
       const progress=s.progress,frameContext=ctx,showFeedback=cinema?.kind!=='outro';
+      if(ctx===window.renderer?.ctx)this.gpuFrameContext=ctx;
+      const directGpu=B.CacheRoadGPU?.beginFrame?.(frameContext)===true;
       const budgetOwner=B.CacheRoadRenderBudget;
-      const budgetEligible=!!budgetOwner&&ctx===window.renderer?.ctx&&
+      const budgetEligible=!this.gpuRecoveryPainting&&!!budgetOwner&&ctx===window.renderer?.ctx&&
         ctx.canvas?.width===1920&&ctx.canvas?.height===1080&&
         typeof window.performance?.now==='function'&&typeof ctx.getTransform==='function';
       if(budgetEligible&&this.renderBudgetState!==live) {
         this.renderBudget=budgetOwner.create();this.renderBudgetState=live;
       }
       if(budgetEligible){this.renderBudget.worldPixelCopyUsed=false;this.renderBudget.mirrorPixelCopyUsed=false;}
-      const worldScale=budgetEligible?this.renderBudget.scale:1;
+      // Native artwork quality is unconditional; the budget records cost only.
+      const worldScale=1;
       const assets=B.PresentationAssets;
       const priorRasterDetail=assets?.setRasterDetail?.(ctx,worldScale)??1;
       const priorDecorationDetail=assets?.setDecorationDetail?.(ctx,worldScale)??1;
       const renderStarted=budgetEligible?window.performance.now():0;
       const finishRender=()=>{
+        if(directGpu&&B.CacheRoadGPU.present(frameContext)!==true) {
+          this.gpuRecoveryPainting=true;
+          try {B.CacheRoadGPU.withNativeFallback(()=>this.draw(frameContext));}
+          finally {this.gpuRecoveryPainting=false;}
+        }
         assets?.setRasterDetail?.(frameContext,priorRasterDetail);
         assets?.setDecorationDetail?.(frameContext,priorDecorationDetail);
         if(budgetEligible) {
@@ -3727,10 +3919,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // full-size painting before the small opaque backing is built.
       if(worldScale<1)ctx.clearRect(0,0,1920,1080);
       ctx.setTransform(worldScale,0,0,worldScale,0,0);
-      // Level 1's clear() requests high-quality image resampling. The road
-      // submits hundreds of projected/cropped textures on that same context;
-      // use its fast bilinear sampler here and restore the caller afterward.
-      ctx.imageSmoothingQuality='low';
+      // Native artwork retains the shared renderer's high-quality sampling.
+      // Only the legacy reduced backing uses the cheaper bilinear sampler.
+      // The enclosing save/restore keeps the caller's sampling setting intact.
+      if(worldScale<1)ctx.imageSmoothingQuality='low';
       if(worldScale<1) {
         // Keep every world blend/filter inside the sampled source footprint.
         // A scaled transform alone still rasterizes off-crop paint and leaves
@@ -3771,21 +3963,31 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         styleKeys.forEach((key,index)=>{ctx[key]=styles[index];});ctx.setLineDash(dash);
         sampledWorld=false;
       };
+      const nativeSceneryContext=ctx,gpuSceneryOptions={kind:'forward',defer:directGpu};
+      const gpuSceneryContext=beginGpuScene(nativeSceneryContext,gpuSceneryOptions);
+      if(gpuSceneryContext)ctx=gpuSceneryContext;
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
-      const beatPulse = reduced ? 0 : Math.pow(1-((beat%1+1)%1),5);
+      const beatPulse = reduced || window.BARCODE_RENDER_QUALITY?.flashes===false ? 0 :
+        Math.pow(1-((beat%1+1)%1),5);
       const energy = stack/4 + (s.boostMs ? .3 : 0) + beatPulse*.27;
       const hue = (186 + section*65 + Math.sin(beat*.31)*55 + energy*37 + 360)%360;
       const sky = ctx.createLinearGradient(0, 0, 0, horizon + 70);
       sky.addColorStop(0, `hsl(${hue},48%,${9+energy*3}%)`);
       sky.addColorStop(.48, `hsl(${(hue+42)%360},58%,${14+energy*5}%)`);
       sky.addColorStop(1, skyBottoms[section]);
+      // The later opaque land replaces sky below this conservative fringe.
+      // Keep 16 device pixels across its antialiased, transformed boundary.
+      const skyPaintBottom=Math.min(worldViewport.bottom,horizon+16/(worldScale*camera.zoom));
       ctx.fillStyle = sky; ctx.fillRect(worldViewport.left,worldViewport.top,
-        worldViewport.right-worldViewport.left,worldViewport.bottom-worldViewport.top);
-      ctx.fillStyle = '#122236'; ctx.fillRect(0, horizon, 1920, bottom - horizon);
+        worldViewport.right-worldViewport.left,skyPaintBottom-worldViewport.top);
+      ctx.fillStyle = '#122236'; ctx.fillRect(0,horizon,1920,Math.max(0,skyPaintBottom-horizon));
       // Wide veils move with the shared beat and the number of parts playing.
       // Reduced Motion holds their geometry in place.
-      ctx.save(); ctx.globalCompositeOperation='screen';
+      ctx.save();
+      ctx.beginPath();ctx.rect(worldViewport.left-32,worldViewport.top-32,
+        worldViewport.right-worldViewport.left+64,skyPaintBottom-worldViewport.top+32);ctx.clip();
+      ctx.globalCompositeOperation='screen';
       for (let k=0;k<4;k++) {
         const cx=230+k*490+Math.sin(beat*(.18+k*.037)+k*1.8)*180;
         const cy=80+k%2*105+Math.cos(beat*.29+k*2)*28;
@@ -4191,7 +4393,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Every terrain slab uses the same crest mask. Build its native path
       // once per frame; rebuilding 65 vertices for each slab repeats costly
       // host Canvas calls. The fallback retains the existing command path.
-      const groundClip=typeof window.Path2D==='function'?new window.Path2D():null;
+      const groundClip=ctx.createPath?.()||
+        (typeof window.Path2D==='function'?new window.Path2D():null);
       if(groundClip) {
         groundClip.moveTo(...groundCrest[0]);
         for(let i=1;i<groundCrest.length;i++)groundClip.lineTo(...groundCrest[i]);
@@ -4391,7 +4594,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Adjacent slices read adjacent texels from horizon to car. Advancing
       // progress decreases the source offset so a mark moves toward the car.
       // Blend the wrap over the last 108 pixels into the first 108 pixels.
-      ctx.save();
+      const roadTextureAlpha=ctx.globalAlpha;
+      ctx.save(); ctx.clip();
       for (let i = 0; i < 28; i++) {
         let c=((-progress*.82+i*22)%616+616)%616, consumed=0;
         while (consumed<22) {
@@ -4411,16 +4615,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           consumed+=length; c=(c+length)%616;
         }
       }
-      ctx.restore();
+      ctx.globalAlpha=roadTextureAlpha;
       const roadFog=ctx.createLinearGradient(0,horizon,0,horizon+170);
       roadFog.addColorStop(0,'#1c293b9e'); roadFog.addColorStop(1,'#1c293b00');
-      ctx.save(); ctx.beginPath();
-      for (let i=0;i<=28;i++) {
-        const t=i/28; if (!i) ctx.moveTo(center(t)-half(t),roadY(t));
-        else ctx.lineTo(center(t)-half(t),roadY(t));
-      }
-      for (let i=28;i>=0;i--) { const t=i/28; ctx.lineTo(center(t)+half(t),roadY(t)); }
-      ctx.closePath(); ctx.clip(); ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
+      // Asphalt and fog share this identical road mask and paint order.
+      ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
       ctx.restore();
       // Stretch adjacent wall segments between the same projected road points.
       // This makes one continuous side wall rather than floating sign panels.
@@ -4509,6 +4708,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       for(const drawPool of lampPools)drawPool();
       worldPaint.sort((a,b)=>a.foot-b.foot||b.area.at-a.area.at);
       for(const item of worldPaint)item.draw();
+      if(gpuSceneryContext) {
+        finishGpuScene(gpuSceneryContext,nativeSceneryContext,gpuSceneryOptions);
+        ctx=nativeSceneryContext;
+      }
       // Expand the background once before functional road paint and vehicles.
       // Their projection/order is unchanged and their detail remains native.
       expandSampledWorld();
@@ -4520,92 +4723,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const nextPulse = roadPulses(s).find(p => s.pulseTargets[p.id]!==undefined &&
         s.pulseTargets[p.id]>=s.musicBeatFloat-(pulseWindowSec(s)+1e-8)/cueBeatSec&&
         (!s.caughtPulses[p.id]||s.pendingPulseAwards.some(hit=>hit.pulse.id===p.id)));
-      const nextCue=nextPulse&&pulseVisual(nextPulse,s,cueBeatSec);
       // Input calibration adjusts a physical tap only. It must never move
       // the visible countdown away from the song's actual beat.
+      const nextCue=nextPulse&&pulseVisual(nextPulse,s,cueBeatSec);
       const beatDistance=beat=>{
         const at=roadAtBeat(s,beat);
         return at===null?null:STRIKE_DISTANCE+at-progress;
       };
-      const committedEnd=s.driveSections.at(-1)?.beat+4;
-      const floatBar = s.musicBeatFloat / 4;
-      // The confirmed phrase is a continuous four-bar wash, with painted
-      // beat marks placed in each bar below. The wash follows the exact road
-      // curve and stays under cars; upcoming captures keep only their preview.
-      for(let lane=0;lane<4;lane++) {
-        const capture=s.captures.find(c=>c.lane===lane &&
-          c.startBeat<(floatBar+4)*4 && c.endBeat>floatBar*4);
-        if(!capture)continue;
-        const start=Math.max(floatBar,capture.startBeat/4);
-        const end=Math.min(committedEnd/4,capture.endBeat/4,100);
-        if(!Number.isFinite(end)||end<=start)continue;
-        const near=depth(Math.max(-55,beatDistance(start*4)));
-        const far=depth(beatDistance(end*4));
-        if(near<=far)continue;
-        const inset=8;
-        ctx.save();ctx.globalAlpha=.09;ctx.fillStyle=PALETTE[lane];
-        ctx.beginPath();
-        for(let i=0;i<=12;i++) {
-          const t=far+(near-far)*i/12;
-          const px=laneEdge(lane,t)+inset,py=roadY(t);
-          if(!i)ctx.moveTo(px,py);else ctx.lineTo(px,py);
-        }
-        for(let i=12;i>=0;i--) {
-          const t=far+(near-far)*i/12;
-          ctx.lineTo(laneEdge(lane+1,t)-inset,roadY(t));
-        }
-        ctx.closePath();ctx.fill();ctx.restore();
-      }
-      for (let bar = Math.floor(floatBar) + 8; bar >= Math.floor(floatBar); bar--) {
-        if (bar >= 100 || beatDistance(bar*4)===null || beatDistance((bar+1)*4)===null) continue;
-        const near = depth(Math.max(-55,beatDistance(bar*4)));
-        const far = depth(beatDistance((bar+1)*4));
-        if (near <= .12 || near <= far) continue;
-        for (let lane = 0; lane < 4; lane++) {
-          const active = s.captures.find(c => c.lane === lane && c.startBeat < (bar + 1) * 4 && c.endBeat > bar * 4);
-          const queued = !active && s.queuedCaptures.find(c => c.lane === lane &&
-            c.startBeat <= bar * 4 && c.endBeat > bar * 4);
-          if (!active && !queued) continue;
-          const mark = active || queued;
-          const slot = bar - mark.startBeat / 4;
-          const reveal = active || mark.inkAtMs == null ? 1 :
-            clamp((s.elapsedMs - mark.inkAtMs - (3 - slot) * 100) / 260, 0, 1);
-          if (!reveal) continue;
-          // Show the next four lit bars as separate, road-bound ink tiles.
-          // Queued captures keep the thin preview; a successful press swaps
-          // it for the much broader confirmed painting beneath traffic.
-          if(active && bar >= Math.floor(floatBar)+4)continue;
-          const trimFar=far+(near-far)*.08,trimNear=far+(near-far)*.91;
-          const inset=5+near*10;
-          const tile=[
-            [laneEdge(lane,trimNear)+inset,roadY(trimNear)],
-            [laneEdge(lane+1,trimNear)-inset,roadY(trimNear)],
-            [laneEdge(lane+1,trimFar)-inset,roadY(trimFar)],
-            [laneEdge(lane,trimFar)+inset,roadY(trimFar)]];
-          ctx.save();
-          if(active) {
-            ctx.globalAlpha=.30*reveal;
-            if(!paintComicDecal(ctx,'cacheConfirmedBar',tile))
-              polygon(ctx,tile,'#b8ebda');
-          } else {
-            ctx.globalAlpha=.31*reveal;
-            paintComicDecal(ctx,'cachePhraseStrip',tile);
-          }
-          ctx.restore();
-        }
-        if(bar%4===0) {
-          ctx.strokeStyle = '#b4f9ec';
-          ctx.globalAlpha = .25;
-          ctx.lineWidth = 2+near*3;
-          ctx.beginPath();ctx.moveTo(laneEdge(0,near),roadY(near));
-          ctx.lineTo(laneEdge(4,near),roadY(near));ctx.stroke();ctx.globalAlpha=1;
-        }
-        if (bar % 4 === 0 && near > .23 && Math.abs(roadY(near)-strikeY)>50) {
-          ctx.fillStyle = '#d4fff1'; ctx.font = `bold ${Math.round(10 + 17 * near)}px Oxanium, monospace`;
-          ctx.textAlign = 'right'; ctx.fillText(`${songSection(bar)} / ${bar + 1}–${bar + 4}`,
-            laneEdge(0,near)-13, roadY(near)+3);
-        }
-      }
+      // Captures still own the real music layers and duration. Their broad
+      // road washes/tiles duplicated pad/HUD feedback and are omitted here.
       for (const side of [-1, 1]) {
         ctx.strokeStyle = s.fullAdrenaline ? '#ffe4a2' :
           section === 3 ? '#a2f9c9' : '#f0a0ac'; ctx.lineWidth = 4;
@@ -5311,9 +5437,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle='#bcebd3';ctx.font='bold 17px Oxanium, monospace';
       ctx.fillText(String(s.score).padStart(6,'0'),410,131,73);
       ctx.font='bold 12px Oxanium, monospace';ctx.fillText(`×${stackSize(s)}`,488,131,27);
-      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,worldScale<1,
-        frameContext===ctx&&this.status==='playing'&&intro===null&&
-          (!cinema||cinema.hudAlpha===1)&&worldScale<1,budgetEligible?this.renderBudget:null);
+      const nativeMirror=budgetEligible&&frameContext===ctx&&
+        typeof window.HTMLCanvasElement==='function'&&ctx.canvas instanceof window.HTMLCanvasElement&&
+        this.status==='playing'&&intro===null&&(!cinema||cinema.hudAlpha===1);
+      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,
+        false,nativeMirror,budgetEligible?this.renderBudget:null);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
       // Preview the next lane/action before its bar is committed, without
       // inventing a deadline or sliding a future pad when the gear changes.

@@ -1,5 +1,6 @@
 // Loader lifecycle and production Chromium frame/raster comparisons.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const nativeFallbackDiagnostic=process.env.CACHE_NATIVE_FALLBACK_DIAGNOSTIC==='1';
 const source=fs.readFileSync(path.resolve(__dirname,'../src/engine/presentation-assets.js'),'utf8');
 const inspected=source.replace('  const cache = {};','  const cache = {};window.bitmapReview={entries,cache};');
 async function unit(){
@@ -48,7 +49,86 @@ async function unit(){
   console.log('PASS: one SVG preparation per load, warm/pause reuse, exact source rectangles, context preservation, raster routing and graceful bitmap rejection.');
 }
 
+async function gpuOriginalReadinessUnit(){
+  let finishBitmap,decodeCalls=0,bitmapAttempts=0;
+  class Image {
+    constructor(){this.naturalWidth=256;this.naturalHeight=256;}
+    decode(){decodeCalls++;return Promise.resolve();}
+  }
+  const w={Image,BARCODE:{},createImageBitmap(){
+    bitmapAttempts++;return new Promise(resolve=>{finishBitmap=resolve;});
+  }};
+  vm.runInNewContext(inspected,{window:w});
+  const {entries,cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets,
+    key='cacheSidewalk',state=cache[key],image=state.image;
+  let readySources;
+  const readiness=P.waitForGpuSources([key,key]).then(value=>{readySources=value;});
+  image.onload();await new Promise(setImmediate);
+  assert(readySources,'a pending SVG derivative cannot hold valid original readiness');
+  await readiness;
+  assert.equal(state.ready,true);assert.equal(state.bitmap,undefined);
+  assert.equal(readySources.length,1);assert.equal(readySources[0].image,image);
+  assert.equal(readySources[0].path,entries[key].path);
+  assert.equal(bitmapAttempts,1);assert.equal(decodeCalls,0,'GPU warmup remains the sole decode owner');
+  const nativeCalls=[],gpuCalls=[],native={imageSmoothingEnabled:true,save(){},restore(){},
+    translate(){},scale(){},drawImage(...args){nativeCalls.push(args);}},
+    gpu={...native,isGpuScene:true,drawImage(...args){gpuCalls.push(args);}};
+  const draw={x:0,y:0,width:64,height:64};
+  assert(P.draw(key,native,draw));assert.equal(nativeCalls.at(-1)[0],image,
+    'native recovery can draw the valid original while its optional bitmap is pending');
+  assert(P.draw(key,gpu,draw));assert.equal(gpuCalls.at(-1)[0],image);
+  const bitmap={width:256,height:256};finishBitmap(bitmap);await new Promise(setImmediate);
+  assert.equal(state.bitmap,bitmap);assert(P.draw(key,native,draw));assert.equal(nativeCalls.at(-1)[0],bitmap);
+  assert(P.draw(key,gpu,draw));assert.equal(gpuCalls.at(-1)[0],image);
+  assert.equal(bitmapAttempts,1);assert.equal(decodeCalls,0);
+
+  const fallback=cache.cacheOuterGround;let fallbackResult;
+  const fallbackWait=P.waitForGpuSources(['cacheOuterGround']).then(value=>{fallbackResult=value;});
+  fallback.image.onerror();await new Promise(setImmediate);
+  assert.equal(fallbackResult,undefined,'the first pinned failure still waits for its bundled original');
+  assert.equal(fallback.image.src,entries.cacheOuterGround.path);
+  fallback.image.onload();await fallbackWait;
+  assert.equal(fallbackResult[0].image,fallback.image);assert.equal(fallback.ready,true);
+
+  const invalid=cache.cacheJoinLTurn,failed=cache.cacheJoinRTurn;
+  invalid.image.naturalWidth=0;invalid.image.onload();
+  const invalidResult=await P.waitForGpuSources(['cacheJoinLTurn']);
+  assert.equal(invalidResult.length,0);assert.equal(invalid.ready,false);
+  const failedWait=P.waitForGpuSources(['cacheJoinRTurn']);
+  failed.image.onerror();failed.image.onerror();
+  assert.equal((await failedWait).length,0);assert.equal(failed.ready,false);
+  assert.equal(decodeCalls,0);
+  console.log('PASS: loaded-original GPU readiness, pending SVG derivative native fallback, sole warmup decode ownership and honest bundled/invalid-source handling.');
+}
+
 async function backgroundRasterUnit(){
+  // A complete native-only preload still prepares SVG/native assets, but
+  // must allocate no unused quarter-size world or decoration derivatives.
+  {
+    const prepared=[];
+    class Image {constructor(){this.naturalWidth=1024;this.naturalHeight=512;}}
+    const w={Image,BARCODE:{},createImageBitmap(image,...args){
+      prepared.push({image,args});
+      const options=typeof args[0]==='object'?args[0]:undefined;
+      return Promise.resolve({width:options?.resizeWidth||(typeof args[0]==='number'?args[2]:image.naturalWidth),
+        height:options?.resizeHeight||(typeof args[0]==='number'?args[3]:image.naturalHeight)});
+    }};
+    vm.runInNewContext(inspected,{window:w});
+    const {entries,cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets,ctx={};
+    for(const state of Object.values(cache))state.image.onload();
+    await new Promise(setImmediate);
+    assert(prepared.length>0,'native/SVG preparation remains active');
+    assert(Object.entries(entries).filter(([,entry])=>entry.path.endsWith('.svg'))
+      .every(([key])=>cache[key].bitmap),'loaded SVG originals are still prepared');
+    assert.equal(prepared.filter(call=>call.args[0]?.resizeWidth).length,0,
+      'native preload performs ZERO quarter-size preparations');
+    assert(Object.values(cache).every(state=>!state.rasterBitmap&&!state.rasterPending));
+    for(const scale of [1,.5,0,-1,NaN,Infinity])P.setRasterDetail(ctx,scale);
+    for(const scale of [1,0,-1,NaN,Infinity])P.setDecorationDetail(ctx,scale);
+    P.preload();await new Promise(setImmediate);
+    assert.equal(prepared.filter(call=>call.args[0]?.resizeWidth).length,0,
+      'native/re-entry/invalid or non-selecting detail hints cannot start quarter preparation');
+  }
   for(const failure of ['none','reject','throw','invalid']){
     const prepared=[],closed=[];
     class Image {constructor(){this.naturalWidth=2048;this.naturalHeight=1024;}}
@@ -62,25 +142,36 @@ async function backgroundRasterUnit(){
     vm.runInNewContext(inspected,{window:w});
     const {entries,cache}=w.bitmapReview,assets=w.BARCODE.PresentationAssets;
     const key='cacheDistantCity',state=cache[key],image=state.image;
-    image.onload();assert(state.ready,'background art is available while its derivative prepares');
+    image.onload();assert(state.ready,'native background art is available without a derivative');
     await new Promise(setImmediate);
-    assert.equal(prepared.length,1);assert.equal(!!state.rasterBitmap,failure==='none');
-    assert.equal(state.rasterPending,false);
-    assert.equal(closed.length,failure==='invalid'?1:0);
+    assert.equal(prepared.length,0,'preload retains the original native background only');
     const calls=[],ctx={imageSmoothingEnabled:true,save(){},restore(){},translate(){},scale(){},
       drawImage(...args){calls.push(args);}};
     const args={x:0,y:0,width:80,height:40,sourceRect:[12,8,100,40]};
     assets.draw(key,ctx,args);
     assert.equal(calls[0][0],image,'native foreground retains the original source');
     assert.equal(assets.setRasterDetail(ctx,.25),1);
+    assert.equal(prepared.length,1,'the first selecting legacy request starts one derivative');
+    assets.draw(key,ctx,args);
+    assert.equal(calls[1][0],image,'a pending or failed derivative uses the original immediately');
+    for(let i=0;i<25;i++)assets.setRasterDetail(ctx,.25);
+    assert.equal(prepared.length,1,'repeated pending requests cannot duplicate preparation');
+    await new Promise(setImmediate);
+    assert.equal(!!state.rasterBitmap,failure==='none');assert.equal(state.rasterPending,false);
+    assert.equal(closed.length,failure==='invalid'?1:0);
     for(let i=0;i<25;i++)assets.draw(key,ctx,args);
     assert.equal(prepared.length,1,'warm/paused draws never rebuild background derivatives');
-    const call=calls[1];
+    const call=calls[2];
     assert.equal(call[0],state.rasterBitmap||image);
     assert.deepEqual(call.slice(1),failure==='none'?
       [3,2,25,10,0,-40,80,40]:[12,8,100,40,0,-40,80,40]);
     assert.equal(assets.setRasterDetail(ctx,1),.25);
     assets.draw(key,ctx,args);assert.equal(calls.at(-1)[0],image);
+    // A different first demand rescans ready entries. Settled successes and
+    // reject/throw/invalid failures must never reserve or prepare them again.
+    assets.setDecorationDetail(ctx,.5);assets.setRasterDetail(ctx,.25);
+    await new Promise(setImmediate);assert.equal(prepared.length,1,
+      'ready and failed derivatives are not retried on another demand scan');
     w.BARCODE.PresentationAssets.preload();assert.equal(prepared.length,1);
     const hud=cache.cacheDashBezel;hud.image.onload();await new Promise(setImmediate);
     assert.equal(prepared.length,2,'HUD preparation retains native resolution');
@@ -92,17 +183,27 @@ async function backgroundRasterUnit(){
   const prepared=[];
   class Image {constructor(){this.naturalWidth=8192;this.naturalHeight=4096;}}
   const w={Image,BARCODE:{},createImageBitmap(image,options){
+    // Count the quarter pool separately from eligible whole native sources.
+    if(!options)return Promise.resolve({width:image.naturalWidth,height:image.naturalHeight});
     prepared.push(options);return Promise.resolve({width:options.resizeWidth,height:options.resizeHeight});
   }};
   vm.runInNewContext(inspected,{window:w});
+  const budgetCtx={},budgetAssets=w.BARCODE.PresentationAssets;
+  budgetAssets.setRasterDetail(budgetCtx,.25);
   for(const [key,entry]of Object.entries(w.bitmapReview.entries)){
     if(entry.path.startsWith('assets/cache-road/world/')&&entry.path.endsWith('.webp'))
       w.bitmapReview.cache[key].image.onload();
   }
-  await new Promise(setImmediate);
   assert(prepared.length>0&&prepared.length<=16);
+  const reservedCount=prepared.length;
+  budgetAssets.setDecorationDetail(budgetCtx,.5);
+  assert.equal(prepared.length,reservedCount,'pending and budget-rejected entries cannot re-reserve on another scan');
+  await new Promise(setImmediate);
   assert(Object.values(w.bitmapReview.cache).reduce((sum,state)=>
     sum+(state.rasterBitmap?state.rasterBitmap.width*state.rasterBitmap.height:0),0)<=32*1024*1024);
+  budgetAssets.setRasterDetail(budgetCtx,1);budgetAssets.setRasterDetail(budgetCtx,.25);
+  budgetAssets.preload();await new Promise(setImmediate);
+  assert.equal(prepared.length,reservedCount,'settled/budget-rejected preparations remain one attempt each');
   // Smaller animated street sheets also need a stable decoded thumbnail.
   // The old one-megapixel cutoff missed signals, lamps and walking atlases.
   const smallPrepared=[];
@@ -112,13 +213,15 @@ async function backgroundRasterUnit(){
   vm.runInNewContext(inspected,{window:smallWindow});
   const smallState=smallWindow.bitmapReview.cache.cacheNewCrossingSignalR;
   smallState.image.onload();await new Promise(setImmediate);
+  assert.equal(smallPrepared.length,0);
+  const smallCalls=[],smallSampling=[],smallCtx={imageSmoothingEnabled:true,save(){},restore(){},translate(){},scale(){},drawImage(...args){smallCalls.push(args);smallSampling.push(this.imageSmoothingEnabled);}};
+  const smallAssets=smallWindow.BARCODE.PresentationAssets;
+  smallAssets.setRasterDetail(smallCtx,.25);
+  await new Promise(setImmediate);
   assert.equal(smallPrepared.length,1);
   assert.equal(smallPrepared[0].resizeWidth,288);
   assert.equal(smallPrepared[0].resizeHeight,144);
   assert.equal(smallPrepared[0].resizeQuality,'high');
-  const smallCalls=[],smallSampling=[],smallCtx={imageSmoothingEnabled:true,save(){},restore(){},translate(){},scale(){},drawImage(...args){smallCalls.push(args);smallSampling.push(this.imageSmoothingEnabled);}};
-  const smallAssets=smallWindow.BARCODE.PresentationAssets;
-  smallAssets.setRasterDetail(smallCtx,.25);
   smallAssets.draw('cacheNewCrossingSignalR',smallCtx,{width:80,height:40,frame:2,sourceRect:[12,8,100,40]});
   assert.equal(smallCalls[0][0],smallState.rasterBitmap);
   assert.equal(smallSampling[0],false,'reduced background uses its sampled source directly');
@@ -139,7 +242,45 @@ async function backgroundRasterUnit(){
   assert.equal(smallAssets.setDecorationDetail(smallCtx,1),1/6);
   smallAssets.draw('cacheSpeedMist',smallCtx,{width:80,height:40});
   assert.equal(diffuseCalls[2][0],diffuse.image,'full-detail diffuse artwork retains the original source');
-  console.log('PASS: one bounded background derivative, source/crop geometry, original native routing, pause reuse, graceful failure and concurrent pixel reservations.');
+  // Request-before-load uses the same owner APIs. Decoration demand must
+  // prepare only diffuse images until an actual quarter world request arrives.
+  {
+    const attempts=[];
+    class Image{constructor(){this.naturalWidth=1152;this.naturalHeight=576;}}
+    const w={Image,BARCODE:{},createImageBitmap(image,options){attempts.push({image,options});
+      return Promise.resolve({width:options.resizeWidth,height:options.resizeHeight});}};
+    vm.runInNewContext(inspected,{window:w});
+    const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets,ctx={imageSmoothingEnabled:true,
+      save(){},restore(){},translate(){},scale(){},drawImage(){}};
+    const signal=cache.cacheNewCrossingSignalR,mist=cache.cacheSpeedMist,city=cache.cacheDistantCity;
+    assert.equal(P.setDecorationDetail(ctx,1/6),1);assert.equal(attempts.length,0);
+    signal.image.onload();mist.image.onload();await new Promise(setImmediate);
+    assert.equal(attempts.length,1);assert.equal(attempts[0].image,mist.image,
+      'an outstanding decoration request prepares only diffuse art on load');
+    assert(mist.rasterBitmap);assert(!signal.rasterBitmap);
+    P.setRasterDetail(ctx,.5);assert.equal(attempts.length,1,
+      'non-quarter world detail cannot request an unused background derivative');
+    P.setRasterDetail(ctx,.25);await new Promise(setImmediate);
+    assert.equal(attempts.length,2);assert.equal(attempts[1].image,signal.image);
+    assert(signal.rasterBitmap,'world demand prepares an already loaded eligible sheet');
+    P.setRasterDetail(ctx,1);P.setDecorationDetail(ctx,1);
+    city.image.onload();await new Promise(setImmediate);
+    assert.equal(attempts.length,3);assert.equal(attempts[2].image,city.image,
+      'late loads honor prior legacy demand after context detail is restored');
+    assert(city.rasterBitmap);P.setRasterDetail(ctx,.25);P.setDecorationDetail(ctx,.5);P.preload();
+    await new Promise(setImmediate);assert.equal(attempts.length,3);
+  }
+  {
+    class Image{constructor(){this.naturalWidth=2048;this.naturalHeight=1024;}}
+    const w={Image,BARCODE:{}};vm.runInNewContext(inspected,{window:w});
+    const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets,city=cache.cacheDistantCity,calls=[];
+    const ctx={imageSmoothingEnabled:true,save(){},restore(){},translate(){},scale(){},
+      drawImage(...args){calls.push(args);}};
+    P.setRasterDetail(ctx,.25);city.image.onload();P.draw('cacheDistantCity',ctx,{width:80,height:40});
+    assert.equal(calls[0][0],city.image,'unsupported bitmap preparation preserves original-image rendering');
+    assert(!city.rasterBitmap&&!city.rasterPending);
+  }
+  console.log('PASS: zero native quarter preparation; explicit/pre-load/diffuse-only demand; pending original fallback; unchanged reduced cel/crop/sampling; one attempt across pending/ready/failure/budget states.');
 }
 
 async function nativeRasterUnit(){
@@ -185,6 +326,11 @@ async function nativeRasterUnit(){
     if(attempts.length===3)return Promise.reject(Error('one missing cel'));
     return Promise.resolve({width:crop[2]||image.naturalWidth,height:crop[3]||image.naturalHeight,close(){closed.push(this);}});}};
   vm.runInNewContext(inspected,{window:w});
+  // This fixture tests a complete ordinary atlas after unused priorities have
+  // terminally failed; its original exact-cap/atomic-close assertions remain.
+  for(const key of ['cacheBlacktop','cacheGreenhouseWorkshop']){
+    const image=w.bitmapReview.cache[key].image;image.onerror();image.onerror();
+  }
   for(const key of ['cacheCombatBike','cacheCombatHostiles','cacheCar','cacheBeatHardware'])
     w.bitmapReview.cache[key].image.onload();
   await new Promise(setImmediate);
@@ -202,6 +348,298 @@ async function nativeRasterUnit(){
   console.log('PASS: bounded original-size native frames, unchanged crop/registration, cross-cel fallback, atomic failures and concurrent reservations.');
 }
 
+async function nativeMappedDecodeUnit(){
+  // Three sources mapped to recurring native decode stalls prepare whole originals;
+  // unsupported, pending and budget-limited cases keep the original source.
+  const keys=['cacheRepairShop','cacheMarketRFrontGap','cacheStreetBicycleRack'];
+  const dims={cacheRepairShop:[1389,1132],cacheMarketRFrontGap:[1942,809],cacheStreetBicycleRack:[1526,1023]};
+  const priorityDims={cacheBlacktop:[2172,724],cacheGreenhouseWorkshop:[1536,1024]};
+  const reserved=Object.values(priorityDims).reduce((n,[w,h])=>n+w*h,0);
+  const pixels=Object.values(dims).reduce((n,[w,h])=>n+w*h,0),cap=32*1024*1024;
+  const flush=()=>new Promise(setImmediate);
+  function fixture(mode='pending') {
+    const images=[],calls=[],closed=[],pending=[];
+    class Image {constructor(){this.naturalWidth=1024;this.naturalHeight=512;images.push(this);}}
+    const prohibited=()=>{throw Error('new owner/resource operation prohibited');};
+    const w={Image,BARCODE:{},requestAnimationFrame:prohibited,setTimeout:prohibited,setInterval:prohibited,
+      HTMLCanvasElement:class {constructor(){prohibited();}},OffscreenCanvas:class {constructor(){prohibited();}}};
+    if(mode!=='unavailable')w.createImageBitmap=(image,...args)=>{
+      calls.push({image,args});
+      if(mode==='throw')throw Error('factory unavailable');
+      if(mode==='reject')return Promise.reject(Error('factory rejected'));
+      const width=typeof args[0]==='number'?args[2]:image.naturalWidth;
+      const height=typeof args[0]==='number'?args[3]:image.naturalHeight;
+      const bitmap=Object.freeze({width:mode==='invalid'?0:width,height,close(){closed.push(this);}});
+      if(mode==='pending')return new Promise(resolve=>pending.push(()=>resolve(bitmap)));
+      return Promise.resolve(bitmap);
+    };
+    const propInspected=inspected.replace('  B.PresentationAssets = {',
+      '  window.bitmapReview.nativeUsage=()=>({pixels:nativeRasterPixels,small:nativeSmallPixels});\n  B.PresentationAssets = {');
+    assert.notEqual(propInspected,inspected);new vm.Script(propInspected).runInNewContext({window:w});
+    const review=w.bitmapReview,P=w.BARCODE.PresentationAssets;
+    function load(key,size=dims[key]){
+      const state=review.cache[key];[state.image.naturalWidth,state.image.naturalHeight]=size;
+      assert.equal(typeof state.image.onload,'function');state.image.onload();
+      assert.equal(state.image.onload,null);assert.equal(state.image.onerror,null);return state;
+    }
+    return {w,P,review,images,calls,closed,pending,load};
+  }
+  function multiply(a,b){return [a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];}
+  function context(){
+    const fields=['globalAlpha','filter','globalCompositeOperation','imageSmoothingEnabled','shadowBlur','shadowOffsetX','shadowOffsetY','shadowColor'];
+    const stack=[],c={calls:[],matrix:[.91,.17,-.13,1.04,31,19],globalAlpha:.47,filter:'blur(2.3px)',
+      globalCompositeOperation:'source-over',imageSmoothingEnabled:false,shadowBlur:0,shadowOffsetX:0,shadowOffsetY:0,shadowColor:'transparent'};
+    c.snapshot=()=>({matrix:c.matrix.slice(),...Object.fromEntries(fields.map(k=>[k,c[k]]))});
+    c.save=()=>stack.push(c.snapshot());c.restore=()=>Object.assign(c,stack.pop());
+    c.translate=(x,y)=>{c.matrix=multiply(c.matrix,[1,0,0,1,x,y]);};
+    c.scale=(x,y)=>{c.matrix=multiply(c.matrix,[x,0,0,y,0,0]);};
+    c.drawImage=(...args)=>c.calls.push({args,at:c.snapshot()});return c;
+  }
+  function mappingProof(f,key,expectedImage){
+    const ctx=context(),before=ctx.snapshot(),[w,h]=dims[key],state=f.review.cache[key];
+    assert.equal(f.P.draw(key,ctx,{x:0,y:0,width:123}),true);
+    assert.equal(ctx.calls[0].args[0],expectedImage);
+    assert.deepEqual(ctx.calls[0].args.slice(1),[0,0,w,h,-61.5,-123*h/w,123,123*h/w]);
+    assert.deepEqual(ctx.calls[0].at.matrix,before.matrix);assert.equal(ctx.calls[0].at.imageSmoothingEnabled,true);
+    assert.equal(ctx.calls[0].at.globalAlpha,before.globalAlpha);assert.equal(ctx.calls[0].at.filter,before.filter);
+    assert.deepEqual(ctx.snapshot(),before,'direct source draws restore caller sampler/transform/paint');
+    const opts={x:43,y:91,width:90,height:48,frame:99,flip:true,sourceRect:[7,9,100,83]};
+    assert.equal(f.P.draw(key,ctx,opts),true);const translated=ctx.calls[1];
+    assert.equal(translated.args[0],expectedImage);
+    assert.deepEqual(translated.args.slice(1),[7,9,100,83,-45,-48,90,48]);
+    assert.deepEqual(translated.at.matrix,multiply(multiply(before.matrix,[1,0,0,1,43,91]),[-1,0,0,1,0,0]));
+    assert.deepEqual(ctx.snapshot(),before,'translated/flipped draw restores caller context');
+    assert.equal(translated.at.globalCompositeOperation,before.globalCompositeOperation);
+    assert.equal(translated.at.globalAlpha,before.globalAlpha);assert.equal(translated.at.filter,before.filter);
+    assert.equal(state.image.naturalWidth,w,'authoritative original remains intact');
+    return {rects:ctx.calls.map(c=>c.args.slice(1)),transforms:ctx.calls.map(c=>c.at.matrix)};
+  }
+  function preparationsProof(f){
+    for(const key of keys)f.load(key);
+    const selected=f.calls.filter(call=>keys.some(key=>f.review.cache[key].image===call.image));
+    assert.equal(selected.length,3,'each of the three mapped original sources prepares once');
+    for(const call of selected)assert.equal(call.args.length,0,'whole original default factory: no crop/options/resize/color changes');
+    for(const key of keys){
+      const entry=f.review.entries[key];assert.deepEqual([entry.columns,entry.rows,entry.frames],[1,1,1]);
+      assert.equal(entry.crop,undefined);assert.equal(entry.frameCrops,undefined);assert.equal(entry.smooth,true);
+    }
+    return selected;
+  }
+  const pending=fixture();
+  assert.equal(pending.review.nativeUsage().pixels,reserved,'unloaded priorities already reserve their exact whole-source pixels');
+  for(const key of keys){
+    const ctx=context(),before=ctx.snapshot();
+    assert.equal(pending.P.draw(key,ctx,{width:123}),false,'not-loaded source retains existing missing-art return');
+    assert.equal(ctx.calls.length,0);assert.deepEqual(ctx.snapshot(),before);
+  }
+  preparationsProof(pending);
+  assert.equal(pending.review.nativeUsage().pixels,pixels+reserved);assert.equal(pending.review.nativeUsage().small,0);
+  const pendingMappings={};
+  for(const key of keys){
+    const state=pending.review.cache[key];assert.equal(state.nativePending,true);assert.equal(state.nativeBitmap,undefined);
+    pendingMappings[key]=mappingProof(pending,key,state.image);
+  }
+  const imageCount=pending.images.length,callCount=pending.calls.length;pending.P.preload();
+  assert.equal(pending.images.length,imageCount);assert.equal(pending.calls.length,callCount);
+  pending.pending.forEach(resolve=>resolve());await flush();
+  for(const key of keys){
+    const state=pending.review.cache[key];assert.equal(state.nativePending,false);assert(state.nativeBitmap);
+    assert.deepEqual(mappingProof(pending,key,state.nativeBitmap),pendingMappings[key],'prepared source preserves exact caller geometry');
+    for(let repeat=0;repeat<12;repeat++)mappingProof(pending,key,state.nativeBitmap);
+  }
+  pending.P.preload();assert.equal(pending.calls.length,3,'draw/cached/restart reuse causes no new factory call');
+  for(const key of ['cacheDistantCity','cacheNewWayfindingSign',
+    'cacheStreetDeliveryVan','cacheNewBinsRecycling','cacheStreetBenchPlanters','cachePersonStudent'])pending.load(key,[1024,512]);
+  await flush();assert.equal(pending.calls.length,3,'city, prior no-gain props and other decoded sources remain excluded');
+  assert.equal(pending.review.nativeUsage().pixels,pixels+reserved);
+  for(const [key,size]of Object.entries(priorityDims)){
+    const state=pending.load(key,size),call=pending.calls.at(-1);
+    assert.equal(call.image,state.image);assert.equal(call.args.length,0,'priorities use exactly the whole-original default factory');
+    assert(state.ready&&state.nativePending,'priority preparation retains immediate original readiness');
+    const ctx=context();pending.P.draw(key,ctx,{width:123,height:61});
+    assert.equal(ctx.calls[0].args[0],state.image,'pending priority draws retain the original');
+  }
+  assert.equal(pending.calls.length,5);assert.equal(pending.review.nativeUsage().pixels,pixels+reserved);
+  pending.pending.slice(3).forEach(resolve=>resolve());await flush();
+  for(const key of Object.keys(priorityDims)){
+    const ctx=context(),state=pending.review.cache[key];pending.P.draw(key,ctx,{width:123,height:61});
+    assert.equal(ctx.calls[0].args[0],state.nativeBitmap);assert.equal(state.nativePending,false);
+  }
+  const warmCount=pending.calls.length;pending.P.preload();assert.equal(pending.calls.length,warmCount);
+  for(const mode of ['unavailable','reject','throw','invalid']){
+    const f=fixture(mode);for(const key of keys)f.load(key);
+    for(const key of keys)mappingProof(f,key,f.review.cache[key].image);
+    await flush();assert.equal(f.review.nativeUsage().pixels,reserved,'mapped failures release their allocations and retain unloaded priority slots');
+    assert.equal(f.review.nativeUsage().small,0);
+    assert.equal(f.closed.length,mode==='invalid'?3:0,'only returned malformed bitmaps close');
+    for(const key of keys){const state=f.review.cache[key];assert.equal(state.nativeBitmap,undefined);mappingProof(f,key,state.image);}
+    for(const [key,size]of Object.entries(priorityDims))f.load(key,size);
+    await flush();assert.equal(f.review.nativeUsage().pixels,0,'failed priorities release their reserved slots exactly once');
+    assert.equal(f.closed.length,mode==='invalid'?5:0,'all and only returned malformed backings close');
+    const count=f.calls.length,images=f.images.length;f.P.preload();
+    assert.equal(f.calls.length,count);assert.equal(f.images.length,images,'failure/re-entry does not recreate images or preparations');
+    if(mode!=='unavailable'){
+      f.load('cachePursuitRig',[4096,8192]);assert.equal(f.review.nativeUsage().pixels,cap,'released reservation permits a later exact-cap atlas');
+      await flush();assert.equal(f.calls.length,count+8);assert.equal(f.review.nativeUsage().pixels,0);
+    }
+
+  }
+  // Virtual original dimensions fill exactly the ordinary headroom while both
+  // real priority slots remain reserved. The 4x2 atlas cels stay integral.
+  const blocked=fixture(),availablePixels=cap-reserved;
+  assert.equal(availablePixels%8,0);blocked.load('cachePursuitRig',[20,availablePixels/20]);
+  assert.equal(blocked.review.nativeUsage().pixels,cap);
+  for(const key of keys){blocked.load(key);mappingProof(blocked,key,blocked.review.cache[key].image);}
+  await flush();assert.equal(blocked.calls.length,8,'budget decline starts no mapped-source factory call');
+  assert.equal(blocked.review.nativeUsage().pixels,cap);assert.equal(blocked.review.nativeUsage().small,0);
+  for(const key of keys){assert.equal(blocked.review.cache[key].nativeBitmap,undefined);assert.equal(blocked.review.cache[key].nativePending,undefined);}
+  blocked.P.preload();assert.equal(blocked.calls.length,8);
+  for(const [key,size]of Object.entries(priorityDims))blocked.load(key,size);
+  assert.equal(blocked.calls.length,10,'priority slots remain usable at the combined exact cap');
+  assert.equal(blocked.review.nativeUsage().pixels,cap);
+  blocked.pending.forEach(resolve=>resolve());await flush();
+  for(const key of Object.keys(priorityDims))assert(blocked.review.cache[key].nativeBitmap);
+  console.log('PASS: three mapped default whole-source native sources, pending/original fallback, exact mapped/context-preserving draws, exclusion, reuse, failure close/release and shared-cap decline.');
+}
+
+async function nativePriorityUnit(){
+  const cap=32*1024*1024,reserved=2172*724+1536*1024;
+  const flush=()=>new Promise(setImmediate);
+  function fixture(mode='pending'){
+    const calls=[],closed=[],images=[];
+    class Image {constructor(){this.naturalWidth=512;this.naturalHeight=512;images.push(this);}}
+    const w={Image,BARCODE:{}};
+    function bitmap(call,invalid=false){const frame=typeof call.args[0]==='number';
+      const result={width:invalid?0:frame?call.args[2]:call.image.naturalWidth,
+        height:frame?call.args[3]:call.image.naturalHeight,source:call.image,
+        close(){closed.push(result);}};call.bitmap=result;return result;}
+    w.createImageBitmap=(image,...args)=>{
+      const call={image,args};calls.push(call);
+      assert(!args.some(arg=>arg&&typeof arg==='object'),'no resampling/options factory argument');
+      const usage=w.cachePriorityReview.usage();assert(usage.total<=cap&&usage.small<=1536*1024,'both bounds include pending and priority slots');
+      if(mode==='throw')throw Error('factory unavailable');
+      if(mode==='reject')return Promise.reject(Error('decode rejection'));
+      if(mode==='invalid')return Promise.resolve(bitmap(call,true));
+      if(mode==='partial')return args[0]===444?Promise.reject(Error('one cell failure')):Promise.resolve(bitmap(call));
+      return new Promise((resolve,reject)=>{call.resolve=()=>resolve(bitmap(call));call.reject=reject;});
+    };
+    let inspected=source.replace('  const cache = {};','  const cache = {};window.cachePriorityReview={entries,cache};');
+    inspected=inspected.replace('  B.PresentationAssets = {','  window.cachePriorityReview.usage=()=>({total:nativeRasterPixels,small:nativeSmallPixels,reserved:[...nativePriorityReservations.values()].reduce((sum,n)=>sum+n,0)});\n  B.PresentationAssets = {');
+    vm.runInNewContext(inspected,{window:w});
+    const review=w.cachePriorityReview,P=w.BARCODE.PresentationAssets;
+    const keyFor=image=>Object.keys(review.cache).find(key=>review.cache[key].image===image);
+    const load=(key,width,height)=>{const state=review.cache[key];state.image.naturalWidth=width;state.image.naturalHeight=height;state.image.onload();return state;};
+    const settle=async()=>{for(const call of calls)if(call.resolve&&!call.settled){call.settled=true;call.resolve();}await flush();};
+    const drawn=[];
+    const ctx={globalAlpha:.42,filter:'none',imageSmoothingEnabled:false,
+      save(){},restore(){},translate(){},scale(){},drawImage(...args){drawn.push(args);}};
+    return {w,P,review,calls,closed,images,keyFor,load,settle,drawn,ctx};
+  }
+  async function priorityOrder(){
+    const f=fixture();assert.equal(f.review.usage().total,reserved);
+    const ordinary=f.load('cacheStreetBicycleRack',4096,7424);
+    assert.equal(f.calls.length,1);
+    const denied=f.load('cacheRepairShop',1024,1024);
+    assert(denied.ready&&!denied.nativePending);assert.equal(f.calls.length,1,'ordinary copy cannot spend priority reservations');
+    const black=f.load('cacheBlacktop',2172,724),green=f.load('cacheGreenhouseWorkshop',1536,1024);
+    assert.equal(f.calls.length,3);assert.equal(f.review.usage().reserved,0);
+    assert.equal(f.review.usage().total,4096*7424+reserved);assert(f.review.usage().total<=cap);
+    for(const key of ['cacheBlacktop','cacheGreenhouseWorkshop','cacheRepairShop']){
+      const before=f.calls.length;assert(f.P.draw(key,f.ctx,{width:200,height:80}));
+      assert.equal(f.drawn.at(-1)[0],f.review.cache[key].image,'pending/denied source draws the original immediately');
+      assert.equal(f.calls.length,before,'draw creates no bitmap');
+    }
+    assert(black.ready&&green.ready&&ordinary.ready,'pending preparation never blocks source readiness');
+    for(const call of f.calls)assert.equal(call.args.length,0,'whole priorities keep the whole-original factory');
+    await f.settle();
+    const count=f.calls.length,imageCount=f.images.length;
+    for(let n=0;n<80;n++)for(const key of ['cacheBlacktop','cacheGreenhouseWorkshop','cacheRepairShop'])f.P.draw(key,f.ctx,{width:130,height:40});
+    assert.equal(f.calls.length,count,'warm and repeated draws perform zero factories');
+    f.P.preload();assert.equal(f.images.length,imageCount,'preload reuses every loaded/pending Image');
+    assert.equal(await f.P.prepareNativeAssets(['cacheBlacktop','cacheGreenhouseWorkshop']),0,'ready priorities cannot re-reserve or reprepare');
+    const energy=f.load('cacheBeatEnergy',1500,1086);assert(energy.ready);
+    const before=f.calls.length;assert.equal(await f.P.prepareNativeAssets([{key:'cacheBeatEnergy',frames:[4]}]),0);
+    await flush();assert.equal(f.calls.length,before,'explicit deferred request obeys the same saturated cap');
+    assert.equal(f.review.usage().total,4096*7424+reserved);
+  }
+  async function deferredAndCells(){
+    const f=fixture();
+    for(const [key,w,h]of [['cacheBeatEnergy',1500,1086],['cachePhraseStrip',512,400],['cacheConfirmedBar',512,256]])f.load(key,w,h);
+    assert.equal(f.calls.length,0,'unused legacy sources allocate no native backing at preload');
+    const timing=f.load('cacheBeatTiming',1776,1100);assert(timing.ready);assert.equal(f.calls.length,0,'cell factories are queued outside onload');
+    await flush();assert.equal(f.calls.length,3,'only the actual road-ring cells 0/1/2 prefill');
+    assert.deepEqual(f.calls.map(c=>Array.from(c.args)),[[0,0,444,550],[444,0,444,550],[888,0,444,550]]);
+    const pending=f.calls.length;
+    assert.equal(await f.P.prepareNativeAssets([{key:'cacheBeatTiming',frames:[0,1,2]}]),0);
+    assert.equal(f.calls.length,pending,'overlapping pending request cannot reserve again');
+    f.P.draw('cacheBeatTiming',f.ctx,{frame:2,width:100});assert.equal(f.drawn.at(-1)[0],timing.image);
+    await f.settle();
+    assert([0,1,2].every(i=>timing.nativeFrames[i]));
+    assert([3,4,5,6,7].every(i=>!timing.nativeFrames[i]),'dormant cells retain original source fallback');
+    assert([3,4,5,6,7].every(i=>!Object.hasOwn(timing.nativeFrames,i)),
+      'unprepared cells are sparse holes, not assigned undefined inventory entries');
+    assert.equal(timing.nativeFrames.reduce((pixels,bitmap)=>pixels+bitmap.width*bitmap.height,0),3*444*550);
+    assert.equal(f.review.usage().total,reserved+3*444*550);
+    const before=f.calls.length;
+    const requested=f.P.prepareNativeAssets([{key:'cacheBeatTiming',frames:[3,7]},
+      {key:'cacheBeatEnergy',frames:[4,5]},'cachePhraseStrip']);
+    assert.equal(f.calls.length,before,'explicit API starts no synchronous factory in its caller');
+    assert.equal(await requested,3);await flush();assert.equal(f.calls.length,before+5);
+    assert.equal(f.review.usage().small,512*400);
+    await f.settle();
+    assert(timing.nativeFrames[3]&&timing.nativeFrames[7]&&!timing.nativeFrames[4]);
+    const energy=f.review.cache.cacheBeatEnergy;
+    assert(energy.nativeFrames[4]&&energy.nativeFrames[5]);
+    f.P.draw('cacheBeatEnergy',f.ctx,{frame:4,sourceRect:[2,3,40,20],width:80,height:40});
+    assert.equal(f.drawn.at(-1)[0],energy.nativeFrames[4]);
+    assert.deepEqual(f.drawn.at(-1).slice(1,5),[2,3,40,20],'prepared-cell registration/source texels are unchanged');
+    f.P.draw('cacheBeatTiming',f.ctx,{frame:4,width:90});
+    assert.equal(f.drawn.at(-1)[0],timing.image,'unrequested cell selects original atlas with original registration');
+    const count=f.calls.length,total=f.review.usage().total;
+    assert.equal(await f.P.prepareNativeAssets([{key:'cacheBeatTiming',frames:[3,7]},
+      {key:'cacheBeatEnergy',frames:[4,5]},'cachePhraseStrip']),0);
+    for(const requests of [null,[{key:'cacheBeatTiming',frames:[]}],[{key:'cacheBeatTiming',frames:[8]}],
+      [{key:'cacheBeatTiming',frames:[-1]}],['noSuchSource']])assert.equal(await f.P.prepareNativeAssets(requests),0);
+    await flush();assert.equal(f.calls.length,count);assert.equal(f.review.usage().total,total,'duplicate/invalid requests preserve accounting');
+  }
+  async function failures(){
+    for(const mode of ['throw','reject','invalid']){
+      const f=fixture(mode),s=f.load('cacheBlacktop',2172,724);
+      assert(s.ready);await flush();assert(!s.nativePending&&!s.nativeBitmap);
+      assert.equal(f.review.usage().total,1536*1024,'failure releases only its own reservation');
+      assert.equal(f.closed.length,mode==='invalid'?1:0,'invalid returned backing is closed');
+      const count=f.calls.length;
+      f.P.draw('cacheBlacktop',f.ctx,{width:90,height:20});assert.equal(f.drawn.at(-1)[0],s.image);
+      assert.equal(await f.P.prepareNativeAssets(['cacheBlacktop']),0,'a failed whole-source attempt is not repeated');
+      assert.equal(f.calls.length,count);
+      f.load('cacheGreenhouseWorkshop',1536,1024);await flush();
+      assert.equal(f.review.usage().total,0,'both unsuccessful priorities release their slots exactly once');
+    }
+    const f=fixture('partial');f.load('cacheBeatTiming',1776,1100);await flush();
+    assert.equal(f.calls.length,3);assert.equal(f.closed.length,2,'failed cell batch closes all fulfilled backing siblings');
+    assert(!f.review.cache.cacheBeatTiming.nativeFrames);
+    assert.equal(f.review.usage().total,reserved,'failed cell batch releases its complete reserved allocation');
+    assert.equal(await f.P.prepareNativeAssets([{key:'cacheBeatTiming',frames:[0,1,2]}]),0);
+    const unsupported=fixture();delete unsupported.w.createImageBitmap;
+    unsupported.load('cacheBlacktop',2172,724);unsupported.load('cacheGreenhouseWorkshop',1536,1024);
+    assert.equal(unsupported.calls.length,0);assert.equal(unsupported.review.usage().total,0);
+  }
+  async function imageLifecycle(){
+    const f=fixture(),black=f.review.cache.cacheBlacktop;
+    black.image.onerror();assert.equal(black.image.src,f.review.entries.cacheBlacktop.path,'remote failure retains bundled source fallback');
+    assert.equal(f.review.usage().reserved,reserved,'first fallback attempt keeps its priority slot');
+    black.image.onerror();assert.equal(black.image.onload,null);assert.equal(black.image.onerror,null);
+    assert.equal(f.review.usage().reserved,1536*1024,'terminal failure releases the stranded priority slot');
+    const green=f.load('cacheGreenhouseWorkshop',0,0);assert(!green.ready,'invalid Image readiness follows original loader');
+    assert.equal(f.review.usage().total,0,'invalid original source releases its unneeded priority slot');
+    const imageCount=f.images.length;f.P.preload();assert.equal(f.images.length,imageCount);
+  }
+  await priorityOrder();console.log('PASS: priority load order, saturated cap, original/pending fallback, whole-source factories and warm reuse.');
+  await deferredAndCells();console.log('PASS: unused eager suppression, exact Timing cells, explicit queued demand, registration and request guards.');
+  await failures();console.log('PASS: priority factory failures, invalid backing closure, atomic cell rollback and no duplicate attempts.');
+  await imageLifecycle();console.log('PASS: priority bundled fallback, terminal/invalid-image reservation cleanup and preload ownership.');
+}
+
 async function nativeSmallUnit(){
   for(const failure of ['none','reject','throw','invalid']){
     const prepared=[],closed=[];
@@ -216,6 +654,7 @@ async function nativeSmallUnit(){
     const keys=['cacheBrakeReflection','cacheDamagedExhaust','cachePhraseStrip','cacheConfirmedBar','cachePulseBurst'];
     const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets;
     for(const key of keys)cache[key].image.onload();
+    await P.prepareNativeAssets(['cachePhraseStrip','cacheConfirmedBar']);
     await new Promise(setImmediate);
     assert.equal(prepared.length,5);
     assert.deepEqual(prepared.find(call=>call.image===cache.cacheBrakeReflection.image).args,[0,0,194,290]);
@@ -241,16 +680,19 @@ async function nativeSmallUnit(){
   // Concurrent pending sources count before any preparation resolves. Fill
   // the small pool exactly, then confirm the next eligible crop falls back.
   {
-    const prepared=[];
+    const prepared=[],pending=[];
     class Image{constructor(){this.naturalWidth=512;this.naturalHeight=512;}}
-    const w={Image,BARCODE:{},createImageBitmap(image){prepared.push(image);return Promise.resolve({width:512,height:512});}};
+    const w={Image,BARCODE:{},createImageBitmap(image){prepared.push(image);
+      return new Promise(resolve=>pending.push(()=>resolve({width:512,height:512})));}};
     vm.runInNewContext(inspected,{window:w});
-    const {cache}=w.bitmapReview;
+    const {cache}=w.bitmapReview,P=w.BARCODE.PresentationAssets;
     const keys=['cacheDamagedExhaust','cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip','cachePulseBurst'];
     for(const key of keys)cache[key].image.onload();
+    await P.prepareNativeAssets(['cachePhraseStrip','cacheConfirmedBar']);
     cache.cacheBrakeReflection.image.onload();
     assert.equal(prepared.length,6,'pending reservations cannot overbook the small pool');
     assert(!cache.cacheBrakeReflection.nativePending,'a crop beyond the pool retains original-image fallback');
+    pending.forEach(resolve=>resolve());
     await new Promise(setImmediate);
     assert(keys.every(key=>cache[key].nativeBitmap));
     assert.equal(keys.reduce((sum,key)=>sum+cache[key].nativeBitmap.width*cache[key].nativeBitmap.height,0),1536*1024);
@@ -379,6 +821,7 @@ async function nativeTintUnit(){
     for(const key of ['cacheDamagedExhaust','cachePhraseStrip','cacheConfirmedBar','cachePulsePad','cachePulseStrip']){
       cache[key].image.naturalWidth=512;cache[key].image.naturalHeight=512;cache[key].image.onload();
     }
+    await P.prepareNativeAssets(['cachePhraseStrip','cacheConfirmedBar']);
     cache.cachePulseBurst.image.naturalWidth=512;cache.cachePulseBurst.image.naturalHeight=362;
     cache.cachePulseBurst.image.onload();
     await new Promise(setImmediate);
@@ -397,25 +840,24 @@ function budgetUnit(){
   vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-render-budget.js'),'utf8'),{window:w});
   const owner=w.BARCODE.CacheRoadRenderBudget,budget=owner.create();
   assert.equal(budget.scale,1,'each new run begins at full detail');
-  owner.observe(budget,90);owner.observe(budget,90);
-  assert.equal(budget.scale,1,'one or two cold/impact frames cannot reduce detail');
-  owner.observe(budget,90);assert.equal(budget.scale,.4,'sustained slow paint lowers only world sampling');
+  for(let i=0;i<700;i++)owner.observe(budget,90);
+  assert.equal(budget.scale,1,'sustained expensive draws must retain native artwork detail');
+  assert.equal(budget.lastCostMs,90,'expensive draws remain visible in timing diagnostics');
+  assert.equal(budget.slowFrames,700);
   const frozen=JSON.stringify(budget);
   for(let i=0;i<700;i++)owner.observe(budget,1,{paused:true});
   assert.equal(JSON.stringify(budget),frozen,'paused repeated paint cannot change quality');
   for(const cost of [NaN,Infinity,-1])owner.observe(budget,cost);
   assert.equal(JSON.stringify(budget),frozen,'invalid clocks cannot alter a budget');
-  for(let i=0;i<599;i++)owner.observe(budget,1);
-  assert.equal(budget.scale,.4,'detail recovery needs sustained spare capacity');
-  owner.observe(budget,1);assert.equal(budget.scale,.5);
+  for(let i=0;i<600;i++)owner.observe(budget,1);
+  assert.equal(budget.scale,1,'spare capacity never needs to restore lost artwork detail');
+  assert.equal(budget.fastFrames,600);
+  assert.equal(budget.slowFrames,0);
   for(let i=0;i<30;i++)owner.observe(budget,200);
-  assert.equal(budget.scale,1/6,'background sampling stops at a finite floor with native interactive paint');
+  assert.equal(budget.scale,1,'even very slow draws cannot substitute an enlarged low-resolution world');
   const delayed=owner.create();
-  owner.observe(delayed,12,{frameIntervalMs:34.1});
-  owner.observe(delayed,12,{frameIntervalMs:34.1});
-  assert.equal(delayed.scale,1,'two missed display frames retain cold/impact tolerance');
-  owner.observe(delayed,12,{frameIntervalMs:34.1});
-  assert(delayed.scale<1,'sustained missed 30 Hz intervals include queued raster cost');
+  for(let i=0;i<700;i++)owner.observe(delayed,12,{frameIntervalMs:34.1});
+  assert.equal(delayed.scale,1,'sustained delayed display frames must retain native detail');
   assert.equal(delayed.lastCostMs,34.1,'display delay is observed even when draw submission is cheap');
   const delayedFrozen=JSON.stringify(delayed);
   owner.observe(delayed,12,{paused:true,frameIntervalMs:60});
@@ -424,10 +866,59 @@ function budgetUnit(){
     const ignored=owner.create();
     for(let i=0;i<3;i++)owner.observe(ignored,12,{frameIntervalMs:interval});
     assert.equal(ignored.scale,1,'healthy, invalid and background-gap intervals retain detail');
+    assert.equal(ignored.lastCostMs,12,'invalid or background-gap display intervals cannot inflate diagnostics');
   }
   const fresh=owner.create();assert.equal(fresh.scale,1);
-  assert.equal(budget.scale,1/6,'a fresh run has independent presentation state');
-  console.log('PASS: bounded adaptive world quality, queued display cost, cold/impact tolerance, pause freeze, clock fallback, recovery hysteresis and fresh-run independence.');
+  assert.equal(fresh.lastCostMs,0,'a fresh run has independent timing diagnostics');
+  assert.equal(budget.lastCostMs,200);
+  console.log('PASS: native world detail through heavy draws and delayed display frames, queued cost diagnostics, pause freeze, clock fallback and fresh-run independence.');
+}
+
+function mirrorSourceUnit(){
+  const road=fs.readFileSync(path.resolve(__dirname,'../src/game/cache-road-proof.js'),'utf8');
+  const callStart=road.indexOf('      const nativeMirror=budgetEligible'),
+    callEnd=road.indexOf('      ctx.fillStyle',callStart);
+  assert(callStart>=0&&callEnd>callStart,'production mirror invocation is available');
+  for(const failure of ['none','budget','context','canvas','pause','intro','fade']){
+    class HTMLCanvasElement{}
+    const ctx={canvas:failure==='canvas'?{}:new HTMLCanvasElement()},pixelBudget={};
+    let invocation;
+    vm.runInNewContext('function invoke(){'+road.slice(callStart,callEnd)+'};invoke.call(runtime);',{
+      window:{HTMLCanvasElement},ctx,frameContext:failure==='context'?{}:ctx,
+      budgetEligible:failure!=='budget',runtime:{status:failure==='pause'?'paused':'playing',renderBudget:pixelBudget},
+      intro:failure==='intro'?{}:null,cinema:failure==='fade'?{hudAlpha:.5}:null,
+      s:{},section:0,reduced:false,heightSample:()=>0,combatPose:null,crosswalkPose:null,
+      drawRearview(...args){invocation=args;}
+    });
+    assert.equal(invocation[7],false,'production native reflection retains the original curved glass mask');
+    assert.equal(invocation[8],failure==='none','opaque native transport remains independent of world downsampling');
+    assert.equal(invocation[9],failure==='budget'?null:pixelBudget);
+  }
+  const start=road.indexOf('  function drawRearview('),end=road.indexOf('  // Every supplied stem',start);
+  assert(start>=0&&end>start,'production mirror painter is available');
+  for(const boundedClip of [false,true])for(const failure of [false,true]){
+    let detail=.25,reflectionCalls=0,faceCalls=0;
+    const pixelBudget={},ctx=new Proxy({createLinearGradient:()=>({addColorStop(){}})},
+      {get:(target,key)=>key in target?target[key]:()=>{}});
+    const B={PresentationAssets:{
+      setRasterDetail(context,value){assert.equal(context,ctx);const before=detail;detail=value;return before;},
+      draw(key){assert.equal(key,'cacheMirror');faceCalls++;return true;}
+    }},w={};
+    vm.runInNewContext(road.slice(start,end)+';window.testMirror=drawRearview;',{
+      window:w,B,LANDSCAPE:{height:()=>24},mirrorExpression:()=>0,mirrorOutline(){},
+      drawRearRoad(...args){
+        reflectionCalls++;assert.equal(detail,1,'clipped native reflections use original-size source artwork');
+        assert.equal(args.at(-2),true,'native opaque backdrop optimization remains independent of detail');
+        assert.equal(args.at(-1),pixelBudget);
+        if(failure)throw Error('mirror draw failed');
+      }
+    });
+    const draw=()=>w.testMirror(ctx,{},'#8fe3db',false,undefined,null,null,boundedClip,true,pixelBudget);
+    if(failure)assert.throws(draw,/mirror draw failed/);else draw();
+    assert.equal(reflectionCalls,1);assert.equal(faceCalls,failure?0:1);
+    assert.equal(detail,.25,'reflection painting restores the caller hint even after failure');
+  }
+  console.log('PASS: production curved mirror glass, native opaque transport eligibility, original-size reflection sources and caller-hint restoration after failure.');
 }
 
 function worldCopyUnit(){
@@ -548,12 +1039,13 @@ async function browser(){
       assert(road.includes('const compositeBlur=ctx.canvas?.width>0'));
       road=road.replace('const compositeBlur=ctx.canvas?.width>0',
         "const compositeBlur=window.bitmapReview.mode!=='vector'&&ctx.canvas?.width>0");
-      assert(road.includes('const budgetEligible=!!budgetOwner'));
-      road=road.replace('const budgetEligible=!!budgetOwner',
-        "const budgetEligible=window.bitmapReview.mode==='adaptive'&&!window.bitmapReview.fullQuality&&!!budgetOwner");
-      assert(road.includes("ctx.imageSmoothingQuality='low';"));
-      road=road.replace("ctx.imageSmoothingQuality='low';",
-        "if(window.bitmapReview.mode==='adaptive')ctx.imageSmoothingQuality='low';");
+      const budgetMarker='const budgetEligible=!this.gpuRecoveryPainting&&!!budgetOwner';
+      assert(road.includes(budgetMarker),'preserve the production native-recovery budget guard');
+      road=road.replace(budgetMarker,
+        "const budgetEligible=window.bitmapReview.mode==='adaptive'&&!window.bitmapReview.fullQuality&&!this.gpuRecoveryPainting&&!!budgetOwner");
+      // Keep the actual production sampler in every representation. The old
+      // adaptive-only low-quality mutation compared unlike painting and failed
+      // baseline fidelity as well as the current build; it cannot judge caches.
       for(const [marker,label]of [["      const live=this.state,cinema=this.cinematicPose();","begin"],["      // One opaque landscape continues beneath every roadside location.","sky"],["      // Neighboring strips sample adjacent rows of one world-fixed material.","city"],["      const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);","world-preparation"],["      // Road shoulders and the paint share a single curved road projection.","terrain"],["      const roadFog=ctx.createLinearGradient(0,horizon,0,horizon+170);","asphalt"],["      // Phrase paint is a road marking, not a second translucent lane overlay.","street-objects"],["      const boss=s.combat?combatPose.boss:B.CacheRoadPursuit?.boss?.(s.pursuit,{progress});","beat-and-traffic"],["      ctx.restore(); // world camera","vehicles-and-fx"],["      // A compact VFD instrument cluster leaves the original mirror and","atmosphere"],["    const far = profile(progress-reach);","mirror-start"],["    if(compositeBlur) {","mirror-scene"],["    // Only reflected scenery gets softened.","mirror-blur"],["      drawRearview(ctx, s,","dashboard"]]) {
         assert(road.includes(marker),'phase marker '+label);
         road=road.replace(marker,"window.canvasCostMark?.("+JSON.stringify(label)+");\n"+marker);
@@ -595,7 +1087,7 @@ async function browser(){
       const {entries,cache}=bitmapReview,svg=Object.keys(entries).filter(key=>entries[key].path.endsWith('.svg'));
       if(svg.some(key=>!(cache[key].bitmap instanceof ImageBitmap)))throw Error('SVG bitmap preparation failed');
       if(bitmapAttempts.filter(src=>src.endsWith('.svg')).length!==svg.length)throw Error('SVG preparations were duplicated');
-      const c=document.getElementById('gameCanvas'),ctx=c.getContext('2d'),P=BARCODE.PresentationAssets;
+      const c=document.getElementById('gameCanvas'),ctx=c.getContext('2d',{willReadFrequently:false}),P=BARCODE.PresentationAssets;
       const beforeSVG=bitmapAttempts.filter(src=>src.endsWith('.svg')).length,pixels=[];
       for(let repeat=0;repeat<2;repeat++){
         ctx.clearRect(0,0,c.width,c.height);ctx.save();ctx.translate(42,57);ctx.rotate(.013);ctx.globalAlpha=.7;
@@ -660,6 +1152,7 @@ async function browser(){
           ctx.reset();ctx.imageSmoothingQuality='high';measuredGroups={};reflectionBlurs=0;
           const began=performance.now();
           road.draw(ctx);const submitted=performance.now();ctx.getImageData(0,0,1,1);
+          if(mode==='adaptive'&&road.renderBudget.drawnScale!==1)throw Error('optimized production frames silently reduced native world detail');
           const elapsed=performance.now()-began;
           if(frame===45)console.log('FRAME_COST '+JSON.stringify({name:scene.name,mode,
             submitMs:submitted-began,flushMs:performance.now()-submitted}));
@@ -695,11 +1188,8 @@ async function browser(){
               }
               qualityComparisons.push({name:scene.name,worldScale:road.renderBudget.drawnScale,
                 meanRGB:difference/(1920*1080*3),nativeHUDMeanRGB:hudDifference/(1920*164*3)});
-              // Verify unchanged native geometry/art at full quality as well
-              // as reviewing the actual adaptive output saved above.
-              bitmapReview.fullQuality=true;ctx.reset();road.draw(ctx);
-              pixels=ctx.getImageData(0,0,c.width,c.height).data;
-              bitmapReview.fullQuality=false;
+              // Fidelity is judged on the actual displayed native painting.
+              // A separate full-quality repaint cannot conceal lost detail.
             }
             if(mode==='vector')framePixels.set(scene.name+'-vector',pixels);
             else {
@@ -931,7 +1421,17 @@ async function browser(){
     if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));
     assert(result.result.value?.passed);
     const {screens,...report}=result.result.value;
+    report.nativeFallbackDiagnostic=nativeFallbackDiagnostic;
+    report.performanceAssertionsEnforced=!nativeFallbackDiagnostic;
+    report.performanceAcceptance=false;
+    report.rendererContract='native fallback fixture';
+    report.samplingContract='All representations retain unmodified production sampling. The previous adaptive-only low sampler failed baseline fidelity; this fixture repair makes no performance acceptance claim.';
+    report.nativeTiming={mode:nativeFallbackDiagnostic?'diagnostic':'enforced',
+      timingPass:report.performancePass,budgetMs:report.absoluteFrameBudgetMs,
+      requiredAggregateRatioBelow:.75,maximumSceneRatio:1.1,performanceAcceptance:false};
+    report.limitation+=' This native-only fixture excludes the GPU renderer and cannot accept standalone GPU performance.';
     console.log(JSON.stringify(report));
+    console.log('NATIVE_FALLBACK_TIMING '+JSON.stringify(report.nativeTiming));
     for(const screen of screens.filter(screen=>
       screen.name==='Ready-ONE'&&screen.mode!=='vector'||
       screen.name==='Focused-Turn'&&screen.mode==='adaptive'))
@@ -956,7 +1456,8 @@ async function browser(){
     const encoded=sheet.toBuffer('image/webp',80).toString('base64');
     for(let at=0;at<encoded.length;at+=24000)
       console.log('FRAME_REVIEW '+String(at/24000).padStart(4,'0')+' '+encoded.slice(at,at+24000));
-    assert(report.performancePass,'adaptive world painting must cut PR180 frame/raster cost by 25 percent, avoid a scene regression, and fit the 30 Hz diagnostic frame budget');
+    if(!nativeFallbackDiagnostic)
+      assert(report.performancePass,'native world painting must cut PR180 frame/raster cost by 25 percent, avoid a scene regression, and fit the 30 Hz diagnostic frame budget');
     assert(report.pixelComparisons.every(row=>row.meanRGB<1),
       'one reflection blur and SVG preparation must preserve loaded production appearance within one mean RGB level');
   }finally{
@@ -975,4 +1476,4 @@ async function browser(){
     await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:20,retryDelay:100});
   }
 }
-(async()=>{await unit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();worldCopyUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});
+(async()=>{await unit();await gpuOriginalReadinessUnit();await backgroundRasterUnit();await nativeRasterUnit();await nativeSmallUnit();await nativeWindowUnit();await nativeTintUnit();budgetUnit();mirrorSourceUnit();worldCopyUnit();await nativeMappedDecodeUnit();await nativePriorityUnit();if(process.argv.includes('--browser'))await browser();})().catch(e=>{console.error(e.stack);process.exitCode=1;});

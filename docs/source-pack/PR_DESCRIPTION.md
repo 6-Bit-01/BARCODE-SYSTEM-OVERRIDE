@@ -1,11 +1,25 @@
-# Break the Pursuit: escalating Cache Road showdown
+# Render Level 2 scenery through retained GPU batches
 
-Fresh Cache Road runs now build from scouts and convoy traffic into a persistent enforcement rig. Break its scan array, impact drive and pulse core by dodging committed attacks or using genuinely earned Push, Brace, Turbo and Echo counters. Six opportunities permit missed attempts. Boss defeat and the complete 100-bar original recording replace the scrapped Echo exit, while versions 1/2 keep their saved rules.
+## Problem and resulting behavior
 
-New painted damage poses, system-break effects and physical Turbo exhaust make the encounter visible. The repaired trailing camera opens during danger; fixed threat/pad cues remain readable. The wreck remains at a real road address and passes into the mirror. Mid-boss checkpoints preserve damage and attribution while discarding partial attacks on reload.
+Level 2 stalls when its HUD and rear scenery appear because the old Canvas painter repeatedly rebuilds clips, renders large artwork, and submits separate gradient materials. The replacement compiles compatible scenery images, convex fills and analytic gradients into ordered retained GPU triangle batches through the pinned local PixiJS renderer. Repeated ground paths share immutable transformed geometry within each frame. The original native foreground, mirror face and controls remain; both scenery views render directly behind them without per-frame Canvas copies.
 
-Rendering uses visible scenery indices and bounded exact terrain reuse. The equivalence audit preserves geometry, painter order and submissions: 96.8% fewer street candidates and 42.6% reused height requests in its fixtures. These are operation reductions, not an FPS claim. Original music, announced pad addresses, next-ONE gear shifts/first-gear wrecks, shared input/Canvas/RAF ownership, Level 1 and shared cutscenes remain.
+All 171 GPU sources prepare before driving: 149 full-resolution KTX2 raster derivatives and 22 original browser-rendered SVGs, with complete premultiplied mip chains and original UV crops. Their GPU mip storage falls from 974.903 to 248.328 MiB. All 624 original artwork/audio assets remain byte-identical. One pinned local decoder worker terminates after warmup. Explicit level ownership retires and reloads inactive Level 1 artwork, sprites and audio. Existing gameplay, saves, input/audio owners and the single gameplay RAF remain. Unsupported materials/hardware and graphics loss retain complete native recovery; complex paths keep their existing exact GPU pipeline.
 
-Validation covers full regression/all-file syntax, 26 production-input races, eight focused showdown routes plus real mid-boss save/reload, version-3 180 ms timing and drum recovery, legacy chart hashes, painted anchors/alpha, indexed rendering equivalence and a real Chromium showdown on final-head CI. Final results belong to the PR/test receipt. The input-driven native montage is separately labelled and is not a Makko or device-performance test.
+## Validation and limits
 
-Checkpoint: merged PR #167 (`f385c919bedbf228f8ee5bf1d708ecb57d151178`). Boss art is pinned to reachable ancestor `c9ec41555ff7c473fb4119eb68a1438cebe4bd37`. Owner Makko, physical controller, sound, warning clarity, comfort, difficulty/fun and frame pacing acceptance remain pending. No Makko project modification or deployment is included.
+Actual default AMD Radeon 660M browser runs against runtime source `a7b2ba5ed3115bcd24903a7729b5060efacadd92`:
+
+- Fresh Level 2: draw median/p95/max 15.5/24.3/42.8 ms, versus the preceding compressed renderer's 32.0/43.8/63.9 ms. All 786 measured frames completed both GPU views and final visible output.
+- Earned boss Continue: 16.0/23.5/35.4 ms; all 232 measured frames completed both views and final visible output.
+- Both runs had zero playing texture uploads, Canvas copies or native fallbacks; all 149 compressed +22 original sources, terminated worker and both-view image/gradient batches remained valid before and after genuine graphics loss/full native fallback/ordinary restoration.
+- Real keyboard/gear, pause/audio, ordinary Level 1 return/reloaded resources and authored bridge P/P passed. All 415 input-file hashes remained unchanged; screenshots were visually reviewed.
+- Seventy GPU contracts, frame-local path-cache contracts, all-file JavaScript syntax and the actual 88-script/774-asset standalone build passed locally. CI at `70378e8f531c405d200c766d12ea6447b45f5820` completed full `npm test`, all-file syntax and standalone-build checks. Its software cloud GL warmed all 171 sources but timed out during the natural intro before the HUD; downstream browser/export checks were unexercised.
+
+The final checker/docs-only revision preserves the physically tested a7b2 runtime/assets. It classifies the actual game context after real preparation, before the HUD wait. Software, unavailable or unidentified GL reports `performanceUnexercised` and unrun gameplay/control/audio/pause/recovery/return scenarios `notExercised`, with bootstrap/resource checks recorded separately. Existing native browser jobs remain required, and identified hardware runs every unchanged functional and 1000/30-ms draw-median gate. Final-head CI and source/site packaging remain pending.
+
+Observed headless RAF median/p95 was 16.7/33.4 ms in both runs, with occasional slower frames. This is a substantial measured improvement, not a universal display-FPS or zero-glitches claim. The existing 1000/30-ms hardware draw gate is unchanged; software/unidentified backends remain performanceUnexercised. Submitted batch counts are not asserted to be measured GL draw calls.
+
+## Release
+
+Publication on the existing BARCODE website is authorized. This source PR remains draft until its exact-head checks pass. The currently live game is still the earlier source d41be793 package from site PR480; the replacement is not yet published. The hidden `/system-override` route and footer copyright shortcut remain the launch path.

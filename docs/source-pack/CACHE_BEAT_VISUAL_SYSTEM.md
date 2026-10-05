@@ -1,5 +1,15 @@
 # Custom beat visual system
 
+## October 3, 2026 — minimal production candidate
+
+The owner reports that the private exact-deployment comparison immediately plays better with road beat cues hidden, especially cues and phrase paint together. The new candidate starts from deployed source `90a80762cf919b9f2efb70b95a0a04bfc189542c` and retains one native plate at each actual pad, the mapped glyph, active/caught tire docks, the original timing ring/counts/instruction and the existing real outcome/adrenaline HUD. It omits energy runway/bands, inactive docks, ground receipt effects and captured/queued phrase washes/tiles/labels. This is an intentional presentation change. Retained art and scenery keep their original texels.
+
+Actual submitted-image bounds are 2 per pad,10 for a target with a distinct recent caught lane, and 0 for ground receipts. A ready target alone uses8; a different-lane recent receipt can preserve another 2 dock images. Hardware cels 0–7 and timing ring cels 0–2 remain live. All 28 source atlas cells remain registered and verified; unused energy/outcome paintings retain their canonical bytes. Missing hardware keeps the original legible mapped fallback. `feedbackPose` remains unchanged for actual HUD gain, chain, tier and expiry.
+
+Judgment windows, announced beat/world addresses, chart/capture history, skills, music layers/source deadlines, economy, compatible saves, camera, native scenery, original rearview and frame/input/audio owners are unchanged. There is no new timer, canvas, particle pool or downsampled-art path. The owner has supplied pacing acceptance for the earlier both-hidden diagnostic; the final minimal build's device FPS/readability acceptance remains separate. See `LEVEL2_HUD_PERFORMANCE.md` for evidence and current release state. The historical authored-art description below remains provenance, not the current live-route requirement.
+
+## Historical authored presentation
+
 The owner approves PR #178's silhouettes and requests custom road overlays,
 a cohesive 3D-looking beat system, pulses, particles and FX. This pass gives
 that system one material: weathered dark teal metal, recessed colored faces,

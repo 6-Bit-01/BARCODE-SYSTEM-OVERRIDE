@@ -5,18 +5,25 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
   const originalChapter=road.chapter,originalAudioTime=audio?.context?.currentTime;
   const originalTransport=B.MusicTransport,originalProfile=B.MusicProfiles?.getActive?.()?.profileId;
   const beatSurface=B.CacheRoadBeatSurface,beatFeedback=B.CacheRoadBeatFeedback;
+  const instruments=B.CacheRoadInstruments,originalFillText=ctx.fillText;
   const originalAssetsDraw=B.PresentationAssets.draw;
   const originalReduced=B.Preferences?.values?.reducedMotion;
   const originalStackLimit=Error.stackTraceLimit;Error.stackTraceLimit=50;
   B.Preferences??={values:{}};B.Preferences.values??={};
   B.Preferences.values.reducedMotion=false;
   const coverage={main:{},mirror:{}},cases=[];
-  let current,recording=true;
+  let current,recording=true,assetSubmissions=0,textCapture=null,currentHUD=null;
+  const groundReceipt={calls:0,handled:0,assetSubmissions:0,textPaints:0};
+  ctx.fillText=function(value,...args) {
+    if(textCapture)textCapture.push(String(value));
+    return originalFillText.call(this,value,...args);
+  };
   const check=(value,message)=>{if(!value)throw Error(message);};
   const remember=(scope,key,frame)=>{
     const frames=coverage[scope][key]??=new Set();frames.add(frame);
   };
   B.PresentationAssets.draw=(key,target,options={})=>{
+    assetSubmissions++;
     const definition=definitions[key];
     const drawn=originalAssetsDraw(key,target,options);
     if(recording&&drawn&&definition?.frames>1) {
@@ -53,7 +60,7 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
   try {
     // Retained pre-skin atlases still have real production fallback routes.
     // Audit those with the optional skin owners unavailable, then separately
-    // exercise every new cel with both current owners fully enabled below.
+    // exercise the intentional current ground contract with both owners below.
     B.CacheRoadBeatSurface=undefined;B.CacheRoadBeatFeedback=undefined;
     for(const id of [5,7,11,12,...Array.from({length:12},(_,i)=>i+15)])
       exerciseActor(`person-${id}`,candidates(item=>item.id===id),
@@ -262,8 +269,34 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
     }
     B.CacheRoadBeatSurface=beatSurface;B.CacheRoadBeatFeedback=beatFeedback;
     const authoredBeatKeys=['cacheBeatHardware','cacheBeatEnergy','cacheBeatTiming'];
+    const minimalBeatLiveFrames={cacheBeatHardware:[0,1,2,3,4,5,6,7],
+      cacheBeatEnergy:[],cacheBeatTiming:[0,1,2]};
     check(beatSurface&&beatFeedback&&B.CacheRoadAdrenaline&&B.CacheRoadInstruments&&B.CacheChapter,
       'Current ground skin, feedback and adrenaline owners were not loaded');
+    for(const [key,count] of [['cacheBeatHardware',8],['cacheBeatEnergy',12],['cacheBeatTiming',8]])
+      check(definitions[key]?.frames===count,`${key}: retained native source registration changed`);
+    B.CacheRoadBeatFeedback={...beatFeedback,drawReceipt(...args) {
+      const before=assetSubmissions,previous=textCapture,receiptTexts=[];
+      groundReceipt.calls++;textCapture=receiptTexts;
+      try {
+        const handled=beatFeedback.drawReceipt(...args);
+        if(handled===true)groundReceipt.handled++;
+        return handled;
+      } finally {
+        groundReceipt.assetSubmissions+=assetSubmissions-before;
+        groundReceipt.textPaints+=receiptTexts.length;textCapture=previous;
+      }
+    }};
+    B.CacheRoadInstruments={...instruments,drawAdrenaline(target,state,options) {
+      const previous=textCapture,hudTexts=[];textCapture=hudTexts;
+      try {
+        const result=instruments.drawAdrenaline(target,state,options);
+        const reward=instruments.rewardPose(state,options);
+        currentHUD=reward?{texts:hudTexts,quality:reward.a.lastResult,
+          delta:reward.a.lastDelta,value:reward.a.value,chain:reward.a.chain}:null;
+        return result;
+      } finally {textCapture=previous;}
+    }};
     check(audio?.context&&Number.isFinite(audio.context.currentTime),
       'Ground animation route audit requires its explicit controlled audio clock');
     road.chapter=B.CacheChapter.create({difficultyId:'standard'});
@@ -273,7 +306,7 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
     B.MusicTransport=B.createMusicTransport();
     road.selectMusicProfile();B.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
     const beatMs=60/128*1000,actions=['road_a','road_b','road_x','road_y'];
-    const perfectActions=new Set(),beatReceipts=[],suppressedMisses=[];
+    const perfectActions=new Set(),beatReceipts=[],beatHUDReceipts=[],suppressedMisses=[];
     let heardBeat=0,good=false,miss=false,diagnosticLane=null,observedMissId=null;
     const advanceBeat=beat=>{
       check(beat>=heardBeat,'Ground route diagnostic cannot run its heard clock backward');
@@ -301,7 +334,7 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       }
     };
     const drawBeat=label=>{
-      const before=JSON.stringify(road.state);current=[];road.draw(ctx);
+      const before=JSON.stringify(road.state);current=[];currentHUD=null;road.draw(ctx);
       check(JSON.stringify(road.state)===before,'Ground route paint mutated actual chart or award facts');
       const calls=current;current=null;
       cases.push({label,progress:road.state.progress,elapsedMs:road.state.elapsedMs});
@@ -321,7 +354,9 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       advanceBeat(pulse.target-2.4);
       check(contains(drawBeat(`real ground ${pulse.id}/approach`),'cacheBeatTiming',0),
         'The actual uncharged approach did not paint its dormant ring');
-      advanceBeat(pulse.target-.75);drawBeat(`real ground ${pulse.id}/charging`);
+      advanceBeat(pulse.target-.75);
+      check(contains(drawBeat(`real ground ${pulse.id}/charging`),'cacheBeatTiming',1),
+        'The actual approaching opportunity did not paint its charging ring');
       advanceBeat(pulse.target);
       const onOne=drawBeat(`real ground ${pulse.id}/ONE`);
       check(contains(onOne,'cacheBeatHardware',4+pulse.action)&&
@@ -348,12 +383,19 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       check(receipt?.pulseId===pulse.id&&receipt.kind===quality,
         `Ground route ${pulse.id}/${quality} received ${receipt?.pulseId}/${receipt?.kind}`);
       const calls=drawBeat(`real ground ${pulse.id}/${quality}`);
-      const shell=quality==='miss'?6:quality==='perfect'?5:4;
-      check(contains(calls,'cacheBeatTiming',shell),'The actual earned/missed receipt omitted its quality shell');
+      check(!calls.some(([key,frame])=>key==='cacheBeatEnergy'||key==='cacheBeatTiming'&&frame>2),
+        'Actual chart draw submitted omitted ground energy or quality receipt textures');
+      check(currentHUD?.quality===quality&&currentHUD.delta===receipt.delta&&
+        currentHUD.value===receipt.value&&currentHUD.texts.includes(quality.toUpperCase())&&
+        currentHUD.texts.includes(String(Math.round(receipt.value))),
+        `The actual ${quality} judgment/value is missing from the existing adrenaline HUD`);
+      const deltaText=receipt.delta?`${receipt.delta>0?'+':''}${receipt.delta}`:null;
+      if(deltaText)check(currentHUD.texts.includes(deltaText),
+        `The actual ${quality} delta ${deltaText} is missing from the existing adrenaline HUD`);
+      else if(quality!=='miss'&&receipt.value===100)check(currentHUD.texts.includes('MAX'),
+        'A genuinely capped earned judgment must retain the existing HUD MAX label');
+      beatHUDReceipts.push({id:pulse.id,...currentHUD,deltaText});
       if(quality==='perfect') {
-        check(contains(calls,'cacheBeatEnergy',4+pulse.action)&&
-          contains(calls,'cacheBeatEnergy',8+pulse.action),
-          `Actual Perfect ${pulse.action} omitted its impact/shard source cels`);
         perfectActions.add(pulse.action);
       } else if(quality==='good')good=true;else miss=true;
       beatReceipts.push({id:pulse.id,action:pulse.action,kind:receipt.kind,
@@ -361,13 +403,17 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
     }
     check(perfectActions.size===4&&good&&miss,
       'Real chart inputs must cover all four Perfect actions plus Good and actual miss');
+    check(groundReceipt.calls>0&&groundReceipt.handled===groundReceipt.calls&&
+      groundReceipt.assetSubmissions===0&&groundReceipt.textPaints===0,
+      'The ground receipt must suppress its fallback without submitting assets or text');
     const intentionalStable=['cacheCar','cacheCarLeft','cacheCarRight'];
     const inventory=Object.entries(definitions).filter(([key,entry])=>
       key.startsWith('cache')&&entry.frames>1);
     for(const [key,entry] of inventory) {
       const frames=coverage.main[key]??new Set();
-      const expected=intentionalStable.includes(key)?1:entry.liveFrames?.length||entry.frames;
-      if(entry.liveFrames)check(JSON.stringify([...frames].sort((a,b)=>a-b))===JSON.stringify(entry.liveFrames),
+      const liveFrames=minimalBeatLiveFrames[key]??entry.liveFrames;
+      const expected=liveFrames?liveFrames.length:intentionalStable.includes(key)?1:entry.frames;
+      if(liveFrames)check(JSON.stringify([...frames].sort((a,b)=>a-b))===JSON.stringify(liveFrames),
         `${key}: live variant atlas must draw every intended effect and no reserved source cel`);
       check(frames.size===expected,`${key}: actual world/HUD drew ${frames.size}/${expected} cels`);
       if(key.endsWith('Travel')||key.endsWith('Activity')||
@@ -396,7 +442,8 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
       'Reduced Motion advanced an animation');
     return {productionDraws:cases.length,animatedKeys:inventory.length,
       legacyAnimatedKeys:inventory.length-authoredCombatKeys.length-authoredFeedbackKeys.length-authoredBeatKeys.length,
-      authoredCombatKeys,authoredFeedbackKeys,authoredBeatKeys,beatReceipts,suppressedMisses,
+      authoredCombatKeys,authoredFeedbackKeys,authoredBeatKeys,minimalBeatLiveFrames,
+      beatReceipts,beatHUDReceipts,groundReceipt,suppressedMisses,
       intentionalStable,main:Object.fromEntries(Object.entries(coverage.main)
         .map(([key,frames])=>[key,[...frames].sort((a,b)=>a-b)])),
       mirror:Object.fromEntries(Object.entries(coverage.mirror)
@@ -409,6 +456,7 @@ module.exports=function auditAnimationRoutes({B,ctx,newState,entities,definition
     B.MusicTransport=originalTransport;
     B.MusicProfiles?.select?.(originalProfile??null);
     B.CacheRoadBeatSurface=beatSurface;B.CacheRoadBeatFeedback=beatFeedback;
+    B.CacheRoadInstruments=instruments;ctx.fillText=originalFillText;
     if(audio?.context&&Number.isFinite(originalAudioTime))audio.context.currentTime=originalAudioTime;
     B.Preferences.values.reducedMotion=originalReduced;
   }

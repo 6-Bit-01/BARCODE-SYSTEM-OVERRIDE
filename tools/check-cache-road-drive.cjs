@@ -6,7 +6,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const {createRig,load}=require('./check-level-01-boss');
 function rig(saved={}) {
-  const {w,context}=createRig(),B=w.BARCODE;
+  const {w,context,listeners}=createRig(),B=w.BARCODE;
   B.Campaign={register(){},syncTitleButton(){}};
   load(context,'src/engine/cache-road-proof-profile.js');
   load(context,'src/game/cache-road-landscape.js');
@@ -20,14 +20,102 @@ function rig(saved={}) {
   road.selectMusicProfile();
   B.MusicTransport.start({sourceAnchorAudioSec:0,sourceOffsetTrackSec:0});
   w.audioSystem.context.currentTime=0;
-  return {w,B,context,road,inspect:w.driveTest};
+  return {w,B,context,listeners,road,inspect:w.driveTest};
 }
 const beatSec=60/128;
 function tick(r,beat,actions={},delta=1000/60) {
   r.w.audioSystem.context.currentTime=beat*beatSec;
   r.road.handleActions(actions);r.road.update(delta);
 }
+function keyboardRig(saved={}) {
+  const r=rig(saved);
+  for(const file of ['src/core/action-input.js','src/core/input.js','src/game/pause-menu.js',
+    'src/game/cache-road-cinematics.js'])load(r.context,file);
+  const manager=r.w.inputManager=new r.w.InputManager();
+  const key=(type,value,repeat=false)=>{
+    const event={key:value,repeat,shiftKey:false,timeStamp:r.w.performance.now(),preventDefault(){}};
+    for(const listener of r.listeners[type]||[])listener(event);
+  };
+  const frame=(beat=r.w.audioSystem.context.currentTime/beatSec,options={})=>{
+    r.w.audioSystem.context.currentTime=beat*beatSec;
+    manager.update(options);r.road.update(1000/60);return manager.actionInput.state;
+  };
+  frame();return {...r,manager,key,frame};
+}
+function checkKeyboard() {
+  // Dispatch the actual shared listener, including keyup before the next RAF.
+  // These diagnostic fixtures stage only the starting gear/audio clock.
+  for(const [key,action,direction] of [['ArrowUp','move_up',1],['w','move_up',1],
+    ['ArrowDown','move_down',-1],['s','move_down',-1]]) {
+    const r=keyboardRig();r.key('keydown',key);r.key('keydown',key,true);r.key('keyup',key);
+    const state=r.frame();
+    assert(state[action].pressed&&state[action].released&&!state[action].held,
+      `${key}: a completed between-frame gear tap retains its discrete edge`);
+    assert.equal(state[action].presses.length,1,'browser key repeat does not duplicate a gear tap');
+    assert.equal(r.road.state.pendingGear,1+direction,'real road owner queues the selected gear');
+    assert.equal(r.road.state.pendingGearBeat,4);
+    r.frame(4.8);assert.equal(r.road.state.gear,1+direction,'real next ONE commits the short-tap gear');
+  }
+  for(const [key,alias,action,direction,gear] of [['ArrowUp','w','move_up',1,0],
+    ['ArrowDown','s','move_down',-1,2]]) {
+    const r=keyboardRig({gear});r.key('keydown',key);r.frame();
+    assert.equal(r.road.state.pendingGear,1);
+    r.key('keydown',key,true);r.key('keydown',alias);r.key('keyup',key);
+    const held=r.frame(4.8);
+    assert(held[action].held&&!held[action].pressed,'held aliases share one gear stroke');
+    assert.equal(r.road.state.gear,1);
+    r.frame(8.8);assert.equal(r.road.state.gear,1,'holding never queues a second gear');
+    assert.equal(r.road.state.pendingGear,null);
+    r.key('keyup',alias);r.frame();r.key('keydown',alias);r.key('keyup',alias);r.frame();
+    assert.equal(r.road.state.pendingGear,1+direction,'release rearms one new alias tap');
+    r.frame(12.8);assert.equal(r.road.state.gear,1+direction);
+  }
+  {
+    const r=keyboardRig();
+    for(const key of ['ArrowUp','ArrowDown']){r.key('keydown',key);r.key('keyup',key);}
+    r.frame();assert.equal(r.road.state.pendingGear,0,'Down retains priority over simultaneous Up');
+    r.key('keydown','ArrowRight');r.key('keyup','ArrowRight');r.frame();
+    assert.equal(r.road.state.steer,0,'continuous steering does not acquire discrete queued taps');
+    r.key('keydown','ArrowRight');r.frame();assert.equal(r.road.state.steer,1);
+    r.key('keydown','ArrowLeft');r.frame();assert.equal(r.road.state.steer,0);
+    r.key('keyup','ArrowLeft');r.frame();assert.equal(r.road.state.steer,1);
+  }
+  {
+    const r=keyboardRig();r.key('keydown','ArrowUp');r.key('keyup','ArrowUp');
+    for(const listener of r.listeners.blur||[])listener();r.frame();
+    assert.equal(r.road.state.pendingGear,null,'focus loss cancels an unconsumed gear tap');
+    r.key('keydown','ArrowRight');r.frame();
+    for(const listener of r.listeners.blur||[])listener();r.frame();
+    assert.equal(r.road.state.steer,0,'focus loss releases continuous steering');
+    r.key('keydown','ArrowUp');r.key('keyup','ArrowUp');
+    r.frame(undefined,{inputOnly:true,context:{paused:true}});r.frame();
+    assert.equal(r.road.state.pendingGear,null,'suppressed context consumes a tap without leaking after resume');
+    r.w.isPaused=r.w.gameState.paused=true;
+    r.key('keydown','ArrowUp');r.key('keyup','ArrowUp');r.manager.updatePausedInput();
+    assert.equal(r.road.state.pendingGear,null,'actual settings owner consumes gear keys while paused');
+    r.w.isPaused=r.w.gameState.paused=false;r.B.PauseMenu.sync();r.frame();
+    assert.equal(r.road.state.pendingGear,null,'menu keys cannot become gear taps after resume');
+  }
+  for(const context of ['level1','intro','handoff','results']) {
+    const r=keyboardRig();
+    if(context==='level1')r.road.active=false;
+    else if(context==='intro')r.road.introMs=0;
+    else if(context==='handoff')r.road.handoffMs=100;
+    else r.road.status='failed';
+    r.key('keydown','ArrowUp');r.key('keyup','ArrowUp');
+    const state=r.frame();
+    assert(!state.move_up.pressed,`${context}: no road-only queued gear edge`);
+    assert.equal(r.road.state.pendingGear,null);
+    if(context==='level1') {
+      assert(state.jump.pressed,'Level 1 retains its existing between-frame jump edge');
+      r.key('keydown','ArrowUp');r.frame();assert(r.manager.actionInput.state.move_up.held,
+        'Level 1 movement remains continuously held');
+    }
+  }
+  console.log('PASS: real keyboard gear taps/aliases/ONE commits, held/repeat/priority, continuous steering, blur/pause/menu/context and Level 1 isolation');
+}
 function run() {
+  checkKeyboard();
   let checks=0,arrivals=0,maxPixelError=0;
   for(const gear of [0,1,2]) {
     const r=rig({gear});tick(r,0);
@@ -130,5 +218,5 @@ function run() {
   }
   console.log(JSON.stringify({physicalDisplacementChecks:checks,downbeatArrivals:arrivals,maxPixelError,frameRates:[24,30,60,120],boundaryInputs:3,pauseResume:true,endings}));
 }
-if(require.main===module)run();
-module.exports={rig,tick,run};
+if(require.main===module)process.argv.includes('--keyboard')?checkKeyboard():run();
+module.exports={rig,tick,checkKeyboard,run};

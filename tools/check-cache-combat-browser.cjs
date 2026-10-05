@@ -14,6 +14,22 @@ const root = path.resolve(__dirname, '..');
 const output = path.resolve(process.env.CACHE_COMBAT_BROWSER_OUTPUT ||
   path.join(os.tmpdir(), 'barcode-cache-combat-browser'));
 const requireHosted = process.env.CACHE_COMBAT_BROWSER_REQUIRE_HOSTED === '1';
+// This fixture deliberately retains the complete native painter and one Canvas
+// contract. Its timings cannot certify the standalone GPU renderer. CI may keep
+// them as explicit diagnostics while every functional/quality assertion runs.
+const nativeFallbackDiagnostic = process.env.CACHE_NATIVE_FALLBACK_DIAGNOSTIC === '1';
+function browserGpuConfig(value) {
+  const backend = value ?? '';
+  assert(backend === '' || backend === 'swiftshader',
+    'CACHE_COMBAT_BROWSER_GPU_BACKEND must be unset or swiftshader');
+  // Full SwANGLE exercises GPU rendering paths on CPU-only bots; the WebGL
+  // fallback variant leaves other rendering in software. This is a requested
+  // backend, not proof of acceleration or performance acceptance.
+  // https://chromium.googlesource.com/chromium/src/+/HEAD/docs/gpu/swiftshader.md
+  return { requestedBackend: backend || 'default', flags: backend === 'swiftshader' ?
+    ['--use-gl=angle', '--use-angle=swiftshader'] : [] };
+}
+const browserGpu = browserGpuConfig(process.env.CACHE_COMBAT_BROWSER_GPU_BACKEND);
 const chromePath = process.env.CHROME_BIN || ['/usr/bin/google-chrome', '/usr/bin/chromium',
   '/usr/bin/chromium-browser'].find(fs.existsSync);
 assert(chromePath, 'Set CHROME_BIN to an installed Chrome/Chromium executable. Node 22+ supplies WebSocket.');
@@ -86,6 +102,7 @@ const nativeGetContext=HTMLCanvasElement.prototype.getContext;
 HTMLCanvasElement.prototype.getContext=function(...args){
   if(this.id!=='gameCanvas')throw Error('Unexpected secondary Canvas context');
   if(++browserProof.contexts>1)throw Error('Repeated main Canvas context acquisition');
+  browserProof.contextRequest={type:args[0],options:args[1]||null};
   return nativeGetContext.apply(this,args);
 };
 const nativeCreate=document.createElement.bind(document);
@@ -172,8 +189,14 @@ window.audioSystem={context:{currentTime:0,state:'running'},musicTracks:{},
   playCombatCue(kind){browserProof.cues.push(kind);return true;},stopCacheBridgeAudio(){}};
 </script>${scripts.map(file => `<script src="/${file}"></script>`).join('')}
 <script>
-const canvas=document.getElementById('gameCanvas');window.renderer={canvas,ctx:canvas.getContext('2d')};
+// Exercise the alternate-scene production acquisition owner; a harness-only
+// option would not verify the actual game's first context policy.
+const canvas=document.getElementById('gameCanvas');window.renderer={canvas,ctx:getFrameContext()};
 renderer.ctx.imageSmoothingQuality='high'; // inherited shared-renderer setting in production
+browserProof.contextAttributesBefore=renderer.ctx.getContextAttributes();
+browserProof.readbacks=0;
+const nativeReadPixels=renderer.ctx.getImageData;
+renderer.ctx.getImageData=function(...args){browserProof.readbacks++;return nativeReadPixels.apply(this,args);};
 const copy=value=>JSON.parse(JSON.stringify(value));
 const round=(value,digits=3)=>Number(Number(value||0).toFixed(digits));
 const clamp=(value,low,high)=>Math.max(low,Math.min(high,value));
@@ -184,20 +207,43 @@ const instrument=${instrument.toString()},Driver=${Driver.toString()},
   observeCombat=${observeCombat.toString()},CombatDriver=${CombatDriver.toString()};
 const originalAssetDraw=BARCODE.PresentationAssets.draw;
 const beatArt=BARCODE.CacheRoadBeatFeedback;
-browserProof.beatPaints={targets:0,pads:0,earned:0,earnedCustom:0,earnedCustomKeys:[],qualities:[],gains:[]};
+let beatHUDTexts=null,groundReceiptActive=false;
+browserProof.assetSubmissions=0;browserProof.beatFrames={};
+browserProof.beatPaints={targets:0,pads:0,earned:0,receiptCalls:0,receiptHandled:0,
+  receiptAssetSubmissions:0,receiptTextPaints:0,qualities:[],gains:[],hudReceipts:[]};
 BARCODE.CacheRoadBeatFeedback={...beatArt,
   drawTarget(...args){browserProof.beatPaints.targets++;return beatArt.drawTarget(...args);},
   drawPad(...args){const painted=beatArt.drawPad(...args);if(painted)browserProof.beatPaints.pads++;return painted;},
   drawReceipt(ctx,state,options){
-    const before=Object.fromEntries(${JSON.stringify(beatKeys)}.map(key=>[key,browserProof.drawn[key]||0]));
-    const painted=beatArt.drawReceipt(ctx,state,options),pose=beatArt.feedbackPose(state,options);
-    if(painted&&pose?.success){browserProof.beatPaints.earned++;
-      browserProof.beatPaints.qualities.push(pose.quality);browserProof.beatPaints.gains.push(pose.delta);
-      const customKeys=${JSON.stringify(beatKeys)}.filter(key=>(browserProof.drawn[key]||0)>before[key]);
-      if(customKeys.length){browserProof.beatPaints.earnedCustom++;
-        browserProof.beatPaints.earnedCustomKeys.push(...customKeys);}}
-    return painted;
+    const before=browserProof.assetSubmissions,previous=groundReceiptActive;
+    const counters=browserProof.beatPaints;counters.receiptCalls++;groundReceiptActive=true;
+    try{
+      const handled=beatArt.drawReceipt(ctx,state,options),pose=beatArt.feedbackPose(state,options);
+      if(handled===true)counters.receiptHandled++;
+      if(pose?.success){counters.earned++;counters.qualities.push(pose.quality);counters.gains.push(pose.delta);}
+      return handled;
+    }finally{counters.receiptAssetSubmissions+=browserProof.assetSubmissions-before;groundReceiptActive=previous;}
   }};
+const beatInstruments=BARCODE.CacheRoadInstruments,seenHUDReceipts=new Set();
+BARCODE.CacheRoadInstruments={...beatInstruments,drawAdrenaline(ctx,state,options){
+  const previous=beatHUDTexts,texts=[];beatHUDTexts=texts;
+  try{
+    const result=beatInstruments.drawAdrenaline(ctx,state,options),reward=beatInstruments.rewardPose(state,options);
+    if(reward?.recent&&['perfect','good','miss'].includes(reward.a.lastResult)){
+      const a=reward.a,label=a.lastResult.toUpperCase(),delta=a.lastDelta,
+        deltaText=delta?(delta>0?'+':'')+delta:null;
+      if(!texts.includes(label)||!texts.includes(String(Math.round(a.value)))||
+        deltaText&&!texts.includes(deltaText)||!delta&&reward.earned&&a.value===100&&!texts.includes('MAX'))
+        throw Error('Existing adrenaline HUD omitted actual '+a.lastResult+' judgment/value/delta');
+      const id=[a.lastAtMs,a.lastResult,delta,a.value].join(':');
+      if(!seenHUDReceipts.has(id)){
+        seenHUDReceipts.add(id);browserProof.beatPaints.hudReceipts.push({quality:a.lastResult,
+          delta,value:a.value,chain:a.chain,paired:reward.paired,texts,deltaText});
+      }
+    }
+    return result;
+  }finally{beatHUDTexts=previous;}
+}};
 browserProof.combatPaints={kinds:{},wrecks:0,riders:0,flips:0,reduced:0,blasts:0,blastFrames:[],noFlashFrames:[],reducedBlastDraws:0};
 const combatArt=BARCODE.CacheRoadCombatArt;
 if(combatArt)BARCODE.CacheRoadCombatArt={...combatArt,drawBody(ctx,options){
@@ -221,13 +267,19 @@ if(combatArt)BARCODE.CacheRoadCombatArt={...combatArt,drawBody(ctx,options){
 browserProof.texts=[];browserProof.textPaints=[];browserProof.traceTextAlpha=false;
 const nativeFillText=CanvasRenderingContext2D.prototype.fillText;
 CanvasRenderingContext2D.prototype.fillText=function(value,...args){
+  if(beatHUDTexts)beatHUDTexts.push(String(value));
+  if(groundReceiptActive)browserProof.beatPaints.receiptTextPaints++;
   if(browserProof.texts.length<20000)browserProof.texts.push(String(value));
   if(browserProof.traceTextAlpha&&browserProof.textPaints.length<20000)
     browserProof.textPaints.push({value:String(value),alpha:this.globalAlpha});
   return nativeFillText.call(this,value,...args);
 };
-BARCODE.PresentationAssets.draw=function(key,...args){const ready=originalAssetDraw.call(this,key,...args);
-  if(ready)browserProof.drawn[key]=(browserProof.drawn[key]||0)+1;return ready;};
+BARCODE.PresentationAssets.draw=function(key,...args){browserProof.assetSubmissions++;
+  const ready=originalAssetDraw.call(this,key,...args);
+  if(ready){browserProof.drawn[key]=(browserProof.drawn[key]||0)+1;
+    if(${JSON.stringify(beatKeys)}.includes(key)){
+      const frames=browserProof.beatFrames[key]||(browserProof.beatFrames[key]={});frames[args[1]?.frame??0]=true;
+    }}return ready;};
 const originalUpdate=BARCODE.CacheRoadProof.update,originalRoadDraw=BARCODE.CacheRoadProof.draw;
 browserProof.trafficGuards=[];browserProof.guardAttempts=0;browserProof.lastGuardPressMs=-10000;
 browserProof.pedestrianContacts=[];
@@ -320,9 +372,10 @@ browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-
       previousDisplayCostMs:browserProof.displayCostMs});
     window.canvasCostMark=undefined;
     browserProof.displayCostMs=costMs;browserProof.measureLoop=false;
+    // Capture a genuinely played live-boss frame at its actual native quality.
+    // Native rendering stays at scale 1; capture must not require downscaling.
     if(browserProof.bossPaintFrames>=30&&BARCODE.CacheRoadProof.status==='playing'&&
         BARCODE.CacheRoadProof.state.combat?.boss?.hp>0&&
-        BARCODE.CacheRoadProof.renderBudget?.drawnScale<1&&
         costMs>(browserProof.phaseSnapshot?.measuredCostMs??0))
       browserProof.phaseSnapshot={measuredCostMs:costMs,worldScale:BARCODE.CacheRoadProof.renderBudget.drawnScale,state:copy(BARCODE.CacheRoadProof.state),chapter:copy(BARCODE.CacheRoadProof.chapter),
         host:Object.fromEntries(['status','introMs','handoffMs','outroMs','cinematicLane','audioDegraded'].map(key=>[key,BARCODE.CacheRoadProof[key]]))};
@@ -467,9 +520,8 @@ const server=http.createServer((req,res)=>{
     const mirrorBoundary="ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';";
     assert(source.includes(mirrorBoundary),'opaque mirror-copy fidelity boundary');
     source=source.replace(mirrorBoundary,"ctx.globalCompositeOperation=opaqueNative&&!window.forceMirrorCopy?'source-over':'copy';");
-    const mirrorPixelsBoundary='right-sx,bottom-sy,pixelBudget,opaqueNative);';
-    assert(source.includes(mirrorPixelsBoundary),'original mirror pixel transport comparison');
-    source=source.replace(mirrorPixelsBoundary,'right-sx,bottom-sy,pixelBudget,opaqueNative&&!window.forceMirrorCopy);');
+    const mirrorPixelsBoundary='right-sx,bottom-sy,pixelBudget,false);';
+    assert(source.includes(mirrorPixelsBoundary),'production mirror uses cropped self-copy without readback');
     const tintBoundary='if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {';
     assert(source.includes(tintBoundary),'pointwise reflection-filter bounds boundary');
     source=source.replace(tintBoundary,'if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY&&!window.forceReflectionTintClip) {');
@@ -488,13 +540,49 @@ const server=http.createServer((req,res)=>{
 });
 const profile=fs.mkdtempSync(path.join(os.tmpdir(),'barcode-combat-chrome-'));
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-let chrome,chromeClosed,socket,receipt;
+let chrome,chromeClosed,socket,receipt,browserBackend,nativeTiming;
+async function inspectBrowserBackend(debuggerUrl) {
+  // SystemInfo is a browser-target command. Keep this separate from the page
+  // session and close the diagnostic connection before gameplay measurement.
+  const diagnosticSocket = new WebSocket(debuggerUrl), pending = new Map();
+  let serial = 0;
+  diagnosticSocket.addEventListener('message', event => {
+    const message = JSON.parse(event.data), request = pending.get(message.id);
+    if (!request) return;
+    pending.delete(message.id); clearTimeout(request.timeout);
+    if (message.error) request.reject(Error(JSON.stringify(message.error)));
+    else request.resolve(message.result);
+  });
+  const send = (method) => new Promise((resolve, reject) => {
+    const id = ++serial, timeout = setTimeout(() => {
+      pending.delete(id); reject(Error(`${method} backend diagnostic timeout`));
+    }, 30000);
+    pending.set(id, { resolve, reject, timeout });
+    diagnosticSocket.send(JSON.stringify({ id, method, params: {} }));
+  });
+  try {
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(Error('Browser backend connection timeout')), 30000);
+      diagnosticSocket.addEventListener('open', () => { clearTimeout(timeout); resolve(); }, { once:true });
+      diagnosticSocket.addEventListener('error', () => { clearTimeout(timeout); reject(Error('Browser backend connection failed')); }, { once:true });
+    });
+    const [version, systemInfo] = await Promise.all([
+      send('Browser.getVersion'), send('SystemInfo.getInfo')]);
+    return { version, systemInfo };
+  } finally {
+    for (const request of pending.values()) {
+      clearTimeout(request.timeout); request.reject(Error('Browser backend connection closed'));
+    }
+    pending.clear(); diagnosticSocket.close();
+  }
+}
 async function main(){
   server.listen(0,'127.0.0.1');await once(server,'listening');
   const origin=`http://127.0.0.1:${server.address().port}`;
-  chrome=spawn(chromePath,['--headless=new','--no-sandbox','--disable-dev-shm-usage',
+  const launchFlags=['--headless=new','--no-sandbox','--disable-dev-shm-usage',
     '--autoplay-policy=no-user-gesture-required','--no-first-run','--remote-debugging-port=0',
-    `--user-data-dir=${profile}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
+    ...browserGpu.flags,`--user-data-dir=${profile}`,'about:blank'];
+  chrome=spawn(chromePath,launchFlags,{stdio:['ignore','ignore','pipe']});
   chromeClosed=new Promise(resolve=>chrome.once('close',resolve));
   const debuggerUrl=await new Promise((resolve,reject)=>{
     let stderr='';const timeout=setTimeout(()=>fail(Error(`Chrome startup timeout: ${stderr}`)),30000);
@@ -504,6 +592,19 @@ async function main(){
       if(match){cleanup();resolve(match[1]);}};
     chrome.once('error',fail);chrome.once('close',closed);chrome.stderr.on('data',read);
   });
+  browserBackend={requestedBackend:browserGpu.requestedBackend,launchFlags,
+    ...await inspectBrowserBackend(debuggerUrl)};
+  console.log('BROWSER_BACKEND '+JSON.stringify(browserBackend));
+  fs.writeFileSync(path.join(output,'Browser-Backend.json'),JSON.stringify(browserBackend,null,2)+'\n');
+  if(browserGpu.requestedBackend==='swiftshader') {
+    const gpu=browserBackend.systemInfo.gpu;
+    assert.match(gpu.auxAttributes?.glRenderer||'',/swiftshader/i,
+      'requested SwANGLE trial must report the actual SwiftShader renderer');
+    assert.equal(gpu.featureStatus?.['2d_canvas'],'enabled',
+      'requested SwANGLE trial must advertise an enabled Canvas2D feature');
+    assert.equal(gpu.featureStatus?.rasterization,'enabled',
+      'requested SwANGLE trial must advertise an enabled GPU rasterization feature');
+  }
   const target=await(await fetch(`${new URL(debuggerUrl).origin.replace('ws:','http:')}/json/new`,{method:'PUT'})).json();
   socket=new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true});});
@@ -757,7 +858,13 @@ async function main(){
   assert(drawnWreck&&drawnRider&&drawnFlip,'an actually destroyed bike/car is rendered with physical flip and separated rider');
   assert(paintSessions.some(session=>session.wrecks>0&&session.riders>0&&session.flips>0),
     'the actual production painter returns successful wreck, airborne-rider and rotating-chassis paints');
-  for(const key of assets.map(asset=>asset.key))assert(allDrawn[key]>0,`the native production race paints ${key}`);
+  for(const key of assets.map(asset=>asset.key).filter(key=>key!=='cacheBeatEnergy'))
+    assert(allDrawn[key]>0,`the native production race paints ${key}`);
+  assert.equal(allDrawn.cacheBeatEnergy||0,0,'native race submits no omitted ground energy texture');
+  const beatFrames=await evaluate('Object.fromEntries(Object.entries(browserProof.beatFrames).map(([key,frames])=>[key,Object.keys(frames).map(Number).sort((a,b)=>a-b)]))');
+  assert((beatFrames.cacheBeatHardware||[]).every(frame=>Number.isInteger(frame)&&frame>=0&&frame<8));
+  assert((beatFrames.cacheBeatTiming||[]).every(frame=>[0,1,2].includes(frame)),
+    'native ground timing submits only approach/charging/ONE cells');
   for(const kind of ['bike','rammer','escort','disruptor'])
     assert(paintSessions.some(session=>session.kinds[kind]>0),`the actual ${kind} is painted in the played chase`);
   assert(paintSessions.every(session=>session.reducedBlastDraws===0));
@@ -767,13 +874,33 @@ async function main(){
   assert.equal(state.rewardFacts.items.filter(item=>item==='stem.bass').length,1);
   const beatPaints=await evaluate('browserProof.beatPaints');
   assert(beatPaints.targets>0&&beatPaints.pads>0&&beatPaints.earned>0,
-    'actual native race paints the new ground target, physical pads and earned adrenaline receipts');
+    'actual native race paints readable ground targets/pads and retains genuinely earned receipt facts');
   assert(beatPaints.gains.some(gain=>gain>0&&gain<=20),
-    'an earned native ground receipt shows a real bounded positive adrenaline gain');
-  assert(beatPaints.earnedCustom>0&&beatPaints.earnedCustomKeys.includes('cacheBeatTiming'),
-    'at least one real earned native receipt submits custom beat artwork and its quality shell');
+    'an actual native judgment retains a real bounded positive adrenaline gain');
+  assert(beatPaints.receiptCalls>0&&beatPaints.receiptHandled===beatPaints.receiptCalls,
+    'ground receipt owner handles every call so the old fallback remains suppressed');
+  assert.equal(beatPaints.receiptAssetSubmissions,0,'ground receipt submits no texture');
+  assert.equal(beatPaints.receiptTextPaints,0,'ground receipt paints no duplicate text');
+  assert(beatPaints.hudReceipts.some(receipt=>receipt.paired&&receipt.delta>0&&receipt.delta<=20&&
+    ['perfect','good'].includes(receipt.quality)&&receipt.texts.includes(receipt.quality.toUpperCase())&&
+    receipt.texts.includes(receipt.deltaText)),
+    'existing native HUD renders an actually earned judgment and its exact positive gain');
   assert.equal(await evaluate('document.querySelectorAll("canvas").length'),1);
   assert.equal(await evaluate('browserProof.contexts'),1);assert.equal(await evaluate('browserProof.extraCanvases'),0);
+  const contextPolicy=await evaluate(`({request:browserProof.contextRequest,
+    before:browserProof.contextAttributesBefore,after:renderer.ctx.getContextAttributes(),
+    readbacks:browserProof.readbacks,sameContext:getFrameContext()===renderer.ctx})`);
+  assert.deepEqual(contextPolicy.request,{type:'2d',options:{willReadFrequently:false}},
+    'real alternate scene owner forwards the explicit draw-heavy hint on first acquisition');
+  assert.equal(contextPolicy.before.willReadFrequently,false);
+  assert.equal(contextPolicy.before.alpha,true);assert.equal(contextPolicy.before.colorSpace,'srgb');
+  assert.equal(contextPolicy.before.desynchronized,false);
+  assert.deepEqual(contextPolicy.after,contextPolicy.before,
+    'actual consecutive mirror/diagnostic readbacks preserve the original context attributes');
+  assert(contextPolicy.readbacks>2&&contextPolicy.sameContext,
+    'actual repeated readbacks keep the same acquired production context');
+  console.log('CONTEXT_READBACK_POLICY '+JSON.stringify(contextPolicy));
+  fs.writeFileSync(path.join(output,'Context-Readback-Policy.json'),JSON.stringify(contextPolicy,null,2)+'\n');
   assert.equal(await evaluate('browserProof.worldUpdates'),0);assert(state.guidanceCalls>0);
   const labels=await evaluate('browserProof.texts');
   for(const label of ['ATTACK','TURBO','DEFEND','DISRUPT','RB','LB','RT','LT'])
@@ -811,12 +938,12 @@ async function main(){
     [...new Set(fullLoopCosts.map(frame=>JSON.stringify({world:frame.worldPixelCopyUsed,mirror:frame.mirrorPixelCopyUsed,unavailable:frame.pixelCopyUnavailable})))].map(key=>({
       ...JSON.parse(key),frames:fullLoopCosts.filter(frame=>JSON.stringify({world:frame.worldPixelCopyUsed,mirror:frame.mirrorPixelCopyUsed,unavailable:frame.pixelCopyUnavailable})===key).length}))));
   console.log('SUSTAINED_PAINT_PHASES '+JSON.stringify([false,true].map(boss=>{
-    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale<1);
+    const frames=fullLoopCosts.filter(frame=>frame.boss===boss);
     return {group:boss?'boss':'chase',frames:frames.length,
       phases:[...new Set(frames.flatMap(frame=>frame.paintPhases.map(row=>row.phase)))].map(phase=>({phase,
         medianMs:median(frames.map(frame=>frame.paintPhases.find(row=>row.phase===phase)?.ms).filter(Number.isFinite))}))};})));
   console.log('SUSTAINED_REPRESENTATIVE_FRAMES '+JSON.stringify([false,true].map(boss=>{
-    const frames=fullLoopCosts.filter(frame=>frame.boss===boss&&frame.worldScale<1).sort((a,b)=>a.ms-b.ms);
+    const frames=fullLoopCosts.filter(frame=>frame.boss===boss).sort((a,b)=>a.ms-b.ms);
     return {group:boss?'boss':'chase',samples:[.25,.5,.75,.95].map(fraction=>frames[Math.min(frames.length-1,Math.floor(frames.length*fraction))]).filter(Boolean)
       .map(frame=>({ms:frame.ms,bar:frame.bar,drawMs:frame.drawMs,flushMs:frame.flushMs,paintPhases:frame.paintPhases}))};})));
   fs.writeFileSync(path.join(output,'Sustained-Frame-Cost.json'),JSON.stringify(fullLoopTiming,null,2)+'\n');
@@ -913,11 +1040,15 @@ async function main(){
   })()`);
   const {reviewWebp,...phaseReport}=phaseCost;
   if(reviewWebp){
-    console.log('BOSS_RENDER_REVIEW '+JSON.stringify({fixture:true,bar:phaseCost.bar,webp:reviewWebp}));
-    fs.writeFileSync(path.join(output,'Boss-Render-Review.webp'),Buffer.from(reviewWebp,'base64'));
+    const file='Boss-Render-Review.webp',bytes=Buffer.from(reviewWebp,'base64');
+    fs.writeFileSync(path.join(output,file),bytes);
+    console.log('BOSS_RENDER_REVIEW '+JSON.stringify({fixture:true,bar:phaseCost.bar,file,
+      bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex')}));
   }
   console.log('BOSS_RENDER_PHASES '+JSON.stringify(phaseReport));
-  assert(phaseReport.available&&phaseReport.status==='playing'&&phaseReport.bossHP>0,'staged diagnostic restores the actual live-boss lifecycle');
+  assert(phaseReport.available,'staged diagnostic captures an actually played live-boss frame at its observed quality');
+  assert(phaseReport.status==='playing'&&phaseReport.bossHP>0,'staged diagnostic restores the actual live-boss lifecycle');
+  assert(phaseReport.worldScale===1,'staged diagnostic preserves the actually played native scale');
   assert(phaseReport.renderFidelity.meanRGB<.1&&phaseReport.renderFidelity.maxAlphaDifference===0,'bounded terrain/opaque frame copy keep the original rendered output');
   assert(phaseReport.opaqueCopyFidelity.meanRGB<.1&&phaseReport.opaqueCopyFidelity.maxAlphaDifference===0,'opaque source-over retains the cleared copy RGB and alpha');
   fs.writeFileSync(path.join(output,'Boss-Render-Phases.json'),JSON.stringify(phaseReport,null,2)+'\n');
@@ -928,15 +1059,26 @@ async function main(){
   assert(fullLoopCosts.every(frame=>frame.displayDraws===1),'each timed RAF submits one native production draw');
   phaseMedians.liveBoss=median(liveBossCosts.map(frame=>frame.ms));
   console.log('SUSTAINED_PHASE_MEDIANS '+JSON.stringify(phaseMedians));
-  assert(Object.values(phaseMedians).every(ms=>ms<=1000/30),'each chase and live-boss phase must fit the 30 Hz diagnostic median budget');
-  assert(fullLoopTiming.medianMs<=1000/30,'consecutive production chase/boss frames must fit the 30 Hz diagnostic median budget');
+  nativeTiming={rendererContract:'native fallback fixture',
+    mode:nativeFallbackDiagnostic?'diagnostic':'enforced',budgetMs:1000/30,phaseMedians,
+    fullLoopMedianMs:fullLoopTiming.medianMs,
+    timingPass:Object.values(phaseMedians).every(ms=>ms<=1000/30)&&fullLoopTiming.medianMs<=1000/30,
+    performanceAssertionsEnforced:!nativeFallbackDiagnostic,performanceAcceptance:false,
+    limitation:'Native-only fixture excludes the GPU renderer. Timing failures remain recorded; standalone hardware performance is checked separately.'};
+  console.log('NATIVE_FALLBACK_TIMING '+JSON.stringify(nativeTiming));
+  fs.writeFileSync(path.join(output,'Native-Fallback-Timing.json'),JSON.stringify(nativeTiming,null,2)+'\n');
+  if(!nativeFallbackDiagnostic){
+    assert(Object.values(phaseMedians).every(ms=>ms<=1000/30),'each chase and live-boss phase must fit the 30 Hz diagnostic median budget');
+    assert(fullLoopTiming.medianMs<=1000/30,'consecutive production chase/boss frames must fit the 30 Hz diagnostic median budget');
+  }
   assert.deepEqual(errors,[],'native browser raises no uncaught production exceptions');assert.equal(requests.head,0);
   if(requireHosted)assert.deepEqual(requests.localCombat,[],'new combat/feedback art never silently falls back to bundled paths');
   if(requireHosted)assert.deepEqual(requests.localBeat,[],'custom beat art never silently falls back to bundled paths');
   assert.deepEqual(sourceHashes(),initialSourceHashes,'source and authored assets remain frozen throughout the browser race');
-  receipt={passed:true,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
+  receipt={passed:true,functionalPassed:true,performanceAcceptance:false,nativeFallbackDiagnostic,nativeTiming,
+    browserBackend,assetDelivery:requireHosted?'immutable-hosted':'bundled',decoded,zeroSync,frames,bossHp,
     state,events:allEvents,restoreReceipt,comfort,cinematicNative,drawn:allDrawn,combatPaintSessions:paintSessions,drawSamples,trafficGuards,
-    renderedControlLabels:[...new Set(labels)],beatPaints,requests,errors,minimumDrums,
+    renderedControlLabels:[...new Set(labels)],beatPaints,beatFrames,requests,errors,minimumDrums,
     simulationFrames:totalFrames,driverFrames:totalDriverFrames,sharedRafUpdates:totalRafUpdates,
     nativeCanvasSamples:totalSamples,fullLoopTiming,sourceHashes:initialSourceHashes,sourceStableThroughoutRun:true,
     checks:{nativeControllerAndAnalogTriggers:true,zeroSyncFourSkills:true,actualWeaponBossDamage:true,
@@ -947,12 +1089,13 @@ async function main(){
       reducedMotionNoFlashesDrawn:true,nativeOpeningNoHUD:true,nativeExistingContextHUDFade:true,
       unscoredStagedRam:true,nativeEarnedHorizonExit:true,freshOutroSkip:true,
       nativeGroundTimingAndEarnedAdrenalinePaint:true,customBeatSheetsDecodedAndHashed:true,
-      immutableBeatSourceAttempt:true,customBeatProjectionOwnerLoaded:true,earnedCustomBeatReceipt:true,
+      immutableBeatSourceAttempt:true,customBeatProjectionOwnerLoaded:true,minimalGroundReceiptNoWork:true,
+      existingHUDEarnedJudgmentAndDelta:true,noLiveGroundEnergy:true,
       oneCanvas:true,stateInjection:false},
     limits:'Production scripts in index order, controlled saved bridge-ready entry, native Chromium input/Canvas, every shared-RAF simulation update and selected Canvas samples. Does not exercise title boot or every display frame. Audio clock, gamepad device, lifecycle pause and Campaign persistence are controlled hosts. No progress, health, immunity, resources, captures or boss-damage injection. Not Makko, physical-controller, recorded listening, human balance, comfort or display-pacing acceptance.'};
-  console.log(`Cache combat Chromium passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames.`);
+  console.log(`Cache combat native fallback functional checks passed: zero-sync four controls, analog triggers, actual12HP rig damage, wreck/first gear, earned page reload, full100bars; ${totalFrames} simulation frames and ${totalSamples} sampled Canvas frames. Native timing ${nativeTiming.timingPass?'passed':'failed'} (${nativeTiming.mode}); standalone GPU performance is not accepted by this fixture.`);
 }
-main().catch(error=>{receipt={passed:false,error:error.stack,frames,requests,errors};console.error(error);process.exitCode=1;})
+main().catch(error=>{receipt={passed:false,performanceAcceptance:false,nativeFallbackDiagnostic,nativeTiming:nativeTiming||null,browserBackend:browserBackend||null,error:error.stack,frames,requests,errors};console.error(error);process.exitCode=1;})
   .finally(async()=>{fs.writeFileSync(path.join(output,'Combat-Browser-Checks.json'),JSON.stringify(receipt||{passed:false},null,2)+'\n');
     socket?.close();if(chrome&&chrome.exitCode===null&&chrome.signalCode===null)chrome.kill();if(chromeClosed)await chromeClosed;
     server.close();await fs.promises.rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});});

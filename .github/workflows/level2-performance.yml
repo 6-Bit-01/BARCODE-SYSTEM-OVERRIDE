@@ -4,18 +4,58 @@ on:
     branches:
       - agent/level2-frame-pacing-repair
       - agent/level2-raster-work-repair
+      - agent/native-road-quality-repair
+      - agent/level2-minimal-road-cues
       - main
   pull_request:
     paths:
       - src/core/loop.js
+      - src/core/runtime-lifecycle.js
+      - src/core/input.js
+      - src/core/action-input.js
       - src/game/cache-road-proof.js
       - src/game/cache-road-render-budget.js
       - src/game/cache-road-beat-surface.js
+      - src/game/cache-road-*.js
+      - src/game/pause-menu.js
       - src/engine/presentation-assets.js
+      - src/engine/standalone-sprites.js
+      - src/engine/level-scene-resources.js
+      - src/engine/cache-ending.js
+      - src/engine/cache-bridge.js
+      - src/engine/renderer.js
+      - src/engine/cache-road-gpu-renderer.js
+      - src/engine/cache-road-gpu-context.js
+      - src/engine/cache-road-texture-bank.js
+      - src/engine/cache-road-texture-worker.js
+      - src/vendor/pixi-8.22.0/**
+      - src/vendor/basis-2.50/**
+      - index.html
+      - style.css
+      - assets/**
+      - package.json
+      - package-lock.json
+      - tools/build-standalone.py
+      - tools/build-cache-road-gpu-textures.cjs
+      - tools/check-standalone-build.js
+      - tools/check-cache-road-gpu-browser.cjs
+      - tools/check-cache-road-gpu.cjs
+      - tools/check-cache-road-gpu-path-cache.cjs
+      - tools/check-cache-road-gpu-backend.cjs
+      - tools/lib/cache-road-gpu-backend.cjs
+      - tools/lib/cache-road-gpu-fixture.cjs
+      - tools/check-cache-road-presentation-ready.cjs
+      - tools/check-presentation-scene-lifecycle.cjs
+      - tools/check-standalone-sprite-resources.cjs
+      - tools/check-level-scene-resources.cjs
+      - tools/check-cache-bridge.cjs
+      - tools/fixtures/**
       - tools/check-presentation-bitmap-cache.cjs
+      - tools/check-cache-combat-browser.cjs
       - tools/profile-cache-beat-frame.cjs
       - tools/check-cache-beat-frame-cost.cjs
       - .github/workflows/level2-performance.yml
+      - .github/workflows/validate.yml
 jobs:
   frame-cost:
     runs-on: ubuntu-latest
@@ -26,25 +66,75 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Check consecutive production chase and boss frames first
+      - name: Check GPU scene ownership and presentation readiness contracts
+        run: |
+          node tools/check-cache-road-gpu.cjs
+          node tools/check-cache-road-gpu-path-cache.cjs
+          node tools/check-cache-road-gpu-backend.cjs
+          node tools/check-cache-road-presentation-ready.cjs
+          node tools/check-presentation-scene-lifecycle.cjs
+          node tools/check-standalone-sprite-resources.cjs
+          node tools/check-level-scene-resources.cjs
+      - name: Build and verify the actual standalone game
+        run: |
+          python3 tools/build-standalone.py --output "$RUNNER_TEMP/system-override" --receipt "$RUNNER_TEMP/standalone-build-receipt.json"
+          node tools/check-standalone-build.js "$RUNNER_TEMP/system-override"
+      - name: Check fresh actual GPU game with default Chromium backend
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node tools/check-cache-road-gpu-browser.cjs "$RUNNER_TEMP/system-override" "$RUNNER_TEMP/level2-frame-review/gpu/fresh" fresh
+      - name: Check earned boss Continue with default Chromium backend
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node tools/check-cache-road-gpu-browser.cjs "$RUNNER_TEMP/system-override" "$RUNNER_TEMP/level2-frame-review/gpu/boss" boss
+      - name: Check native fallback chase and boss functionality; record timing diagnostics
         env:
           CHROME_BIN: /usr/bin/google-chrome
           CACHE_COMBAT_BROWSER_OUTPUT: ${{ runner.temp }}/level2-frame-review/chase
           CACHE_COMBAT_BROWSER_REQUIRE_HOSTED: '1'
+          CACHE_NATIVE_FALLBACK_DIAGNOSTIC: '1'
         run: npm run check:cache-combat-browser
-      - name: Check immutable bitmap preparation and real Chromium reuse
+      - name: Check native fallback bitmap fidelity and reuse; record timing diagnostics
         env:
           CHROME_BIN: /usr/bin/google-chrome
           BITMAP_FRAME_REPORT: ${{ runner.temp }}/level2-frame-review/browser-performance.json
+          CACHE_NATIVE_FALLBACK_DIAGNOSTIC: '1'
         run: node tools/check-presentation-bitmap-cache.cjs --browser
-      - name: Measure loaded production frames
+      - name: Measure native fallback SVG and frame cost diagnostics
         run: node tools/profile-cache-beat-frame.cjs "$RUNNER_TEMP/level2-performance.json"
+      - name: Report actual GPU acceptance and native fallback timing separately
+        if: always()
+        env:
+          GPU_EVIDENCE_ROOT: ${{ runner.temp }}/level2-frame-review/gpu
+          NATIVE_TIMING_RECEIPT: ${{ runner.temp }}/level2-frame-review/chase/Native-Fallback-Timing.json
+          BITMAP_TIMING_RECEIPT: ${{ runner.temp }}/level2-frame-review/browser-performance.json
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('Actual built GPU checks use the default Chromium backend. Software, unavailable, or unidentified GL remains performanceUnexercised; native fallback timings do not accept GPU performance.\n\n')
+              for scenario in ['fresh', 'boss']:
+                  receipt = Path(os.environ['GPU_EVIDENCE_ROOT']) / scenario / 'performance-gate.json'
+                  gate = json.loads(receipt.read_text()) if receipt.exists() else {}
+                  functional_receipt = receipt.with_name('functional-gate.json')
+                  functional = json.loads(functional_receipt.read_text()) if functional_receipt.exists() else {}
+                  summary.write(f"- Actual GPU {scenario}: {gate.get('status', 'not recorded')}; {gate.get('backend', 'see checker artifacts')}; budget {gate.get('budgetMs', 'not recorded')} ms.\n")
+                  summary.write(f"  Actual GPU gameplay functionality: {functional.get('status', 'not recorded')}; bootstrap: {gate.get('bootstrap', {}).get('status', 'see checker artifacts')} at {gate.get('bootstrap', {}).get('stage', 'see checker artifacts')}.\n")
+                  summary.write(f"  Final direct present accepted: {gate.get('directPresentAccepted', 'not recorded')}; zero canvas copies: {gate.get('zeroCanvasCopies', 'not recorded')}; both views accepted: {gate.get('fullyGpuAccepted', 'not recorded')}.\n")
+              for label, variable in [('Native chase/boss', 'NATIVE_TIMING_RECEIPT'), ('Native bitmap', 'BITMAP_TIMING_RECEIPT')]:
+                  receipt = Path(os.environ[variable])
+                  report = json.loads(receipt.read_text()) if receipt.exists() else {}
+                  timing = report.get('nativeTiming', report)
+                  summary.write(f"- {label} timingPass: {timing.get('timingPass', 'not recorded')}; performanceAcceptance: false (diagnostic).\n")
+          PY
       - name: Upload frame timing evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: level2-performance-${{ github.sha }}
           path: |
+            ${{ runner.temp }}/standalone-build-receipt.json
             ${{ runner.temp }}/level2-performance.json
             ${{ runner.temp }}/level2-frame-review
           if-no-files-found: ignore

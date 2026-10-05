@@ -39,17 +39,19 @@ function screenBounds(ctx,{left,right,top,bottom}) {
     top:Math.min(...points.map(p=>p[1])),bottom:Math.max(...points.map(p=>p[1]))};
 }
 function focusedReceiptClearance(assets) {
-  // A previously proven clipped success shell at the production fast/max
-  // focus poses. Observe actual paint options and font ink, never mirror the
-  // renderer's card placement, dimensions, caption size or receipt lift.
+  // Earned results now stay in the existing HUD at fast/max focus. Observe
+  // its real instrument ink, rather than copying its placement into a model.
   const records=[];
   for(const zoom of [1.253,1.335])for(const age of [0,80,360]) {
     const r=prepared(assets),s=focusedReceipt(r,{zoom,age});
     const canvas=createCanvas(1920,1080),ctx=canvas.getContext('2d'),shells=[],labels=[];
-    const H=r.B.CacheRoadBeatFeedback,draw=r.B.PresentationAssets.draw,fill=ctx.fillText.bind(ctx);
-    let inReceipt=false;
+    const H=r.B.CacheRoadBeatFeedback,I=r.B.CacheRoadInstruments,draw=r.B.PresentationAssets.draw,fill=ctx.fillText.bind(ctx);
+    let inReceipt=false,inReward=false;
     r.B.CacheRoadBeatFeedback={...H,drawReceipt(c,state,args) {
       inReceipt=true;try{return H.drawReceipt(c,state,args);}finally{inReceipt=false;}
+    }};
+    r.B.CacheRoadInstruments={...I,drawAdrenaline(c,state,args) {
+      inReward=true;try{return I.drawAdrenaline(c,state,args);}finally{inReward=false;}
     }};
     r.B.PresentationAssets.draw=(key,c,args)=> {
       if(inReceipt&&key==='cacheBeatTiming'&&args.frame===5) {
@@ -59,7 +61,7 @@ function focusedReceiptClearance(assets) {
       return draw(key,c,args);
     };
     ctx.fillText=(value,x,y,maxWidth)=> {
-      if(inReceipt&&(value==='PERFECT'||String(value).includes('ADRENALINE'))) {
+      if(inReward&&(value==='PERFECT'||String(value)===`+${s.beatFeedback.delta}`)) {
         const m=ctx.measureText(String(value)),scale=Math.min(1,maxWidth/m.width);
         labels.push({value:String(value),bounds:screenBounds(ctx,{
           left:x-m.actualBoundingBoxLeft*scale-1,right:x+m.actualBoundingBoxRight*scale+1,
@@ -69,13 +71,13 @@ function focusedReceiptClearance(assets) {
     };
     const before=JSON.stringify(s);r.road.draw(ctx);
     assert.equal(JSON.stringify(s),before,'focused earned review retains the real judgment and paint state');
-    assert.equal(shells.length,1,'the actual earned Perfect paints one full custom quality shell');
-    assert.deepEqual(labels.map(label=>label.value),['PERFECT',`+${s.beatFeedback.delta} ADRENALINE`],
-      'both actual earned captions are measured under the real parent camera');
-    for(const bounds of [shells[0],...labels.map(label=>label.bounds)])
+    assert.equal(shells.length,0,'the actual earned Perfect submits no duplicate ground quality shell');
+    assert.deepEqual(labels.map(label=>label.value),['PERFECT',`+${s.beatFeedback.delta}`],
+      'the actual HUD quality and true gain remain readable under the real focused camera');
+    for(const bounds of labels.map(label=>label.bounds))
       assert(bounds.left>=0&&bounds.right<=canvas.width&&bounds.top>=0&&bounds.bottom<=canvas.height,
-        `the complete earned shell and caption ink stay inside the viewport at zoom ${zoom}, age ${age}`);
-    records.push({zoom,age,shell:shells[0],labels});
+        `the complete earned HUD ink stays inside the viewport at zoom ${zoom}, age ${age}`);
+    records.push({zoom,age,groundShells:shells.length,labels});
   }
   return records;
 }
@@ -158,7 +160,9 @@ async function main() {
   const canvas=createCanvas(1920,1080),ctx=canvas.getContext('2d'),frames=[];
   for(const name of ['Approach','Ready-ONE','Perfect-Impact','Good','Miss','Reduced','Focused-Turn']) {
     const r=prepared(assets),s=stage(r,name),H=r.B.CacheRoadBeatFeedback,S=r.B.CacheRoadBeatSurface;
-    assert(S);const calls=[],events=[],limits={pad:0,target:0,receipt:0},maxImageCalls={pad:0,target:0,receipt:0};let scope=null,target=null;
+    assert(S);assert.deepEqual(copy(S.limits),{trianglesPerSurface:2,runwayPulses:0,sparkClusters:4,
+      padImageCalls:2,targetImageCalls:10,receiptImageCalls:0});
+    const calls=[],events=[],limits={pad:0,target:0,receipt:0},maxImageCalls={pad:0,target:0,receipt:0};let scope=null,target=null;
     const draw=r.B.PresentationAssets.draw;
     r.B.PresentationAssets.draw=(key,c,args)=>{
       calls.push({key,...copy(args),scope,filter:c.filter});events.push({key,scope,filter:c.filter});
@@ -186,20 +190,29 @@ async function main() {
     ctx.reset();r.road.draw(ctx);assert.deepEqual(Buffer.from(ctx.getImageData(0,0,1920,1080).data),pixels,
       'a paused/repeated loaded-art frame has identical native pixels');
     assert(calls.some(call=>keys.includes(call.key)&&call.scope==='pad'),'actual physical pads use the custom skin');
+    assert(!calls.some(call=>call.key==='cacheBeatEnergy'&&call.scope),'minimal ground cues submit no energy layers');
+    assert(!calls.some(call=>call.scope==='receipt'),'handled ground receipts submit no asset paint');
     if(target.nextCue?.ready)assert(calls.some(call=>call.key==='cacheBeatTiming'&&call.scope==='target'),
       'an actual ready cue uses the custom timing hardware');
-    else assert(calls.some(call=>call.key==='cacheBeatHardware'&&call.scope==='target'),
-      'the persistent dormant target uses custom tire-plane docks between chart pads');
+    else {
+      const caught=H.feedbackPose(s,{reduced:!!r.B.Preferences.values.reducedMotion});
+      const dockCalls=calls.filter(call=>call.key==='cacheBeatHardware'&&call.scope==='target');
+      if(caught?.success&&caught.age<650)assert(dockCalls.length>0&&dockCalls.length<=4,
+        'only a real recent caught receipt keeps a dock between announced targets');
+      else assert.equal(dockCalls.length,0,'inactive docks submit no persistent hardware work');
+    }
     const roadArt=firstEvents.map((event,index)=>keys.includes(event.key)&&event.scope?index:-1).filter(i=>i>=0);
     const firstCar=firstEvents.findIndex(event=>/^cacheCar(?:Left|Right|Hit)?$/.test(event.key)&&event.filter==='none');
     assert(firstCar>Math.max(...roadArt),
       'the actual Cache car paints after ground art and occludes it');
     if(s.beatFeedback?.kind==='perfect'||s.beatFeedback?.kind==='good') {
-      assert(calls.some(call=>call.key==='cacheBeatTiming'&&call.scope==='receipt'&&call.frame===
-        (s.beatFeedback.kind==='perfect'?5:4)),'the genuine earned quality selects its custom blank outcome shell');
+      assert.equal(maxImageCalls.receipt,0,'the genuine earned quality is handled by the retained HUD');
+      const reward=r.B.CacheRoadInstruments.rewardPose(s,{reduced:!!r.B.Preferences.values.reducedMotion});
+      assert(reward.paired&&reward.quality===s.beatFeedback.kind,
+        'actual earned receipt facts still pair with their HUD quality and true gain');
     }
     if(name==='Reduced')assert(!calls.some(call=>call.scope==='receipt'&&call.key==='cacheBeatEnergy'&&call.frame>=8),
-      'Reduced Motion suppresses transient particle clusters while keeping earned art');
+      'Reduced Motion submits no removed transient particle clusters');
     if(name==='Perfect-Impact') {
       for(const options of [{reduced:true,flashes:true},{reduced:false,flashes:false}]) {
         r.w.BARCODE_RENDER_QUALITY={flashes:options.flashes};
@@ -224,15 +237,28 @@ async function main() {
       r.pulse=prior;r.road.state.lane=r.road.state.lanePos=prior.lane;
       assert(pressAt(r,sameLane?0:150).accepted);const s=r.road.state;
       if(s.opening)s.opening.sealed=true;s.opening=null;s.handoffMs=0;
-      const H=r.B.CacheRoadBeatFeedback;let exercised=false;
+      const H=r.B.CacheRoadBeatFeedback,draw=r.B.PresentationAssets.draw;let exercised=false,targetImages=0,inTarget=false,dockImages=0;
+      r.B.PresentationAssets.draw=(key,c,args)=> {
+        if(inTarget&&keys.includes(key)) {
+          targetImages++;
+          if(key==='cacheBeatHardware'&&args.width===256&&args.height===256)dockImages++;
+        }
+        return draw(key,c,args);
+      };
       r.B.CacheRoadBeatFeedback={...H,drawReceipt(c,state,args) {
         assert.equal(args.nextPulse.id,next.id);assert(args.nextCue.ready);
         const before=protectedPixels(c,args),result=H.drawReceipt(c,state,args);
         assert.deepEqual(protectedPixels(c,args),before,'new receipt textures cannot overwrite the next real mapped cue');
         exercised=true;return result;
+      },drawTarget(c,state,args) {
+        inTarget=true;let result;try{result=H.drawTarget(c,state,args);}finally{inTarget=false;}
+        assert.equal(targetImages,sameLane?8:10,
+          'one active dock plus any distinct genuinely caught dock keep the exact2/10/0 budget');
+        assert.equal(dockImages,sameLane?2:4,'inactive slots never substitute legacy bracket/texture work');
+        return result;
       }};
       ctx.reset();r.road.draw(ctx);assert(exercised);
-      consecutive.push({sameLane,prior:prior.id,next:next.id,kind:s.beatFeedback.kind});found=true;
+      consecutive.push({sameLane,prior:prior.id,next:next.id,kind:s.beatFeedback.kind,targetImages,dockImages});found=true;
     }
     assert(found,'the production v4 chart supplies both consecutive-lane asset cases');
   }
@@ -243,6 +269,6 @@ async function main() {
   if(process.argv[2])fs.writeFileSync(path.resolve(process.argv[2]),JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify({gate:'cache-beat-visual-system',passed:true,atlases:atlas.length,
     sourceCells:atlas.reduce((sum,a)=>sum+a.cells.length,0),diagnostic,frames,consecutive,
-    focusedReceipts:focusedReceipts.length,worstFocusedShellBottom:Math.max(...focusedReceipts.map(r=>r.shell.bottom))}));
+    focusedReceipts:focusedReceipts.length,worstFocusedHUDBottom:Math.max(...focusedReceipts.flatMap(r=>r.labels.map(l=>l.bounds.bottom)))}));
 }
 main().catch(error=>{console.error(error.stack);process.exitCode=1;});

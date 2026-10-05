@@ -1,4 +1,93 @@
-# Recovery checkpoint — September 14
+# Changelog
+
+## October 4, 2026 — retained scenery compiler accepted locally, unpublished
+
+- Implement compatible ordered image, convex-solid and analytic-gradient batches plus frame-local path/clip identity reuse; preserve exact transforms, original UV/crop/projection, clip/blend boundaries and complete native replay.
+- Accept local physical fresh 23 and boss 24 at tested checkpoint `a7b2ba5ed3115bcd24903a7729b5060efacadd92`: 786/232 complete GPU frames; CPU draw median/p95 15.5/24.3 and 16.0/23.5 ms. Fresh improves from 32.0/43.8 ms. Draw and RAF tails remain documented in ACCEPTANCE.md.
+- Verify compiler batches in both views before/after real graphics loss and native restoration; preserve controls/audio, road P/Escape, Level 1 return/bridge P/P, 171 original sources and exact 260,390,544 mip bytes. Driving copies/uploads/fallbacks are zero; worker terminates; all 415 input hashes remain unchanged.
+- Pass local 70 GPU groups, path-cache, all-syntax and built-package checks. CI at `70378e8f531c405d200c766d12ea6447b45f5820` completed full `npm test`, all-file syntax and standalone-build checks; software GL warmed all 171 sources but timed out before the natural HUD. Downstream browser/export checks were unexercised.
+- Preserve the physically tested a7b2 runtime/assets in the final checker/docs-only head. Classify the actual game context after real preparation: software/unavailable/unidentified GL reports `performanceUnexercised`, with gameplay/control/audio/pause/recovery/return `notExercised` and separate bootstrap/resource evidence. Required native browser jobs and the complete hardware functional/1000/30-ms gates remain unchanged; final-head CI and source/site packaging remain pending.
+- Publication is authorized and pending. PR183 stays draft; live source d41be793/site PR480 is unchanged. These finite runs do not certify every race frame or universal 60 FPS.
+
+## October 4, 2026 — adopt compressed scenery textures, unpublished
+
+- Adopt full-resolution offline legacy UASTC KTX2 for 149 raster sources, retaining the 22 small original vector sources on the GPU with their exact browser rasterization. Preserve all 171 required sources, original dimensions/crops, padded edges, complete mips and premultiplied UNORM alpha. Preserve all 624 original assets.
+- Load a hash-pinned local Basis Universal 2.50 decoder in one owned worker before gameplay; transfer hardware-format mip arrays directly to Pixi compressed sources, terminate worker/decoder heap after warmup and release the level's mip arrays at exit. Keep original native fallback and existing frame/input/audio owners.
+- Verify the preceding scene lifecycle revision's actual graphics recovery and Level 1 reload in run 20, while recording slower draw tails and low host memory. Do not accept or publish its incomplete performance result. Complete compressed-build gameplay and release checks remain pending.
+
+## October 4, 2026 — scene resource lifetime repair, unpublished
+
+- Preserve ed666 direct GPU scenery/Gaussian rear, trusted HUD alpha, native face/text fades, transparent foreground and complete native recovery. Keep 171 original GPU sources (974.90 MiB equivalent) and the 1 GiB logical budget including targets/glyphs.
+
+- Replace eager 256-image loading (1108.37 MiB raw equivalent) with 197 primary originals (835.55 MiB); load 22 conditional originals (132.12 MiB) only after authored animation failure. Retire inactive Level 1 sprite/media/music owners and reload through existing initializers; preserve pending jobs, saves and active road/title resources. These are allocation estimates, not OS reclamation claims.
+
+- Pass 51 GPU/10 loader contracts, 15-atlas/60-pixel/10-contact sprite checks, exact suspension/reload pixels and production resource-owner/audio tests. Preserve all 624 original assets; optional compression remains unused.
+
+- Retain prior 4eb5 run 19b evidence: 684 normal frames at 19/26/42.5 ms and 41/41 fade frames without copies/uploads, controls/audio passed. Forced loss became unresponsive and renderer vanished before native/restore evidence; termination cause remains unproved.
+
+- Build 87 scripts privately. Final fresh run 20, earned-boss/exact-head checks and authorized publication remain pending. PR183 stays draft; live PR480/source d41be793 unchanged.
+
+## October 4, 2026 — accepted scenery preparation, release verification pending
+
+The minimal road cues, short gear-tap repair and mirror readback removal are already published through [site PR479](https://github.com/6-Bit-01/barcode-network-site/pull/479), merged and deployed at `c484c6e4f06078df756d712ef2e039b02fa19f74`. Its verified standalone bundle identifies source `9cdcaad82804472782a1f06b5cfa38fa88f6b45d`. The game uses its independent local adapter and BARCODE-hosted files at `/system-override`, with the tiny footer © shortcut and native document `/games/system-override/index.html`. Those release results belong to that published baseline.
+
+The owner authorizes continuing the remaining Level 2 scenery/lag repair through publication. The accepted follow-up is now implemented in the working tree: demand-only quarter-image preparation plus original-size native bitmap preparation for exactly `cacheRepairShop`, `cacheMarketRFrontGap` and `cacheStreetBicycleRack`, the three sources tied to recurring costly decodes by same-session image IDs. Accepted `presentation-assets.js` SHA-256 is `8bfbead333864dba5e1c83ed3c1c1c3f8c95d6f90a9af36007b5b01501946808`; this is a runtime hash, not a new source commit. Final-source checks, package generation, publication and deployment remain pending actual results.
+
+Native-only loading now avoids 161 unused quarter-size derivatives: 13,665,172 pixels or 52.128 MiB raw RGBA equivalent. That allocation inventory is not measured resident memory or a net memory-saving claim for the combined change. The three added full-size backings reserve 4,704,524 pixels in the existing native pool, bringing native/tint reservations to 33,290,908 pixels under the unchanged 33,554,432-pixel cap. Original images remain available for pending, unsupported, rejected, malformed or budget-limited preparation; the default whole-image factory, original dimensions and existing draw geometry remain unchanged.
+
+Four finite native hardware A-B-B-A windows reduced combined matched target decode cost from 495.024 to 60.438 ms, an 87.8% reduction across two windows per variant. The events still occur; decoding is not eliminated. Overall cadence is mixed: baseline CPU draw median/p95 was 8.8/44.6 and 9.4/45.6 ms, versus candidate 9.0/28.5 and 12.2/46.8 ms. The first candidate's tail improved and the second remained slower. This supports a bounded correction to the measured source-cache work, not uniformly smooth playback, sustained full-race acceptance or universal FPS.
+
+Four hardware-rendered states matched full-frame RGBA exactly. The separate four-state software diagnostic passed the existing whole-scene mean RGB predicate below 1, with means 0.06983748, 0.23806584, 0.20520383 and 0.13236706 for initial HUD, earned phrase, curved third gear and played live boss. Alpha differences were zero; repeats, native scale, gameplay/audio state and context were preserved. The existing top-164-pixel HUD mean was 0, 0, 0.00217755 and 0, reported without an independent asserted HUD threshold. Extra strict-zero RGBA remained false. These bounded comparisons do not replace the complete existing moving-browser, copy/tint or final-source CI checks, and no threshold was changed.
+
+The earlier DeliveryVan/Bins/Bench bitmap attempt was rejected for no consistent measured gain. The distinct VideoFrame-to-bitmap bridge `fe917ea` is unadopted; it produced the same first-state software difference and was stopped before hardware/timing acceptance. The retained-backing variant `6ca4307` passed four software plus four hardware exact-pixel comparisons while continuing to draw original Images, but target decode totals stayed 483.6 versus 486.6 ms; it is rejected for lack of measured benefit. Neither alternative enters this accepted runtime.
+
+[Source PR183](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/183) remains draft. At the published source `9cdcaad`, its unchanged software-rendering 33.33 ms chase/live-boss gate failed (PR medians 90.3/92.7 ms; push medians 88.8/91.6 ms). Skipped downstream browser/export steps are not passes. Those are baseline results, not fresh final-follow-up checks. Exact final-source CI outcomes must be recorded separately; retain the draft if required source checks fail. The website's full check/build and exact-package delivery requirements remain separate.
+
+Final exact-source QA, committed standalone build, full website CI and live publication verification remain pending. Earlier unpublished sections below describe their historical checkpoints and are superseded by this release-status record.
+
+## October 3, 2026 — minimal Level 2 road cues and gear tap repair, unpublished
+
+The existing BARCODE website release is merged as site PR478 / `272f3eec6a854aa97091c1b939be1fd71880c208`; its standalone bundle identifies source `90a80762cf919b9f2efb70b95a0a04bfc189542c`. The live route is `/system-override`, reached through the tiny footer © shortcut. The game uses its local standalone adapter and BARCODE-hosted files, with native scenery/art and the original rearview. Earlier migration-only and Makko hosting statements below are historical where they conflict with this release record.
+
+The owner tested the private exact 90a paint comparison and reports immediate improvement without road beat cues, especially cues and phrase paint together. The current branch `agent/level2-minimal-road-cues` starts from that deployed source and keeps one authored pad with mapped glyph, active/caught tire docks, timing ring/counts/instruction, and actual result/adrenaline HUD. It omits duplicate energy runway/bands, inactive docks, ground receipt effects and captured/queued phrase paint. The road rendering changes presentation only: exact targets/judgments, captures/music, controls/skills, economy, saves, original artwork, native scenery and shared owners are preserved.
+
+Short Up/W/Down/S gear taps that begin and end between shared frames are now queued by the existing input owner while the road is actively playing. The real InputManager listener regression fails on the original source and passes with this repair, including one-use presses and actual downbeat gear behavior. Keyboard bindings, held steering, other gameplay modes, and P/Esc pause behavior retain their existing rules.
+
+Measured matched ground image submissions are 24→10 in Ready-ONE and 33→12 with a distinct caught lane plus the next ready cue. The current caps are 2 per pad, 10 per target and 0 for ground receipts; retained atlas bytes / 28 source cells remain verified. Focused actual-input/control/state/HUD/native tests pass; final full-suite, exact-head browser/package/CI, PR and release evidence are pending. The owner accepted the earlier both-hidden mode's feel; no numerical FPS or final minimal-build acceptance is claimed. A mirror-boundary diagnostic difference of at most 3 RGB levels also occurs in the earlier both-hidden comparison; no mirror interior, alpha, HUD control labels or artwork change was observed. Mirror code remains unchanged, and the low-level cause is unproven. See `docs/source-pack/LEVEL2_HUD_PERFORMANCE.md` (or `LEVEL2_HUD_PERFORMANCE.md` from this document directory) for the evidence and limits.
+
+## October 3, 2026 — standalone BARCODE website migration
+
+The owner requested replacing Makko hosting with the existing BARCODE website. The standalone builder preserves canonical asset bytes, mirrors 21 original remote sprites/audio/title assets with SHA-256 receipts, and substitutes an independent manifest-backed sprite adapter for the vendor SDK. The adapter preserves authored animation timing, scaled anchors, flips, hitboxes and cloned playback state without a new RAF or timer. Generated runtime URLs resolve beneath `/games/system-override/`; the website entry is `/system-override`. Saves belong to the website origin and do not automatically transfer from Makko.
+
+Before migration, the owner-approved native-detail source at `41a2f0bf7afa0f81a5fb863cf8d4941f865763cf` was applied to the connected Makko editor after the 174-file recovery checkpoint. Both files were saved and re-read, the preview rebuilt, Continue entered the moving Cache Line scene and P paused it. Makko remains paused; no public Makko Update/Share was performed. This supersedes the earlier notes below stating that its saved source still remained PR181.
+
+Standalone adapter checks cover all 15 original clips, 60 source-crop/facing pixel comparisons, actual player contact anchors, playback timing, clone isolation, completion callbacks, Canvas state and failed-start retry. Generated-build checks cover runtime/inline syntax, sprite preloading, local presentation and music URLs, three ship animation types and fallback, and unchanged boot-monitor timer ownership. The original art is retained. Native frame pacing, complete chase/boss performance gates and owner-device acceptance remain unresolved; moving hosts does not itself prove a frame-rate improvement. The keyboard audit remains recorded separately and its seven issue groups have not yet been repaired.
+
+The build is reviewable locally. Publication, exact-head CI and live website acceptance are separate steps and must be recorded when completed. Earlier sections describe historical checkpoints and are superseded by this section where they conflict.
+
+
+
+## October 3, 2026 — final background review, unpublished
+
+The local review now also suppresses the sky beat pulse when Flash Off is selected and clips asphalt texture to the existing curved road boundary. The loaded-art probe removed 3,653 shoulder-spill pixels, preserved every interior pixel away from the antialiased edge, and retained identical texture coordinates, source order and Canvas/gameplay state. Flash On matches the preceding native candidate; Reduced Motion remains static. All 228 original asset hashes remain unchanged.
+
+The final source passed all-file syntax, the nine bitmap/native-quality groups, camera/frame ownership, ground beat feedback, adrenaline feedback, the seven-scene beat visual system and focused drive-feedback/control checks. All 24 fresh staged Chrome production draws retained native scale 1 without draw-time gameplay mutation. Complete-draw diagnostic medians were 180.3/193.6 ms including startup and forced raster flush; native frame pacing remains unresolved. A warmed mirror-copy A/B from the preceding exact commit showed no meaningful speed gain, so production transport is unchanged. The full formal chase/boss, 30 Hz, gain and regression gates are still unverified. Prior full-suite limitations below remain applicable; focused reruns are not a full npm-suite pass.
+
+Makko saved source and playable preview remain PR181; a 174-file recovery checkpoint named Before native detail preview - Oct 3 2026 was saved. The candidate is a local review only, with no push, PR, merge, public update or saved-source replacement. Keyboard audit found seven issue groups and passed nine focused checks; controls were not changed. Blocky detail, preference behavior and material-boundary fixes have bounded evidence; this is not an all-glitches-resolved or owner-device FPS claim.
+
+## October 3, 2026 — verified detail stability, unpublished review
+
+The final curved-glass candidate kept native scale 1 in all 24 staged Chrome moving frames, plus four native camera/gear poses and three advancing native frames. All 228 artwork hashes match PR181. Bounded bitmap/native-quality groups, all-file syntax, loaded-art still review, unchanged bundled combat integration and the remaining blood/crew checks passed. The global Node 24.18 full npm invocation ended with a native access violation; its bundled Node 24.19 integration retry and tail passed separately, so that original invocation is not a full-suite pass.
+
+Chrome complete-draw diagnostic medians were 175.8/204.1 ms, including raster flush and startup. This confirms detail stability, but does not pass the formal 30 Hz chase/boss gates or establish device FPS. Makko still runs PR181. This is an unpublished local review; no push, PR, merge or source replacement has occurred. Keyboard controls were audited separately and remain unchanged.
+
+## October 3, 2026 — owner correction: native-quality candidate, unmerged
+
+- The owner rejects PR #181's coarse adaptive scenery. Restore an always-native 1920×1080 background, retain `renderBudget` only for diagnostics, and add neither silent low-detail rendering nor a new opt-in quality UI.
+- Retain lossless preparations, original-texel vehicle cels and bezel/face windows, prepared tint, equivalent culling and the single original `blur(2.3px)` mirror pass. Preserve the original curved mirror glass. Decouple native playing-frame opaque cropped mirror transport from downsampled-world eligibility; keep the reflection source hint at `1`.
+- Baseline main is merged PR #181, `fce367dd5e5e3a0a1ed9792d61fca960852f36f4`. Its downsampled performance evidence does not establish native candidate speed. An earlier native draft diagnostic, measured before the final curved-glass correction, held scale `1` but still showed slow frame medians; it does not establish final-candidate timing, and formal performance validation remains pending. Candidate full regression, all-file syntax, native-art review and unchanged browser 30 Hz/25% improvement/fidelity gates are pending, as are exact final-head validation/performance CI events. Publication state is defined by the generated receipt; local review only, no external push, PR or merge.
+
+## Historical PR #181 recovery checkpoint — September 14
 
 The native opaque rearview now uses the same bounded sRGB pixel transport for its cropped source before applying the original single 2.3px blur. The shared helper bounds each source at 129,600 pixels, preserves source/destination coordinates and the caller's filter/clip/composition, and closes the temporary frame in the same draw. Fading/scaled/native/unsupported/transparent callers retain the original Canvas source. Original-mirror comparison flags disable the new transport; complete production RGB/alpha checks and a cropped-blur browser probe retain their existing limits. The background-only predecessor still exceeded the boss limit on one runner (34.8 ms), so the new mirror path must pass every final-head gate.
 
@@ -8,7 +97,7 @@ The repeated 315-degree brake-reflection hue operation is now prepared once from
 
 The small functional preparation pool now reserves up to 1.5 Mi-pixels inside the unchanged 32 Mi-pixel native budget, with a 32 Ki-pixel eligibility threshold. Real source sizes showed the previous 512 Ki-pixel pool excluded the repeatedly drawn 116,000-pixel brake reflection after two pulse sheets filled it, while the 64,256-pixel exhaust fell just below its old threshold. The brake preparation retains its used 192×290 source rectangle plus two right-edge sampling texels (194×290), saving 59,740 unused pixels without resampling; outside-window callers retain the full original. Concurrent pending reservations, exact pool exhaustion, native source coordinates, failures and original fallback remain tested. This follows the 0b9cb882 candidate's failed live-boss medians of 33.7/35.1 ms; all 33.33 ms gates remain unchanged.
 
-## October 3, 2026 — continued lag repair after PR180 playtest
+## Historical October 3, 2026 — continued lag repair after PR180 playtest (PR #181)
 
 - Adaptively sample background scenery on the existing display Canvas, then retain native actors, feedback, timing cues, face and HUD. Bound the lowest background to 320×180 and restore detail after sustained spare capacity.
 - Prepare reusable background and native functional bitmaps outside draw work with fixed pixel reservations, atomic cel/window failure and original-image fallback. Preserve texels in vehicle cels and bezel/face windows; save 1,588,013 native pixels through the fixed windows.
