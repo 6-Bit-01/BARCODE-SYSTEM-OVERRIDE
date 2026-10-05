@@ -1,5 +1,11 @@
 # Repository Guidance
 
+## October 5, 2026 — direct mobile actions
+
+The owner rejects the published PR185 combat drawer: opening More during action is unacceptable. This correction supersedes the secondary-drawer instruction below. All active gameplay abilities must be directly accessible in compact fixed thumb slots. During combat, show Guard and Boost with recharge/pending feedback, target-dependent Strike/Fire, nearby-enemy/projectile Jam and the manually tapped current Sync cue. Preserve proactive Guard/Boost, exact action eligibility, held semantic actions, steering and completed taps. Surface Level 1 Inspect/Continue/Close through the stage owner; running remains the outer joystick gesture. More is only for non-action cinematic extras.
+
+Keep the accepted native/GPU/loading/audio/save/artwork owners unchanged. Add no input automation, RAF, timer or canvas. Require actual direct-action/recharge/target/multitouch contracts, portrait/landscape visual review including short landscape, then the existing source/site release gates. Existing publication authorization persists.
+
 ## October 5, 2026 — contextual mobile control redesign
 
 The owner tested published source PR184 (`3daea2cccd1ad21fe096750dc0fd1a270cc448dd`) and website PR481 and requests stylish controls that appear/change when useful instead of an obstructive permanent button grid, especially on Level 2. Continue the authorized site update from that merged baseline. Read `docs/source-pack/MOBILE_CONTROLS.md`. Keep a compact next-cue button, contextual combat/Hack/Rhythm controls, separate gear pair and an on-demand secondary drawer. Never automate beat input or change its timing/lane/judgment rules.

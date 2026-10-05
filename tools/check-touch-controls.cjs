@@ -193,17 +193,24 @@ function run(){
   r.B.CacheRoadCombat={pose:()=>view};r.advance=()=>{state.elapsedMs++;r.T.sync();};r.setView=value=>{view=value;r.advance();};
   r.state=state;r.pulses=pulses;r.view=()=>view;r.advance();return r;
  };
- check('Level1 defaults expose only currently usable gameplay and secondary tools',()=>{
+ check('Level1 exposes usable actions directly and running stays on the stick',()=>{
   const r=touchRig();r.w.tutorialSystem={storyChapter:1,isActive:()=>true,getInstructionOwner:()=> 'mission'};
-  let active=false,canEnter=false,canHack=false;
+  let active=false,canEnter=false,canHack=false,detail=null,message=null,readable=false,deferred=false;
   r.w.rhythmSystem={isActive:()=>active,canEnterRhythmMode:()=>({ok:canEnter})};
   r.w.hackingSystem={isActive:()=>false,getAvailability:()=>({canStart:canHack,state:'ready'})};r.T.sync();
+  r.B.stageFX={findNearby:()=>detail,message,getMessageLayout:()=>({readable}),isDialogueDeferred:()=>deferred};
   assert.deepEqual(r.T.actions.children.map(node=>node.dataset.touchAction),['jump'],'Early tutorial has no inactive Beat, unavailable Rhythm or distant Hack');
-  assert(r.T.buttons.has('ui:more')&&r.T.buttons.has('pause'));assert(!r.T.buttons.has('run')&&!r.T.buttons.has('inspect'));assert(r.T.tools.hidden);
+  assert(r.T.buttons.has('pause'));assert(!r.T.buttons.has('ui:more')&&!r.T.buttons.has('run')&&!r.T.buttons.has('inspect'));assert(r.T.tools.hidden);
   canEnter=true;r.T.sync();assert(r.T.buttons.has('rhythm_mode')&&!r.T.buttons.has('primary'));
   active=true;r.T.sync();assert(r.T.buttons.has('primary'));assert.match(r.button('rhythm_mode').textContent,/Exit/);
   canHack=true;r.T.sync();assert(r.T.buttons.has('interact'));canHack=false;r.T.sync();assert(!r.T.buttons.has('interact'));
-  r.more();for(const id of ['inspect','run'])assert(r.T.buttons.has(id)&&r.button(id).parentNode===r.T.tools,id+' stays accessible in More');
+  detail={id:'nearby-record'};r.T.sync();assert(r.T.buttons.has('inspect'));assert.equal(r.button('inspect').parentNode,r.T.actions,'Nearby Inspect is a direct action');
+  detail=null;r.T.sync();assert(!r.T.buttons.has('inspect'),'Distant Inspect disappears');
+  r.B.stageFX.message=message={line:0};readable=true;r.T.sync();assert.match(r.button('inspect').textContent,/Continue/);
+  message.line=1;r.T.sync();assert.match(r.button('inspect').textContent,/Close/);
+  readable=false;r.T.sync();assert(!r.T.buttons.has('inspect'),'Unreadable message does not offer a premature close');
+  readable=true;deferred=true;r.T.sync();assert(!r.T.buttons.has('inspect'),'Deferred dialogue keeps its exclusive owner');
+  assert(!r.T.buttons.has('ui:more')&&!r.T.buttons.has('run'),'Gameplay never requires a controls drawer');
   assert.deepEqual(r.work,r.before,'Contextual controls add no work owner');
  });
  check('availability and rhythm changes preserve joystick nodes and held actions',()=>{
@@ -220,11 +227,11 @@ function run(){
   assert(state.primary.pressed&&state.primary.released,'A completed tap survives removal of its now-unavailable button');assert(!r.frame().primary.pressed);
  });
  check('road defaults show the next real announced beat and never autoplay',()=>{
-  const r=roadRig({combat:true});assert(!r.T.buttons.has('road:beat'));assert.equal(r.T.actions.children.length,0);
+  const r=roadRig({combat:true});assert(!r.T.buttons.has('road:beat'));assert.deepEqual(r.T.actions.children.map(node=>node.dataset.touchAction).sort(),['road_defend','road_turbo']);
   r.pulses.push({id:'unannounced',action:1,lane:1.5},{id:'caught',action:1,lane:1.5},{id:'missed',action:2,lane:1.5},{id:'far',action:3,lane:1.5},{id:'real',action:0,lane:1.5});
   Object.assign(r.state.pulseTargets,{caught:20.5,missed:21,far:24.01,real:22});r.state.caughtPulses.caught=true;r.state.missedPulses.missed=true;r.advance();
   const beat=r.T.buttons.get('road:beat');assert.equal(beat.spec.action,'road_a');assert.match(beat.node.textContent,/A.*Sync/);assert(!r.frame().road_a.pressed);
-  assert.deepEqual(r.T.gears.children.map(node=>node.dataset.touchAction).sort(),['move_down','move_up']);assert(r.T.actions.children.length<=3);
+  assert.deepEqual(r.T.gears.children.map(node=>node.dataset.touchAction).sort(),['move_down','move_up']);assert(r.T.actions.children.length<=5);
   r.state.caughtPulses.real=true;r.advance();assert(!r.T.buttons.has('road:beat'));assert(!r.frame().road_a.pressed,'Removing spent cues never synthesizes an action');
   r.state.musicBeatFloat=24;r.advance();assert.equal(r.T.buttons.get('road:beat').spec.action,'road_y');
   delete r.state.combat;r.advance();assert.match(r.button('road:beat').textContent,/Y.*Refill/,'Legacy effects keep their distinct meaning');
@@ -245,31 +252,58 @@ function run(){
   assert(Math.abs(state.road_a.presses[0].audibleAudioTimeSec-1.94)<1e-8);assert(!r.frame().road_a.pressed&&!r.manager.actionInput.pressed('road_b'));
   r.state.missedPulses.b=true;r.advance();assert(!r.T.buttons.has('road:beat'));assert.equal(r.T.pointers.size,0);
  });
- check('road Attack and Guard appear only for real usable targets and threats',()=>{
-  const r=roadRig({combat:true}),view=r.view();view.target={attackMode:'shot'};view.skills.attack.charges=0;r.advance();assert(!r.T.buttons.has('road_attack'));
-  view.skills.attack.charges=1;r.advance();assert(r.T.buttons.has('road_attack')&&!r.T.buttons.has('road_defend'));
-  view.skills.attack.ready=false;r.advance();assert(!r.T.buttons.has('road_attack'));view.skills.attack.ready=true;view.skills.attack.charges=0;view.target.attackMode='strike';r.advance();assert(r.T.buttons.has('road_attack'),'Melee strike does not require shot ammo');
-  view.actors.push({warning:true});r.advance();assert(r.T.buttons.has('road_defend'));view.skills.defend.ready=false;r.advance();assert(!r.T.buttons.has('road_defend'));
-  view.actors=[];view.projectiles=[{friendly:false}];view.skills.defend.ready=true;r.advance();assert(r.T.buttons.has('road_defend'));
-  view.projectiles=[{friendly:true}];r.advance();assert(!r.T.buttons.has('road_defend'));r.B.CacheRoadProof.handoffMs=10;r.advance();assert.deepEqual([...r.T.buttons.keys()],['pause'],'Handoff remains exclusive');
+ check('road skills are direct and cooldowns explain the stable disabled buttons',()=>{
+  const r=roadRig({combat:true}),view=r.view(),guard=r.button('road_defend'),boost=r.button('road_turbo');
+  assert.equal(guard.parentNode,r.T.actions);assert.equal(boost.parentNode,r.T.actions);assert(!r.T.buttons.has('ui:more')&&!r.T.buttons.has('ui:pads'));assert(r.T.tools.hidden);
+  view.skills.defend.ready=false;view.skills.defend.cooldownMs=1201;r.advance();assert.equal(r.button('road_defend'),guard);assert(guard.disabled);assert.match(guard.textContent,/2s/);assert.match(guard.getAttribute('aria-label'),/Guard.*recharg/i);
+  r.tap('road_defend');assert(!r.frame().road_defend.pressed,'Disabled Guard cannot queue input');
+  view.skills.defend.ready=true;view.skills.defend.cooldownMs=0;r.advance();assert.equal(r.button('road_defend'),guard);assert(!guard.disabled);assert.match(guard.textContent,/Guard/);
+  view.skills.turbo.ready=false;view.skills.turbo.cooldownMs=700;r.advance();assert.equal(r.button('road_turbo'),boost);assert(boost.disabled);assert.match(boost.textContent,/1s/);
+  view.skills.turbo.pending=true;r.advance();assert(boost.disabled);assert.match(boost.textContent,/Next 1/,'Queued Boost explains its next downbeat');
+  view.skills.turbo.pending=false;view.skills.turbo.ready=true;view.skills.turbo.cooldownMs=0;r.advance();assert(!boost.disabled);assert.equal(r.button('road_turbo'),boost);
+  view.target={attackMode:'shot'};view.skills.attack.charges=0;r.advance();const attack=r.button('road_attack');assert(attack.disabled);assert.match(attack.textContent,/Ammo/);assert.match(attack.getAttribute('aria-label'),/Fire.*ammunition.*recharg/i);
+  view.skills.attack.charges=1;r.advance();assert.equal(r.button('road_attack'),attack);assert(!attack.disabled);assert.match(attack.textContent,/Fire/);
+  view.skills.attack.ready=false;view.skills.attack.cooldownMs=2301;r.advance();assert(attack.disabled);assert.match(attack.textContent,/3s/);
+  view.skills.attack.cooldownMs=0;view.skills.attack.inFlight=true;r.advance();assert(attack.disabled);assert.match(attack.textContent,/Busy/);assert.match(attack.getAttribute('aria-label'),/shot in flight/i);
+  view.skills.attack.inFlight=false;view.skills.attack.ready=true;r.state.combat.projectiles=Array(6).fill({friendly:true});r.advance();assert(attack.disabled);assert.match(attack.textContent,/Busy/);assert.match(attack.getAttribute('aria-label'),/capacity/i);r.state.combat.projectiles=[];
+  view.skills.attack.ready=true;view.skills.attack.cooldownMs=0;view.skills.attack.charges=0;view.target.attackMode='strike';r.advance();assert.equal(r.button('road_attack'),attack);assert(!attack.disabled);assert.match(attack.textContent,/Strike/,'Strike does not require shot ammo');
+  view.target=null;r.advance();assert(!r.T.buttons.has('road_attack'),'Attack appears only for the authoritative current target');
+  r.state.combat.defeated=true;r.advance();for(const id of ['road_attack','road_defend','road_turbo','road_disrupt'])assert(!r.T.buttons.has(id),'Defeated combat hides '+id);
+  r.B.CacheRoadProof.handoffMs=10;r.advance();assert.deepEqual([...r.T.buttons.keys()],['pause'],'Handoff remains exclusive');
  });
- check('More keeps every usable action accessible and closes only drawer holds',()=>{
-  const r=roadRig({combat:true}),view=r.view();view.target={attackMode:'shot'};r.advance();r.key('keydown','d');r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,55,670);r.more();
-  for(const id of ['road_attack','road_defend','road_turbo','road_disrupt','ui:pads'])assert(r.T.buttons.has(id),id+' is accessible in More');assert(r.T.tools.children.length<=5);
-  r.press('road_disrupt',2);r.tap('ui:pads',3);assert(r.T.padsOpen);assert.equal(r.T.joystickPointer,1);assert(!r.T.pointers.has(2));assert(!r.frame().road_disrupt.held&&!r.manager.actionInput.pressed('road_disrupt'),'Tab cancellation discards an unconsumed held press');
-  for(const id of ['road_a','road_b','road_x','road_y','ui:pads'])assert(r.T.buttons.has(id),id+' is accessible in Beat pads');assert(r.T.tools.children.length<=5);
-  r.press('road_a',2);r.frame();r.tap('ui:more',3);assert(!r.T.toolsOpen&&!r.T.padsOpen&&r.T.tools.hidden);assert.equal(r.T.joystickPointer,1);assert(!r.T.pointers.has(2));
-  const state=r.frame();assert(state.move_left.held&&state.move_right.held&&!state.road_a.held&&!state.road_a.pressed,'Close releases drawer without cancelling steering or a physical key');
-  r.pointer(r.stick,'pointerup',1,55,670);r.key('keyup','d');delete r.state.combat;r.advance();r.more();for(const id of ['road_a','road_b','road_x','road_y','road_turbo','road_echo'])assert(r.T.buttons.has(id),id+' remains accessible for legacy play');
-  assert(r.T.tools.children.length<=6);
-  r.tap('ui:more');assert(!r.T.toolsOpen);assert.equal(r.manager.actionInput.virtualOwners.size,0);assert.deepEqual(r.work,r.before);
+ check('Jam follows bounded nearby hostile relevance without remapping held input',()=>{
+  const r=roadRig({combat:true}),view=r.view();assert(!r.T.buttons.has('road_disrupt'));
+  view.actors=[{hp:1,distance:261}];r.advance();assert(!r.T.buttons.has('road_disrupt'),'Distant actor does not crowd the action cluster');
+  view.actors[0].distance=260;r.advance();const jam=r.button('road_disrupt');assert(!jam.disabled);assert.equal(jam.parentNode,r.T.actions);
+  view.skills.disrupt.ready=false;view.skills.disrupt.cooldownMs=1001;r.advance();assert.equal(r.button('road_disrupt'),jam);assert(jam.disabled);assert.match(jam.textContent,/2s/);
+  view.skills.disrupt.ready=true;view.skills.disrupt.cooldownMs=0;r.advance();
+  r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,125,670);r.press('road_disrupt',2);let state=r.frame();assert(state.move_right.held&&state.road_disrupt.pressed&&state.road_disrupt.held);
+  view.actors[0].hp=0;r.advance();assert.equal(r.button('road_disrupt'),jam,'A disappearing target cannot remove the button under a held finger');assert.equal(r.T.joystickPointer,1);assert(r.frame().road_disrupt.held&&r.manager.actionInput.held('move_right'));
+  r.release('road_disrupt',2);assert(!r.T.buttons.has('road_disrupt'));assert(!r.frame().road_disrupt.held&&r.manager.actionInput.held('move_right'));
+  view.projectiles=[{friendly:true,distance:0},{friendly:false,distance:-321}];r.advance();assert(!r.T.buttons.has('road_disrupt'),'Friendly or distant projectiles do not expose Jam');
+  view.projectiles[1].distance=-320;r.advance();assert(r.T.buttons.has('road_disrupt'));
+  r.tap('road_disrupt',2);view.projectiles=[];r.advance();assert(!r.T.buttons.has('road_disrupt'));state=r.frame();assert.equal(state.road_disrupt.presses.length,1,'Completed relevant Jam survives its subsequent disappearance');assert(!r.frame().road_disrupt.pressed);
+  view.skills.disrupt.active=true;view.skills.disrupt.ready=false;view.skills.disrupt.cooldownMs=5000;r.advance();assert(r.T.buttons.has('road_disrupt'),'Active Jam stays visible after the nearby threat clears');assert.match(r.button('road_disrupt').textContent,/Active/);assert.match(r.button('road_disrupt').getAttribute('aria-label'),/active/i);assert.equal(r.button('road_disrupt').getAttribute('data-active'),'true');
+  r.pointer(r.stick,'pointerup',1,125,670);assert.deepEqual(r.work,r.before,'Direct skills add no work owner');
  });
- check('drawer tabs preserve completed taps and release only active access holds',()=>{
-  const r=roadRig({combat:true});r.view().target={attackMode:'strike'};r.advance();r.more();
-  r.tap('road_defend');r.tap('ui:pads');const tap=r.frame();assert(tap.road_defend.pressed&&tap.road_defend.released,'Completed skill tap remains valid after the drawer changes tabs');assert(!r.frame().road_defend.pressed);
-  const a=r.button('road_a');a.dispatchEvent({type:'keydown',key:'Enter',repeat:false,timeStamp:990,bubbles:true});assert.equal(r.T.accessHolds.size,1);
-  r.tap('ui:pads');assert(!r.T.padsOpen);assert.equal(r.T.accessHolds.size,0);const cancelled=r.frame();assert(!cancelled.road_a.held&&!cancelled.road_a.pressed,'Switching tabs cancels the still-held accessible action');
-  r.key('keyup','Enter');r.tap('road_turbo');r.tap('ui:more');const boost=r.frame();assert(boost.road_turbo.pressed,'A completed boost tap survives closing its panel');assert.equal(r.T.pointers.size,0);assert(!r.T.toolsOpen&&!r.T.padsOpen);
+ check('direct Boost preserves completed taps and independent steering across cooldown changes',()=>{
+  const r=roadRig({combat:true}),view=r.view(),boost=r.button('road_turbo');r.key('keydown','d');r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,55,670);
+  r.tap('road_turbo',2);view.skills.turbo.ready=false;view.skills.turbo.cooldownMs=4100;r.advance();assert.equal(r.button('road_turbo'),boost);assert(boost.disabled);
+  const state=r.frame();assert(state.road_turbo.pressed&&state.road_turbo.released&&!state.road_turbo.held,'A completed Boost survives its cooldown update');assert(state.move_left.held&&state.move_right.held,'Skill transition preserves touch and physical movement');
+  r.tap('road_turbo',2);assert(!r.frame().road_turbo.pressed,'A later disabled tap cannot repeat Boost');
+  view.skills.turbo.ready=true;view.skills.turbo.cooldownMs=0;r.advance();boost.dispatchEvent({type:'keydown',key:'Enter',repeat:false,timeStamp:990,bubbles:true});assert.equal(r.T.accessHolds.size,1);
+  view.skills.turbo.pending=true;r.advance();assert(!boost.disabled,'Existing accessible hold stays pinned until release');assert(r.frame().road_turbo.held);
+  r.key('keyup','Enter');r.T.sync();assert(boost.disabled);assert.equal(r.T.accessHolds.size,0);assert(!r.frame().road_turbo.held);
+  r.pointer(r.stick,'pointerup',1,55,670);r.key('keyup','d');assert.equal(r.manager.actionInput.virtualOwners.size,0);
+  delete r.state.combat;r.advance();assert(r.T.buttons.has('road_turbo')&&r.T.buttons.has('road_echo'),'Usable legacy actions remain direct');assert(!r.T.buttons.has('ui:more'));r.state.boost=0;r.state.echoEnergy=99;r.advance();assert(!r.T.buttons.has('road_turbo')&&!r.T.buttons.has('road_echo'),'Unavailable legacy resource actions do not clutter play');
+ });
+ check('cinematic extras close active holds while preserving completed commands',()=>{
+  const r=touchRig();r.w.cutsceneSystem={isActive:true,cutsceneGeneration:1,startSkipHold:()=>r.route.push(['skip','start']),endSkipHold:()=>r.route.push(['skip','stop']),toggleTranscript:()=>r.route.push(['intro','transcript']),inspectCaption:()=>r.route.push(['intro','caption'])};r.T.sync();r.more();
+  r.tap('intro:caption',2);r.tap('ui:more',2);assert(r.route.some(row=>row[0]==='intro'&&row[1]==='caption'),'A completed command survives closing the cinematic extras');
+  r.more();r.route.length=0;const skip=r.button('intro:skip');skip.dispatchEvent({type:'keydown',key:'Enter',repeat:false,timeStamp:990,bubbles:true});assert.equal(r.T.accessHolds.size,1);r.press('intro:skip',4);
+  assert.equal(r.route.filter(row=>row[0]==='skip'&&row[1]==='start').length,1,'Pointer and accessible key share the same cinematic hold');
+  r.tap('ui:more',3);assert.equal(r.T.accessHolds.size,0);assert(!r.T.pointers.has(4));assert.deepEqual(r.route.filter(row=>row[0]==='skip'),[['skip','start'],['skip','stop']]);
+  r.key('keyup','Enter');assert.equal(r.route.filter(row=>row[0]==='skip'&&row[1]==='stop').length,1,'Closing extras releases its owner exactly once');assert(r.T.tools.hidden&&!r.T.toolsOpen);
  });
  check('touch module is idempotent and desktop stays dormant with no frame owner',()=>{
   const r=touchRig({touch:false});assert(!r.T.enabled&&r.T.root.hidden);
@@ -286,6 +320,7 @@ function run(){
   r.pointer(r.stick,'pointermove',1,100,670);assert(!r.frame().move_right.held,'Small drift stays in the deadzone');
   r.pointer(r.stick,'pointermove',1,110,670);assert(r.frame().move_right.held&&!r.manager.actionInput.held('run'));
   r.pointer(r.stick,'pointermove',1,144,670);assert(r.frame().move_right.held&&r.manager.actionInput.held('run'),'Outer horizontal travel runs');
+  r.T.sync();assert.equal(r.T.stickLabel.textContent,'RUN','The stick explains its outer run gesture');assert(!r.T.buttons.has('run'));
   r.pointer(r.stick,'pointermove',1,36,670);assert(r.frame().move_left.held&&!r.manager.actionInput.held('move_right'),'Reversal releases the previous direction');
   r.pointer(r.stick,'pointermove',1,90,715);assert(r.frame().move_down.held&&!r.manager.actionInput.held('move_right')&&!r.manager.actionInput.held('move_left'));
   r.pointer(r.stick,'pointermove',1,135,715);assert(!r.frame().move_down.held&&r.manager.actionInput.held('move_right'),'Diagonal walking is not a deliberate platform drop');
@@ -334,15 +369,16 @@ function run(){
   r.key('keyup',' ');assert.deepEqual(r.route.filter(row=>row[0]==='skip'),[['skip','start']],'Keyboard release preserves the held pointer skip');
   r.release('intro:skip',4);assert.deepEqual(r.route.filter(row=>row[0]==='skip'),[['skip','start'],['skip','stop']],'Last control releases the shared touch skip hold');
  });
- check('pause, resize, visibility and blur clean active touches and latched run',()=>{
+ check('pause, resize, visibility and blur clean active touches and outer-stick run',()=>{
   for(const event of ['resize','blur','visibilitychange']){
-   const r=touchRig();r.more();r.tap('run');r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,125,670);r.press('jump',2);
+   const r=touchRig();r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,144,670);r.press('jump',2);assert(r.frame().run.held);
    if(event==='visibilitychange'){r.doc.hidden=true;r.doc.dispatchEvent({type:event});}else r.w.dispatchEvent({type:event});
-   assert.equal(r.T.pointers.size,0);assert.equal(r.T.runLatched,false);assert.equal(r.manager.actionInput.virtualOwners.size,0);
+   assert.equal(r.T.pointers.size,0);assert.equal(r.manager.actionInput.virtualOwners.size,0);
+   assert(!r.frame().run.held,'Interrupted outer-stick run cannot leak');
    assert(!r.frame().jump.pressed,'Interrupted tap does not leak into the next shared update');
   }
-  const r=touchRig();r.more();r.tap('run');assert(r.T.runLatched);r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,125,670);r.press('jump',2);
-  r.press('pause',3);assert.equal(r.T.context.name,'menu');assert.equal(r.T.pointers.size,0);assert(!r.T.runLatched);assert(!r.frame().jump.pressed);
+  const r=touchRig();r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,144,670);r.press('jump',2);assert(r.frame().run.held);
+  r.press('pause',3);assert.equal(r.T.context.name,'menu');assert.equal(r.T.pointers.size,0);assert(!r.frame().run.held);assert(!r.frame().jump.pressed);
   assert(r.T.buttons.has('menu:resume')&&!r.T.buttons.has('jump'),'Paused context has menu controls exclusively');
  });
  check('road faces and skills stay simultaneous and context changes release them',()=>{
@@ -368,9 +404,9 @@ function run(){
   r.w.cutsceneSystem.userPaused=true;surface('intro-paused',['pause']);assert(!r.T.buttons.has('intro:scene'));
   r.w.cutsceneSystem.isActive=false;r.B.LevelDifficulty.open=true;surface('difficulty',['difficulty:left','difficulty:right','difficulty:recovery','difficulty:begin']);
   r.B.LevelDifficulty.open=false;overlay.classList.add('hidden');r.w.isRunning=true;r.w.tutorialSystem={storyChapter:1,isActive:()=>true,getInstructionOwner:()=> 'dialogue'};
-  surface('level1',['jump','primary','tutorial:continue','ui:more','pause']);
+  surface('level1',['jump','primary','tutorial:continue','pause']);
   assert(!r.T.buttons.has('interact')&&!r.T.buttons.has('rhythm_mode'),'Unready Hack and early-tutorial Rhythm stay out of the default controls');
-  r.more();for(const id of ['inspect','run'])assert(r.T.buttons.has(id));r.tap('ui:more');
+  assert(!r.T.buttons.has('ui:more')&&!r.T.buttons.has('run')&&!r.T.buttons.has('inspect'),'Level1 action controls remain direct and relevant');
   r.press('jump',1);r.w.hackingSystem={phase:'answer',isActive:()=>true};surface('hack',['hack:0','hack:1','hack:9','hack:Backspace','hack:Enter','hack:Escape','pause']);assert(r.stick.hidden);
   r.w.hackingSystem.isActive=()=>false;r.B.CacheBridge={active:true,generation:1,page:0,pending:false,holdSkip(){}};
   surface('comic',['comic:dialogue','ui:more','pause']);r.more();for(const id of ['comic:scene','comic:transcript','comic:skip','comic:back'])assert(r.T.buttons.has(id));
