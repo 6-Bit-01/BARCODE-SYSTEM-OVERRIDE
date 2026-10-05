@@ -42,7 +42,7 @@ async function wait(expression,name,limit=60000){mark(name);const start=Date.now
 async function shot(name){const result=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});fs.writeFileSync(path.join(out,name+'.png'),Buffer.from(result.data,'base64'));}
 async function viewport(w,h){width=w;height=h;await send('Emulation.setDeviceMetricsOverride',{width:w,height:h,deviceScaleFactor:1,mobile:true});
  await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});await delay(150);}
-async function point(selector){return evaluate('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');if(!e||e.hidden)throw Error("Missing visible control");const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()');}
+async function point(selector){return evaluate('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');if(!e||e.hidden)throw Error("Missing visible control");const r=e.getBoundingClientRect();if(!e.getClientRects().length||r.width<=0||r.height<=0)throw Error("Hidden control surface");return {x:r.x+r.width/2,y:r.y+r.height/2}})()');}
 const action=id=>'[data-touch-action="'+id+'"]';
 const tp=(point,id)=>({x:point.x,y:point.y,id,radiusX:1,radiusY:1,force:1});
 async function touch(type,points=[]){await send('Input.dispatchTouchEvent',{type,touchPoints:points});}
@@ -51,7 +51,9 @@ async function key(type,key,code,vk){await send('Input.dispatchKeyEvent',{type,k
 function layout(){const T=BARCODE.TouchControls,rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};
  return {viewport:{width:innerWidth,height:innerHeight,visualWidth:visualViewport?.width,visualHeight:visualViewport?.height},touch:T.diagnostics(),
   canvas:{width:renderer.canvas.width,height:renderer.canvas.height,rect:rect(renderer.canvas)},
-  joystick:T.joystick.hidden?null:rect(T.joystick),buttons:[...T.buttons].map(([id,{node}])=>({id,rect:rect(node),label:node.textContent,aria:node.getAttribute('aria-label')})),
+  joystick:T.joystick.hidden?null:rect(T.joystick),toolsOpen:!!T.toolsOpen,
+  buttons:[...T.buttons].filter(([,{node}])=>node.getClientRects().length).map(([id,{node}])=>({id,rect:rect(node),label:node.textContent,aria:node.getAttribute('aria-label'),
+   panel:node.closest('.touch-tools')?'tools':node.closest('.touch-gears')?'gears':node.closest('.touch-utilities')?'utility':'main'})),
   lifecycle:BARCODE.RuntimeLifecycle.getSnapshot(),audioState:audioSystem?.context?.state,rafOwners:window.mobileSmoke?.rafOwners||{},
   virtualOwners:inputManager.actionInput.virtualOwners.size,physicalKeys:[...inputManager.physicalKeys],scroll:{x:scrollX,y:scrollY},
   gpu:BARCODE.CacheRoadGPU?.diagnostics?.()||null,road:BARCODE.CacheRoadProof?.active?{status:BARCODE.CacheRoadProof.status,introMs:BARCODE.CacheRoadProof.introMs,presentation:BARCODE.CacheRoadProof.presentationResult}:null};}
@@ -59,6 +61,18 @@ async function verifyLayout(name){const row=await evaluate('('+layout.toString()
  assert.equal(row.canvas.width,1920);assert.equal(row.canvas.height,1080);assert.equal(row.touch.enabled,true);
  for(const button of row.buttons){assert(button.aria,'Accessible touch label '+button.id);assert(button.rect.width>=43.99&&button.rect.height>=43.99,'Minimum44 target '+button.id);
   assert(button.rect.x>=-0.1&&button.rect.y>=-0.1&&button.rect.x+button.rect.width<=width+.1&&button.rect.y+button.rect.height<=height+.1,'Offscreen touch target '+button.id);}
+ if(row.touch.context==='road'&&!row.toolsOpen){
+  const main=row.buttons.filter(button=>button.panel==='main'),gears=row.buttons.filter(button=>button.panel==='gears');
+  assert(main.length<=3,'The default road panel must contain at most the current beat and contextual Attack/Guard');
+  assert.deepEqual(gears.map(button=>button.id).sort(),['move_down','move_up'],'Stable separate gear pair');
+  assert(!row.buttons.some(button=>button.panel==='tools'),'Secondary tools are hidden by default');
+  const canvas=row.canvas.rect,protectedArea={x:canvas.x+canvas.width*.4,y:canvas.y+canvas.height*.28,width:canvas.width*.2,height:canvas.height*.68};
+  const overlap=rect=>Math.max(0,Math.min(rect.x+rect.width,protectedArea.x+protectedArea.width)-Math.max(rect.x,protectedArea.x))*
+    Math.max(0,Math.min(rect.y+rect.height,protectedArea.y+protectedArea.height)-Math.max(rect.y,protectedArea.y));
+  row.defaultRoad={mainCount:main.length,gearCount:gears.length,protectedArea,overlapPixels:row.buttons.reduce((sum,button)=>sum+overlap(button.rect),0)};
+  assert(row.defaultRoad.overlapPixels<.1,'Default buttons must leave the central road/car region unobstructed');
+  save('mobile-layouts.json',receipt.layouts);
+ }
  await shot(name);return row;}
 function instrument(){window.mobileSmoke={rows:[],observe:false,rafOwners:{}};const raf=requestAnimationFrame;
  window.requestAnimationFrame=function(callback){const owner=(new Error().stack||'').split('\n').slice(2).find(row=>/\/src\//.test(row))||'unidentified';
@@ -90,7 +104,9 @@ async function main(){server.listen(0,'127.0.0.1');await once(server,'listening'
  const focus=await evaluate('BARCODE.PauseMenu.focus');await tap(action('menu:down'));assert.notEqual(await evaluate('BARCODE.PauseMenu.focus'),focus,'Touch menu navigation');
  await tap(action('menu:resume'));await wait('!BARCODE.PauseMenu.titleOpen&&BARCODE.TouchControls.context?.name==="title"','close touch settings');
  await tap(action('title:start'));await wait('window.cutsceneSystem?.isActive&&BARCODE.TouchControls.context?.name==="intro"','normal touch opening');await verifyLayout('03-portrait-opening');
+ await tap(action('ui:more'));assert.equal(await evaluate('BARCODE.TouchControls.toolsOpen'),true);
  await tap(action('intro:skip'),5300);await wait('!cutsceneSystem.inputDisabled&&cutsceneSystem.currentImageIndex===BARCODE.IntroSequence.panels.length','authored touch hold-to-skip',20000);
+ if(await evaluate('BARCODE.TouchControls.toolsOpen'))await tap(action('ui:more'));
  await tap(action('intro:scene'));await wait('BARCODE.LevelDifficulty.open&&BARCODE.TouchControls.context?.name==="difficulty"','touch difficulty');await verifyLayout('04-portrait-difficulty');
  const selected=await evaluate('BARCODE.LevelDifficulty.selected');await tap(action('difficulty:right'));assert.equal(await evaluate('BARCODE.LevelDifficulty.selected'),(selected+1)%3);
  await tap(action('difficulty:left'));assert.equal(await evaluate('BARCODE.LevelDifficulty.selected'),selected);await tap(action('difficulty:begin'));
@@ -105,6 +121,7 @@ async function main(){server.listen(0,'127.0.0.1');await once(server,'listening'
  await key('keyDown','ArrowRight','ArrowRight',39);await touch('touchStart',[tp(stick,1)]);await touch('touchMove',[tp({x:stick.x-36,y:stick.y},1)]);await delay(100);
  assert(await evaluate('inputManager.actionInput.held("move_left")&&inputManager.actionInput.held("move_right")'),'Touch and physical keyboard coexist');
  await touch('touchEnd');await delay(80);assert(await evaluate('inputManager.actionInput.held("move_right")'),'Touch release preserves physical key');await key('keyUp','ArrowRight','ArrowRight',39);
+ await tap(action('ui:more'));assert.equal(await evaluate('BARCODE.TouchControls.toolsOpen'),true);await verifyLayout('05b-portrait-level1-tools');
  await tap(action('run'));assert.equal(await evaluate('BARCODE.TouchControls.runLatched'),true);
  await touch('touchStart',[tp(stick,1)]);await viewport(844,390);assert.equal(await evaluate('BARCODE.TouchControls.pointers.size'),0,'Rotation clears captures');assert.equal(await evaluate('BARCODE.TouchControls.runLatched'),false);await touch('touchCancel');
  await verifyLayout('06-landscape-level1');await tap(action('pause'));await wait('BARCODE.RuntimeLifecycle.getState()==="paused"&&BARCODE.TouchControls.context?.name==="menu"','touch pause');await verifyLayout('07-landscape-pause');
@@ -117,16 +134,27 @@ async function main(){server.listen(0,'127.0.0.1');await once(server,'listening'
  await boot(origin);await wait('!document.getElementById("continueButton").hidden&&BARCODE.TouchControls.buttons.has("title:continue")','earned mobile Continue');
  await tap(action('title:continue'));await wait('BARCODE.CacheRoadProof.active&&!BARCODE.CacheRoadProof.presentationPreparing&&BARCODE.CacheRoadProof.introMs===null&&BARCODE.TouchControls.context?.name==="road"','normal earned mobile road',60000);
  await evaluate('('+observeInput.toString()+')();mobileSmoke.observe=true');await verifyLayout('08-landscape-level2');
- stick=await point('#touchJoystick');const face=await point(action('road_a')),skill=await point(action('road_defend'));
+ await tap(action('ui:more'));assert.equal(await evaluate('BARCODE.TouchControls.toolsOpen'),true);await verifyLayout('08b-landscape-level2-tools');
+ await wait('BARCODE.TouchControls.buttons.get("road_defend")&&!BARCODE.TouchControls.buttons.get("road_defend").node.disabled','naturally ready road Guard',15000);
+ stick=await point('#touchJoystick');const skill=await point(action('road_defend'));
  await touch('touchStart',[tp(stick,1)]);await touch('touchMove',[tp({x:stick.x+36,y:stick.y},1)]);
- await touch('touchStart',[tp({x:stick.x+36,y:stick.y},1),tp(face,2),tp(skill,3)]);await delay(150);
- assert(await evaluate('mobileSmoke.rows.some(row=>row.move_right.held&&row.road_a.pressed&&row.road_defend.pressed)'),'Road face and skill accept independent simultaneous fingers');
+ await touch('touchStart',[tp({x:stick.x+36,y:stick.y},1),tp(skill,2)]);await delay(150);
+ assert(await evaluate('mobileSmoke.rows.some(row=>row.move_right.held&&row.road_defend.pressed)'),'Drawer skill accepts an independent steering finger');
  await touch('touchCancel');await delay(100);assert.equal(await evaluate('inputManager.actionInput.virtualOwners.size'),0);
- await tap(action('move_up'));assert(await evaluate('mobileSmoke.rows.some(row=>row.move_up.pressed)'),'Real touch gear tap reaches the shared road actions');
+ await tap(action('ui:pads'));assert.equal(await evaluate('BARCODE.TouchControls.padsOpen'),true);await verifyLayout('08c-landscape-level2-pads');
+ const face=await point(action('road_a'));stick=await point('#touchJoystick');
+ await touch('touchStart',[tp(stick,1)]);await touch('touchMove',[tp({x:stick.x+36,y:stick.y},1)]);
+ await touch('touchStart',[tp({x:stick.x+36,y:stick.y},1),tp(face,2)]);await delay(150);
+ assert(await evaluate('mobileSmoke.rows.some(row=>row.move_right.held&&row.road_a.pressed)'),'Raw beat pad accepts an independent steering finger');
+ await touch('touchCancel');await delay(100);assert.equal(await evaluate('inputManager.actionInput.virtualOwners.size'),0);
+ await tap(action('ui:more'));assert.equal(await evaluate('BARCODE.TouchControls.toolsOpen'),false,'Secondary road tools close');
+ assert.equal(await evaluate('BARCODE.TouchControls.padsOpen'),false,'Closing More resets the pad tab');
+ const gearAction=await evaluate('BARCODE.TouchControls.buttons.get("move_up").node.disabled?"move_down":"move_up"');
+ await tap(action(gearAction));assert(await evaluate('mobileSmoke.rows.some(row=>row['+JSON.stringify(gearAction)+'].pressed)'),'Real available gear tap reaches the shared road actions');
  await viewport(375,667);await verifyLayout('09-short-portrait-level2');await viewport(320,568);await verifyLayout('10-small-portrait-level2');
  await viewport(390,844);await verifyLayout('11-portrait-level2');await tap(action('pause'));await wait('BARCODE.RuntimeLifecycle.getState()==="paused"','mobile road pause');await verifyLayout('12-portrait-road-pause');
  await tap(action('menu:resume'));await wait('BARCODE.RuntimeLifecycle.getState()==="running"','mobile road resume');
- receipt.level2={passed:true,earnedCheckpoint:earned.expected.checkpointId,multitouchFaceSkill:true,gearTap:true,portraitLandscape:true,pauseResume:true};
+ receipt.level2={passed:true,earnedCheckpoint:earned.expected.checkpointId,multitouchFaceSteering:true,multitouchSkillSteering:true,tabbedAbilities:true,gearTap:true,portraitLandscape:true,pauseResume:true,defaultPanelClear:true};
  assert.deepEqual(exceptions,[],'Page exceptions');assert.deepEqual(resourceFailures,[],'Missing game resources');assert.deepEqual(events,[],'Game crash/detach');assert.deepEqual(hashes(),inputHashes,'Runtime changed during mobile check');
  receipt.status='passed';mark('mobile normal controls/layout passed');
 }
