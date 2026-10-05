@@ -52,7 +52,9 @@ function layout(){const T=BARCODE.TouchControls,rect=e=>{const r=e.getBoundingCl
  return {viewport:{width:innerWidth,height:innerHeight,visualWidth:visualViewport?.width,visualHeight:visualViewport?.height},touch:T.diagnostics(),
   canvas:{width:renderer.canvas.width,height:renderer.canvas.height,rect:rect(renderer.canvas)},
   joystick:T.joystick.hidden?null:rect(T.joystick),toolsOpen:!!T.toolsOpen,
-  buttons:[...T.buttons].filter(([,{node}])=>node.getClientRects().length).map(([id,{node}])=>({id,rect:rect(node),label:node.textContent,aria:node.getAttribute('aria-label'),
+  actions:{rect:rect(T.actions),columns:getComputedStyle(T.actions).gridTemplateColumns,rows:getComputedStyle(T.actions).gridTemplateRows,pointerEvents:getComputedStyle(T.actions).pointerEvents},
+  buttons:[...T.buttons].filter(([,{node}])=>node.getClientRects().length).map(([id,{node}])=>({id,rect:rect(node),label:node.textContent,aria:node.getAttribute('aria-label'),disabled:node.disabled,
+   slot:{row:getComputedStyle(node).gridRowStart,column:getComputedStyle(node).gridColumnStart},
    panel:node.closest('.touch-tools')?'tools':node.closest('.touch-gears')?'gears':node.closest('.touch-utilities')?'utility':'main'})),
   lifecycle:BARCODE.RuntimeLifecycle.getSnapshot(),audioState:audioSystem?.context?.state,rafOwners:window.mobileSmoke?.rafOwners||{},
   virtualOwners:inputManager.actionInput.virtualOwners.size,physicalKeys:[...inputManager.physicalKeys],scroll:{x:scrollX,y:scrollY},
@@ -61,15 +63,23 @@ async function verifyLayout(name){const row=await evaluate('('+layout.toString()
  assert.equal(row.canvas.width,1920);assert.equal(row.canvas.height,1080);assert.equal(row.touch.enabled,true);
  for(const button of row.buttons){assert(button.aria,'Accessible touch label '+button.id);assert(button.rect.width>=43.99&&button.rect.height>=43.99,'Minimum44 target '+button.id);
   assert(button.rect.x>=-0.1&&button.rect.y>=-0.1&&button.rect.x+button.rect.width<=width+.1&&button.rect.y+button.rect.height<=height+.1,'Offscreen touch target '+button.id);}
- if(row.touch.context==='road'&&!row.toolsOpen){
+ if(['level1','level3','road'].includes(row.touch.context)){
+  assert(!row.toolsOpen&&!row.buttons.some(button=>['ui:more','ui:pads','run'].includes(button.id)),'Gameplay actions must be direct, without a controls menu');
+  assert.equal(row.actions.pointerEvents,'none','Empty action slots cannot intercept the game surface');
+ }
+ if(row.touch.context==='road'){
   const main=row.buttons.filter(button=>button.panel==='main'),gears=row.buttons.filter(button=>button.panel==='gears');
-  assert(main.length<=3,'The default road panel must contain at most the current beat and contextual Attack/Guard');
+  assert(main.length<=5,'The road cluster contains only the current beat and four relevant direct skills');
+  const slots={'road_turbo':['1','1'],'road_disrupt':['1','2'],'road_echo':['1','2'],'road_attack':['2','1'],'road_defend':['2','2'],'road:beat':['3','1']};
+  for(const button of main){assert(slots[button.id],'Unexpected road action '+button.id);assert.deepEqual([button.slot.row,button.slot.column],slots[button.id],'Fixed thumb slot '+button.id);}
   assert.deepEqual(gears.map(button=>button.id).sort(),['move_down','move_up'],'Stable separate gear pair');
   assert(!row.buttons.some(button=>button.panel==='tools'),'Secondary tools are hidden by default');
+  const intersect=(a,b)=>Math.max(0,Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.height,b.y+b.height)-Math.max(a.y,b.y));
+  for(let i=0;i<row.buttons.length;i++)for(let j=i+1;j<row.buttons.length;j++)assert(intersect(row.buttons[i].rect,row.buttons[j].rect)<.1,'Touch buttons overlap '+row.buttons[i].id+' / '+row.buttons[j].id);
   const canvas=row.canvas.rect,protectedArea={x:canvas.x+canvas.width*.4,y:canvas.y+canvas.height*.28,width:canvas.width*.2,height:canvas.height*.68};
   const overlap=rect=>Math.max(0,Math.min(rect.x+rect.width,protectedArea.x+protectedArea.width)-Math.max(rect.x,protectedArea.x))*
     Math.max(0,Math.min(rect.y+rect.height,protectedArea.y+protectedArea.height)-Math.max(rect.y,protectedArea.y));
-  row.defaultRoad={mainCount:main.length,gearCount:gears.length,protectedArea,overlapPixels:row.buttons.reduce((sum,button)=>sum+overlap(button.rect),0)};
+  row.defaultRoad={mainCount:main.length,gearCount:gears.length,directActions:true,fixedThumbSlots:true,protectedArea,overlapPixels:row.buttons.reduce((sum,button)=>sum+overlap(button.rect),0)};
   assert(row.defaultRoad.overlapPixels<.1,'Default buttons must leave the central road/car region unobstructed');
   save('mobile-layouts.json',receipt.layouts);
  }
@@ -78,7 +88,7 @@ function instrument(){window.mobileSmoke={rows:[],observe:false,rafOwners:{}};co
  window.requestAnimationFrame=function(callback){const owner=(new Error().stack||'').split('\n').slice(2).find(row=>/\/src\//.test(row))||'unidentified';
   return raf.call(window,function(time){if(mobileSmoke.observe&&window.isRunning)mobileSmoke.rafOwners[owner]=(mobileSmoke.rafOwners[owner]||0)+1;return callback.call(this,time);});};}
 function observeInput(){const original=inputManager.routeActions;inputManager.routeActions=function(actions,...args){if(mobileSmoke.observe){
-  const row={};for(const id of ['move_left','move_right','move_down','jump','road_a','road_defend','move_up'])row[id]={held:!!actions[id]?.held,pressed:!!actions[id]?.pressed,presses:actions[id]?.presses?.length||0};
+  const row={};for(const id of ['move_left','move_right','move_down','run','jump','road_a','road_b','road_x','road_y','road_attack','road_defend','road_turbo','road_disrupt','move_up'])row[id]={held:!!actions[id]?.held,pressed:!!actions[id]?.pressed,presses:actions[id]?.presses?.length||0};
   mobileSmoke.rows.push(row);if(mobileSmoke.rows.length>256)mobileSmoke.rows.shift();}return original.call(this,actions,...args);};}
 async function boot(origin){await send('Page.navigate',{url:origin});
  await wait('document.readyState==="complete"&&!!window.BARCODE?.TouchControls&&!!window.renderer','actual mobile index boot',90000);
@@ -121,9 +131,10 @@ async function main(){server.listen(0,'127.0.0.1');await once(server,'listening'
  await key('keyDown','ArrowRight','ArrowRight',39);await touch('touchStart',[tp(stick,1)]);await touch('touchMove',[tp({x:stick.x-36,y:stick.y},1)]);await delay(100);
  assert(await evaluate('inputManager.actionInput.held("move_left")&&inputManager.actionInput.held("move_right")'),'Touch and physical keyboard coexist');
  await touch('touchEnd');await delay(80);assert(await evaluate('inputManager.actionInput.held("move_right")'),'Touch release preserves physical key');await key('keyUp','ArrowRight','ArrowRight',39);
- await tap(action('ui:more'));assert.equal(await evaluate('BARCODE.TouchControls.toolsOpen'),true);await verifyLayout('05b-portrait-level1-tools');
- await tap(action('run'));assert.equal(await evaluate('BARCODE.TouchControls.runLatched'),true);
- await touch('touchStart',[tp(stick,1)]);await viewport(844,390);assert.equal(await evaluate('BARCODE.TouchControls.pointers.size'),0,'Rotation clears captures');assert.equal(await evaluate('BARCODE.TouchControls.runLatched'),false);await touch('touchCancel');
+ await touch('touchStart',[tp(stick,1)]);await touch('touchMove',[tp({x:stick.x+54,y:stick.y},1)]);await delay(100);
+ assert(await evaluate('inputManager.actionInput.held("run")'),'Running is a direct outer-stick gesture');
+ await viewport(844,390);assert.equal(await evaluate('BARCODE.TouchControls.pointers.size'),0,'Rotation clears captures');await touch('touchCancel');await delay(100);
+ assert.equal(await evaluate('inputManager.actionInput.held("run")'),false,'Rotation releases outer-stick run');
  await verifyLayout('06-landscape-level1');await tap(action('pause'));await wait('BARCODE.RuntimeLifecycle.getState()==="paused"&&BARCODE.TouchControls.context?.name==="menu"','touch pause');await verifyLayout('07-landscape-pause');
  await tap(action('menu:resume'));await wait('BARCODE.RuntimeLifecycle.getState()==="running"','touch resume');
  const owners=await evaluate('Object.keys(mobileSmoke.rafOwners)');assert(owners.length&&owners.every(owner=>/\/src\/core\/loop\.js:/.test(owner)),'One existing gameplay RAF');
@@ -134,27 +145,33 @@ async function main(){server.listen(0,'127.0.0.1');await once(server,'listening'
  await boot(origin);await wait('!document.getElementById("continueButton").hidden&&BARCODE.TouchControls.buttons.has("title:continue")','earned mobile Continue');
  await tap(action('title:continue'));await wait('BARCODE.CacheRoadProof.active&&!BARCODE.CacheRoadProof.presentationPreparing&&BARCODE.CacheRoadProof.introMs===null&&BARCODE.TouchControls.context?.name==="road"','normal earned mobile road',60000);
  await evaluate('('+observeInput.toString()+')();mobileSmoke.observe=true');await verifyLayout('08-landscape-level2');
- await tap(action('ui:more'));assert.equal(await evaluate('BARCODE.TouchControls.toolsOpen'),true);await verifyLayout('08b-landscape-level2-tools');
- await wait('BARCODE.TouchControls.buttons.get("road_defend")&&!BARCODE.TouchControls.buttons.get("road_defend").node.disabled','naturally ready road Guard',15000);
- stick=await point('#touchJoystick');const skill=await point(action('road_defend'));
- await touch('touchStart',[tp(stick,1)]);await touch('touchMove',[tp({x:stick.x+36,y:stick.y},1)]);
- await touch('touchStart',[tp({x:stick.x+36,y:stick.y},1),tp(skill,2)]);await delay(150);
- assert(await evaluate('mobileSmoke.rows.some(row=>row.move_right.held&&row.road_defend.pressed)'),'Drawer skill accepts an independent steering finger');
- await touch('touchCancel');await delay(100);assert.equal(await evaluate('inputManager.actionInput.virtualOwners.size'),0);
- await tap(action('ui:pads'));assert.equal(await evaluate('BARCODE.TouchControls.padsOpen'),true);await verifyLayout('08c-landscape-level2-pads');
- const face=await point(action('road_a'));stick=await point('#touchJoystick');
+ const directSkills=[];
+ const directSkill=async(id,label,limit=15000)=>{
+  await wait('BARCODE.TouchControls.buttons.get('+JSON.stringify(id)+')&&!BARCODE.TouchControls.buttons.get('+JSON.stringify(id)+').node.disabled','naturally ready direct '+label,limit);
+  await evaluate('mobileSmoke.rows=[];mobileSmoke.skillNode=BARCODE.TouchControls.buttons.get('+JSON.stringify(id)+').node');
+  stick=await point('#touchJoystick');const skill=await point(action(id));
+  await touch('touchStart',[tp(stick,1)]);await touch('touchMove',[tp({x:stick.x+36,y:stick.y},1)]);
+  await touch('touchStart',[tp({x:stick.x+36,y:stick.y},1),tp(skill,2)]);await delay(150);
+  assert(await evaluate('mobileSmoke.rows.some(row=>row.move_right.held&&row['+JSON.stringify(id)+'].pressed)'),'Direct '+label+' accepts an independent steering finger');
+  await touch('touchCancel');await delay(100);assert.equal(await evaluate('inputManager.actionInput.virtualOwners.size'),0);
+  assert(await evaluate('BARCODE.TouchControls.buttons.get('+JSON.stringify(id)+')?.node===mobileSmoke.skillNode'),label+' retains its target through cooldown feedback');
+  directSkills.push(id);
+ };
+ await directSkill('road_turbo','Boost');await directSkill('road_defend','Guard');await verifyLayout('08b-landscape-direct-skills');
+ await directSkill('road_disrupt','Jam',45000);await verifyLayout('08c-landscape-direct-jam');
+ await wait('BARCODE.TouchControls.buttons.has("road:beat")','naturally announced direct Sync',20000);
+ await evaluate('mobileSmoke.rows=[]');const face=await point(action('road:beat'));stick=await point('#touchJoystick');
  await touch('touchStart',[tp(stick,1)]);await touch('touchMove',[tp({x:stick.x+36,y:stick.y},1)]);
  await touch('touchStart',[tp({x:stick.x+36,y:stick.y},1),tp(face,2)]);await delay(150);
- assert(await evaluate('mobileSmoke.rows.some(row=>row.move_right.held&&row.road_a.pressed)'),'Raw beat pad accepts an independent steering finger');
+ assert(await evaluate('mobileSmoke.rows.some(row=>row.move_right.held&&["road_a","road_b","road_x","road_y"].some(id=>row[id].pressed))'),'Announced Sync accepts an independent steering finger');
  await touch('touchCancel');await delay(100);assert.equal(await evaluate('inputManager.actionInput.virtualOwners.size'),0);
- await tap(action('ui:more'));assert.equal(await evaluate('BARCODE.TouchControls.toolsOpen'),false,'Secondary road tools close');
- assert.equal(await evaluate('BARCODE.TouchControls.padsOpen'),false,'Closing More resets the pad tab');
  const gearAction=await evaluate('BARCODE.TouchControls.buttons.get("move_up").node.disabled?"move_down":"move_up"');
  await tap(action(gearAction));assert(await evaluate('mobileSmoke.rows.some(row=>row['+JSON.stringify(gearAction)+'].pressed)'),'Real available gear tap reaches the shared road actions');
+ await viewport(568,320);await verifyLayout('08d-short-landscape-level2');
  await viewport(375,667);await verifyLayout('09-short-portrait-level2');await viewport(320,568);await verifyLayout('10-small-portrait-level2');
  await viewport(390,844);await verifyLayout('11-portrait-level2');await tap(action('pause'));await wait('BARCODE.RuntimeLifecycle.getState()==="paused"','mobile road pause');await verifyLayout('12-portrait-road-pause');
  await tap(action('menu:resume'));await wait('BARCODE.RuntimeLifecycle.getState()==="running"','mobile road resume');
- receipt.level2={passed:true,earnedCheckpoint:earned.expected.checkpointId,multitouchFaceSteering:true,multitouchSkillSteering:true,tabbedAbilities:true,gearTap:true,portraitLandscape:true,pauseResume:true,defaultPanelClear:true};
+ receipt.level2={passed:true,earnedCheckpoint:earned.expected.checkpointId,multitouchCueSteering:true,multitouchSkillSteering:true,directSkills,noGameplayControlsMenu:true,gearTap:true,portraitLandscape:true,shortLandscape:true,pauseResume:true,defaultPanelClear:true};
  assert.deepEqual(exceptions,[],'Page exceptions');assert.deepEqual(resourceFailures,[],'Missing game resources');assert.deepEqual(events,[],'Game crash/detach');assert.deepEqual(hashes(),inputHashes,'Runtime changed during mobile check');
  receipt.status='passed';mark('mobile normal controls/layout passed');
 }

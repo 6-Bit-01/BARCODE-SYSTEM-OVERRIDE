@@ -1,5 +1,13 @@
 # Whole-game mobile controls
 
+## Direct actions correction
+
+The owner rejected PR185's combat More drawer because it interrupts play. This follow-up puts skills directly in a compact right-thumb cluster with fixed slots: Boost/Jam above Attack/Guard and a large current Sync cue below. Guard and Boost remain accessible for proactive use; recharge seconds, queued-next-beat and active-state badges explain availability without renaming their actions. Strike/Fire follows the real target, Fire checks ammunition and projectile capacity, and Jam appears for nearby enemies or hostile projectiles. Readiness highlights use the existing combat owner. No gameplay menu or extra tap is required; timing, lane judgment and skill activation remain manual.
+
+Level 1 exposes Inspect when the existing stage owner finds a usable nearby detail; the same fixed button becomes Continue/Close for readable messages. Outer-stick movement runs and shows RUN feedback. Jump, Rhythm, Beat and Hack keep fixed slots while availability changes. More remains only in cinematic screens for transcript/skip extras. Empty control-panel space passes through to the game.
+
+The native/GPU renderer, loading pipeline, original assets, music, saves and existing input/frame/audio owners are preserved. Direct-action contracts, bounded browser review and normal exact-head release checks are required; publication is authorized. The contextual-drawer notes below are historical for the published PR185 baseline.
+
 ## Contextual controls revision
 
 The owner tested the published joystick release (source PR184, `3daea2cccd1ad21fe096750dc0fd1a270cc448dd`; website PR481) and requests stylish, contextual buttons that leave the road clear. The new design keeps the transparent movement/steering stick, moves gears beside it, and shows one mapped Sync cue plus useful combat actions on the opposite edge. A More drawer holds the four manual face pads and secondary abilities. The primary cue submits the captured mapped action only on a real tap; timing, lane, judgments and rewards remain owned by the game. No input is automated.

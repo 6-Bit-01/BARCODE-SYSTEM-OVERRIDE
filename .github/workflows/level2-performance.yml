@@ -8,6 +8,7 @@ on:
       - agent/level2-minimal-road-cues
       - agent/mobile-joystick-controls
       - agent/contextual-mobile-controls
+      - agent/direct-mobile-actions
       - main
   pull_request:
     paths:
