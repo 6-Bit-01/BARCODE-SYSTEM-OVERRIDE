@@ -1,5 +1,11 @@
 # Current State
 
+## October 4, 2026 — compound GPU scenery compiler in progress
+
+The complete bank at source checkpoint `bf99ed98a61120611593420c333353fca9b8dd9f` passed fresh run 21 and earned-boss run 22 through controls/audio, genuine graphics loss/native fallback/restoration and ordinary Level 1 return. All measured frames used complete GPU output with zero driving uploads/copies/fallbacks and 149 BC7 plus 22 original SVG sources (248.328 MiB of mip storage). All 415 tested input hashes stayed unchanged. Fresh draw median/p95 remained 32.0/43.8 ms, so the repair is still not accepted as resolved lag.
+
+The next scene compiler reuses the authored ground clip within a frame and combines compatible images, convex solid fills and analytic gradients into ordered retained GPU batches. Path edits, exact transforms and fill rules invalidate clip geometry correctly; native replay remains complete. Final combined gameplay pacing, exact-head source/site checks and authorized publication remain pending. PR183 remains draft; the public website still uses source d41be793 through site PR480. LEVEL2_GPU_RENDERER.md retains the detailed actual evidence and primary engine references.
+
 ## October 4, 2026 — full-resolution compressed GPU bank being integrated
 
 The owner-directed engine replacement now adopts offline legacy UASTC KTX2 derivatives for 149 raster images in the 171-source Level 2 GPU bank, a pinned local Basis Universal 2.50 decoder in one loading worker, and direct compressed Pixi textures. The 22 small vector images keep their original browser rasterization as GPU image textures. All 171 sources must be ready before driving. The 624 canonical originals remain unchanged. Full mip chains, premultiplied alpha, original logical dimensions/crops and native 1920×1080 presentation remain. Encoding uses KTX-Software 4.4.2; its source provenance is separate from the decoder. No transcode or new artwork upload belongs to playing frames. The worker terminates after warmup; mip buffers release at level exit and remain available only for graphics recovery while the level owns them.

@@ -392,6 +392,15 @@ function inspectTextureBank(gpu){
   sourceStorageBytes:gpu.sourceStorageBytes,expectedStorageBytes:textureManifest.allGpuMipBytes,
   worker:gpu.textureBank,limitation:'Compressed decoding/storage and actual browser upload are exercised; this does not claim lossless pixels.'};
 }
+function inspectWorldBatches(gpu){
+ const compiler=gpu.worldCompiler||{},views=gpu.clipGroupsByKind||{},
+  checks={compilerEnabled:compiler.enabled===true,
+   forwardImages:(views.forward?.worldBatchImages||0)>0,rearImages:(views.rear?.worldBatchImages||0)>0,
+   forwardGradients:(views.forward?.worldBatchGradients||0)>0,rearGradients:(views.rear?.worldBatchGradients||0)>0,
+   forwardBatches:(views.forward?.worldBatches||0)>0,rearBatches:(views.rear?.worldBatches||0)>0};
+ return {accepted:Object.values(checks).every(Boolean),checks,compiler,views,
+  limitation:'These are submitted compound batches and geometry counts, not measured GL draw calls.'};
+}
 async function checkPerformance(result){
  assert(result.gpu.residentTexels<=result.gpu.residentBudgetTexels,'GPU residency exceeded its actual budget');
  assert.equal(result.gpu.pixiSystemTickerStarted,false);assert.equal(result.gpu.pixiSharedTickerStarted,false);
@@ -409,14 +418,16 @@ async function checkPerformance(result){
    direct.activeDirectFrames===direct.measuredFrames&&direct.completedPresentFrames===direct.measuredFrames,
   zeroCanvasCopies=direct.gpuToNativeCopies===0&&direct.otherMeasuredGpuToNativeCopies===0,
   compressedBankAcceptance=inspectTextureBank(result.gpu),
+  worldBatchAcceptance=inspectWorldBatches(result.gpu),
   gate={budgetMs:budget,backend:unavailable?'unavailable GL':software?'software GL':unidentified?'unidentified GL':'default hardware GL',
-   performanceExercised:hardware,status:hardware?(result.cpuDrawMs.median<=budget&&fullyGpuAccepted&&zeroDrivingUploads&&completeLevelSources&&directPresentAccepted&&zeroCanvasCopies&&compressedBankAcceptance.accepted?'passed':'failed'):'performanceUnexercised',
+   performanceExercised:hardware,status:hardware?(result.cpuDrawMs.median<=budget&&fullyGpuAccepted&&zeroDrivingUploads&&completeLevelSources&&directPresentAccepted&&zeroCanvasCopies&&compressedBankAcceptance.accepted&&worldBatchAcceptance.accepted?'passed':'failed'):'performanceUnexercised',
    fullyGpuAccepted,zeroDrivingUploads,completeLevelSources,directPresentAccepted,zeroCanvasCopies,
    directScreenAcceptance:{...direct,layerDisplay},presentationResult:result.presentationResult,
    cpuDrawMedianMs:result.cpuDrawMs.median,cpuDrawP95Ms:result.cpuDrawMs.p95,cpuDrawMaxMs:result.cpuDrawMs.max,
    observedRafCadence:result.frameCadenceMs,gpuFallbacks:result.gpuCalls,measuredTextureUploads:result.measuredTextureUploads,
    fullyGpu:result.fullyGpu,
    compressedBankAcceptance,
+   worldBatchAcceptance,
    limitation:'This hardware gate retains the existing 33.333 ms draw-median threshold. Tail times and RAF intervals are reported separately; passing the median is not smooth-frame or physical-display acceptance.'};
  fs.writeFileSync(path.join(out,'performance-gate.json'),JSON.stringify(gate,null,2));
  if(!unavailable){assert(directPresentAccepted,'Every measured available-GPU frame must finish one visible direct presentation with matched full-fit native/HUD layers');
@@ -433,6 +444,7 @@ async function checkPerformance(result){
   assert.deepEqual(result.presentationResult?.missingKeys,[],'Requested Level2 source keys are missing');
   assert.equal(result.measuredTextureUploads.delta,0,'Measured driving must not upload new textures after level warmup');}
  if(hardware&&textureManifest)assert(compressedBankAcceptance.accepted,'Hardware warmup must retain149compressed+22originalSVGtextures with zerocodec fallback and no live decoder worker');
+ if(hardware)assert(worldBatchAcceptance.accepted,'Available hardware must exercise compound image and analytic gradient batches in both scenery views');
  console.log('GPU_PERFORMANCE '+JSON.stringify({status:gate.status,backend:gate.backend,
   performanceExercised:gate.performanceExercised,budgetMs:gate.budgetMs,cpuDrawMedianMs:gate.cpuDrawMedianMs,
   cpuDrawP95Ms:gate.cpuDrawP95Ms,cpuDrawMaxMs:gate.cpuDrawMaxMs,directPresentAccepted,zeroCanvasCopies,
@@ -483,6 +495,9 @@ async function verifyContextRecovery(){
  if(textureManifest&&before.gpu.compressedSources===149){const bank=inspectTextureBank(restored.gpu);
   fs.writeFileSync(path.join(out,'restored-texture-bank-acceptance.json'),JSON.stringify(bank,null,2));
   assert(bank.accepted,'Context recovery lost compressed/original texture ownership or left a decoder worker alive');}
+ if(before.gpu.worldCompiler?.enabled){const batches=inspectWorldBatches(restored.gpu);
+  fs.writeFileSync(path.join(out,'restored-world-batch-acceptance.json'),JSON.stringify(batches,null,2));
+  assert(batches.accepted,'Context recovery must restore complete image and gradient batches in both views');}
  if(before.gpu.presentation==='direct-gpu-layer'){
   assert.equal(restored.gpu.presentation,'direct-gpu-layer','Restored GPU did not resume direct visible output');
   assert(inspectLayerDisplay(restored.layerDisplay).accepted,'Restored GPU/native layers lost their full-fit display geometry');

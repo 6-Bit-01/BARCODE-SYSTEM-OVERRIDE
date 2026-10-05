@@ -40,6 +40,7 @@ on:
       - tools/check-standalone-build.js
       - tools/check-cache-road-gpu-browser.cjs
       - tools/check-cache-road-gpu.cjs
+      - tools/check-cache-road-gpu-path-cache.cjs
       - tools/lib/cache-road-gpu-fixture.cjs
       - tools/check-cache-road-presentation-ready.cjs
       - tools/check-presentation-scene-lifecycle.cjs
@@ -66,6 +67,7 @@ jobs:
       - name: Check GPU scene ownership and presentation readiness contracts
         run: |
           node tools/check-cache-road-gpu.cjs
+          node tools/check-cache-road-gpu-path-cache.cjs
           node tools/check-cache-road-presentation-ready.cjs
           node tools/check-presentation-scene-lifecycle.cjs
           node tools/check-standalone-sprite-resources.cjs

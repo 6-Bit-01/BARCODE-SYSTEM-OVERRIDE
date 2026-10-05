@@ -9,6 +9,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
   // This GPU residency limit is separate from the existing PA 32MP derivative
   // limit. It includes all original-source mip levels and color work targets.
   const WIDTH=1920,HEIGHT=1080,TEXEL_CAP=256*1024*1024,MAX_COMMANDS=4096,MAX_STOPS=16;
+  const WORLD_SAMPLERS=8,WORLD_FLOATS=29,WORLD_MAX_VERTICES=32768;
   const IDENTITY={a:1,b:0,c:0,d:1,e:0,f:0};
   const blendModes={'source-over':'normal',screen:'screen',lighter:'add',multiply:'multiply'};
   const state={status:'waiting',renderer:null,canvas:null,stage:null,initializing:null,
@@ -17,6 +18,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
     sourceInfo:new Map(),decodes:new Map(),optionalSources:new Map(),optionalUploadFailed:new Set(),
     optionalNotReady:0,optionalStatus:null,prefetchUploads:0,warmupResult:null,warmupGeneration:0,textureBankSession:null,
     fallback:null,error:null,gradientProgram:null,hueProgram:null,disposed:false,
+    worldProgram:null,worldBatches:new Map(),worldCompiler:{enabled:false,reason:'not-initialized'},
     targetTexels:0,targetSamples:1,rearTarget:null,rearViewport:null,
     rearStage:null,rearSprite:null,pendingRearViewport:null,
     layerNativeCanvas:null,layerNativeStyles:null,layerVisible:false,layerFrameContext:null,
@@ -233,6 +235,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
       const samples=Math.max(1,renderer.gl.getParameter(renderer.gl.SAMPLES)||1);
       state.targetSamples=samples;state.targetTexels=WIDTH*HEIGHT*(samples>1?samples+1:1);
       state.rearStage=new P.Container({eventMode:'none'});
+      initializeWorldCompiler();
       canvas.addEventListener('webglcontextlost',()=>{state.status='lost';state.fallback='context-lost';hide();});
       // Pixi restores its GL systems first; the next ordinary game update then
       // restores resident originals before another scene is allowed to render.
@@ -350,7 +353,7 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
           state.renderer.renderTarget.getGpuRenderTarget(state.renderer.renderTarget.getRenderTarget(state.rearTarget));}
         if(state.rearBlurTarget){state.rearBlurTarget.source.unload();state.renderer.texture.initSource(state.rearBlurTarget.source);
           state.renderer.renderTarget.getGpuRenderTarget(state.renderer.renderTarget.getRenderTarget(state.rearBlurTarget));}
-        state.status='ready';state.fallback=null;
+        initializeWorldCompiler();state.status='ready';state.fallback=null;
       }catch(error){state.error=String(error?.message||error);state.fallback='restoring-sources';return;}
     }
     if(state.status!=='ready')return;
@@ -564,6 +567,165 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
     scratch.result=input;return count>=3?count:0;
   }
 
+  // A custom shader mesh cannot join Pixi's default sprite batch. Compile an
+  // ordered run ourselves instead: artwork, convex fills and short analytic
+  // gradients share one material and one retained pair of typed buffers.
+  // Clip chains, blend changes and unsupported primitives remain boundaries.
+  const worldVertex=`precision highp float;
+    attribute vec2 aPosition;attribute vec4 aPoint;attribute vec4 aGeometry;
+    attribute vec4 aRadiiKind;attribute vec4 aColor0;attribute vec4 aColor1;
+    attribute vec4 aColor2;attribute vec3 aOffsets;
+    varying vec4 vPoint;varying vec4 vGeometry;varying vec4 vRadiiKind;
+    varying vec4 vColor0;varying vec4 vColor1;varying vec4 vColor2;varying vec3 vOffsets;
+    uniform mat3 uProjectionMatrix;uniform mat3 uWorldTransformMatrix;uniform mat3 uTransformMatrix;
+    void main(){vPoint=aPoint;vGeometry=aGeometry;vRadiiKind=aRadiiKind;
+      vColor0=aColor0;vColor1=aColor1;vColor2=aColor2;vOffsets=aOffsets;
+      vec3 p=uProjectionMatrix*uWorldTransformMatrix*uTransformMatrix*vec3(aPosition,1.0);
+      gl_Position=vec4(p.xy,0.0,1.0);}`;
+  const worldFragment=`precision highp float;
+    varying vec4 vPoint;varying vec4 vGeometry;varying vec4 vRadiiKind;
+    varying vec4 vColor0;varying vec4 vColor1;varying vec4 vColor2;varying vec3 vOffsets;
+    ${Array.from({length:WORLD_SAMPLERS},(_,i)=>`uniform sampler2D uTexture${i};`).join('\n')}
+    void main(){
+      if(vRadiiKind.z<0.5){vec4 sampleColor;
+        ${Array.from({length:WORLD_SAMPLERS},(_,i)=>`${i?'else ':''}if(vRadiiKind.w<${i+.5})sampleColor=texture2D(uTexture${i},vPoint.xy);`).join('\n')}
+        else discard;
+        gl_FragColor=sampleColor*vColor0;return;}
+      vec4 color=vColor0;
+      if(vRadiiKind.z<2.5){vec2 delta=vGeometry.zw-vGeometry.xy;
+        vec2 relative=vPoint.zw-vGeometry.xy;float t=0.0;
+        if(vRadiiKind.z<1.5){float len=dot(delta,delta);if(len<0.00000001)discard;
+          t=dot(relative,delta)/len;}
+        else{float dr=vRadiiKind.y-vRadiiKind.x;float a=dot(delta,delta)-dr*dr;
+          float b=-2.0*(dot(relative,delta)+vRadiiKind.x*dr);
+          float c=dot(relative,relative)-vRadiiKind.x*vRadiiKind.x;
+          if(abs(a)<0.00000001){if(abs(b)<0.00000001)discard;t=-c/b;}
+          else{float discriminant=b*b-4.0*a*c;if(discriminant<0.0)discard;
+            float root=sqrt(discriminant);float t0=(-b-root)/(2.0*a);float t1=(-b+root)/(2.0*a);
+            bool valid0=vRadiiKind.x+t0*dr>=0.0;bool valid1=vRadiiKind.x+t1*dr>=0.0;
+            if(!valid0&&!valid1)discard;t=valid0&&valid1?max(t0,t1):(valid0?t0:t1);}}
+        if(t>=vOffsets.x){float span=vOffsets.y-vOffsets.x;
+          float f=span>0.0?clamp((t-vOffsets.x)/span,0.0,1.0):1.0;color=mix(vColor0,vColor1,f);}
+        if(t>=vOffsets.y){float span=vOffsets.z-vOffsets.y;
+          float f=span>0.0?clamp((t-vOffsets.y)/span,0.0,1.0):1.0;color=mix(vColor1,vColor2,f);}
+      }
+      // Stops interpolate in straight RGBA; premultiply only the final color.
+      gl_FragColor=vec4(color.rgb*color.a,color.a);
+    }`;
+  function initializeWorldCompiler(){
+    const P=window.PIXI,gl=state.renderer.gl;
+    const limits={samplerLimit:gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
+      attributeLimit:gl.getParameter(gl.MAX_VERTEX_ATTRIBS),varyingLimit:gl.getParameter(gl.MAX_VARYING_VECTORS)};
+    const unavailable=!P.Buffer||!P.Geometry||!P.BufferUsage||!gl.createShader;
+    if(unavailable||limits.samplerLimit<WORLD_SAMPLERS||limits.attributeLimit<8||limits.varyingLimit<7){
+      state.worldCompiler={enabled:false,reason:unavailable?'unsupported-geometry-api':'shader-capacity',...limits};return;
+    }
+    let vertex,fragment,linked;
+    try{
+      state.worldProgram ||= P.GlProgram.from({vertex:worldVertex,fragment:worldFragment,
+        preferredFragmentPrecision:'highp',name:'cache-road-world-batch'});
+      // Validate the actual preprocessed Pixi shader on this context before
+      // accepting any batches. Older hardware keeps the complete old path.
+      const compile=(type,source)=>{const shader=gl.createShader(type);
+        gl.shaderSource(shader,source);gl.compileShader(shader);
+        if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const message=gl.getShaderInfoLog(shader);
+          gl.deleteShader(shader);throw Error(message||'World shader compilation failed');}return shader;};
+      vertex=compile(gl.VERTEX_SHADER,state.worldProgram.vertex);
+      fragment=compile(gl.FRAGMENT_SHADER,state.worldProgram.fragment);
+      linked=gl.createProgram();gl.attachShader(linked,vertex);gl.attachShader(linked,fragment);gl.linkProgram(linked);
+      if(!gl.getProgramParameter(linked,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(linked)||'World shader link failed');
+      state.worldCompiler={enabled:true,reason:null,samplers:WORLD_SAMPLERS,vertexFloats:WORLD_FLOATS,...limits};
+    }catch(error){state.worldCompiler={enabled:false,reason:'shader-unavailable',error:String(error?.message||error),...limits};}
+    finally{if(linked)gl.deleteProgram(linked);if(vertex)gl.deleteShader(vertex);if(fragment)gl.deleteShader(fragment);}
+  }
+  function batchesFor(kind){let batches=state.worldBatches.get(kind);
+    if(!batches){batches=[];state.worldBatches.set(kind,batches);}return batches;}
+  function worldBatch(batches,index){
+    if(batches[index])return batches[index];const P=window.PIXI;
+    const vertices=new Float32Array(64*WORLD_FLOATS),indices=new Uint16Array(64*3),
+      vertexBuffer=new P.Buffer({data:vertices,usage:P.BufferUsage.VERTEX|P.BufferUsage.COPY_DST,
+        shrinkToFit:false,label:'Cache world vertices'}),
+      indexBuffer=new P.Buffer({data:indices,usage:P.BufferUsage.INDEX|P.BufferUsage.COPY_DST,
+        shrinkToFit:false,label:'Cache world indices'});
+    vertexBuffer.autoGarbageCollect=false;indexBuffer.autoGarbageCollect=false;
+    const attributes={},layout=[['aPosition',2],['aPoint',4],['aGeometry',4],['aRadiiKind',4],
+      ['aColor0',4],['aColor1',4],['aColor2',4],['aOffsets',3]];let offset=0;
+    for(const [name,size]of layout){attributes[name]={buffer:vertexBuffer,format:'float32x'+size,
+      stride:WORLD_FLOATS*4,offset:offset*4};offset+=size;}
+    const geometry=new P.Geometry({attributes,indexBuffer,topology:'triangle-list'});
+    geometry.autoGarbageCollect=false;geometry.indexCount=0;
+    const resources={};for(let i=0;i<WORLD_SAMPLERS;i++)resources['uTexture'+i]=P.Texture.EMPTY.source;
+    const shader=new P.Shader({glProgram:state.worldProgram,resources}),mesh=new P.Mesh({geometry,shader});
+    mesh.alpha=1;mesh.eventMode='none';
+    return batches[index]={mesh,geometry,shader,vertexBuffer,indexBuffer,vertices,indices,
+      textures:[],vertexCount:0,indexCount:0,commandCount:0,usedFrame:0};
+  }
+  function reserveWorldBatch(batch,vertexCount,indexCount){
+    if(vertexCount>WORLD_MAX_VERTICES)throw Error('World batch vertex capacity');
+    if(batch.vertices.length<vertexCount*WORLD_FLOATS){let capacity=batch.vertices.length/WORLD_FLOATS;
+      while(capacity<vertexCount)capacity*=2;
+      batch.vertices=new Float32Array(capacity*WORLD_FLOATS);batch.vertices.set(batch.vertexBuffer.data);
+      batch.vertexBuffer.data=batch.vertices;}
+    if(batch.indices.length<indexCount){let capacity=batch.indices.length;
+      while(capacity<indexCount)capacity*=2;
+      const previous=batch.indices;batch.indices=new Uint16Array(capacity);batch.indices.set(previous);
+      batch.indexBuffer.data=batch.indices;}
+  }
+  function worldPrimitive(command,quad,entry,clippedCount,scratch){
+    if(command.kind==='image'){
+      if(command.filter&&command.filter!=='none')return null;
+      return {kind:0,count:clippedCount>=3?clippedCount:4,quad,entry,
+        interleaved:clippedCount>=3?scratch.result:null};
+    }
+    if(command.kind!=='path'||command.stroke||!convexClipOrientation(command))return null;
+    const points=soleClipAreaPath(command).points;
+    if(typeof command.style==='string')return {kind:3,count:points.length/2,points,color:rgba(command.style)};
+    const gradient=command.style;
+    if(gradient.stops.length>3)return null;
+    const inv=inverse(gradient.transform||IDENTITY);if(!inv)return null;
+    const stops=gradient.stops.slice().sort((a,b)=>a.offset-b.offset);
+    if(!stops.length)return null;
+    return {kind:gradient.type==='radial'?2:1,count:points.length/2,points,inv,args:gradient.args,
+      stops:stops.map(stop=>({offset:stop.offset,color:rgba(stop.color)}))};
+  }
+  function appendWorldPrimitive(batch,primitive,command){
+    const start=batch.vertexCount,count=primitive.count,indexCount=(count-2)*3;
+    reserveWorldBatch(batch,start+count,batch.indexCount+indexCount);
+    let textureId=0;
+    if(primitive.kind===0){const source=primitive.entry.texture.source;
+      textureId=batch.textures.indexOf(source);
+      if(textureId<0){textureId=batch.textures.length;
+        if(textureId>=WORLD_SAMPLERS)throw Error('World sampler capacity');batch.textures.push(source);}}
+    for(let i=0;i<count;i++){
+      const offset=(start+i)*WORLD_FLOATS,v=batch.vertices;
+      // Every field is overwritten when a retained slot changes primitive type.
+      v.fill(0,offset,offset+WORLD_FLOATS);
+      if(primitive.kind===0){const q=primitive.interleaved;
+        v[offset]=q?q[i*4]:primitive.quad.positions[i*2];v[offset+1]=q?q[i*4+1]:primitive.quad.positions[i*2+1];
+        v[offset+2]=q?q[i*4+2]:primitive.quad.uvs[i*2];v[offset+3]=q?q[i*4+3]:primitive.quad.uvs[i*2+1];
+        v[offset+13]=textureId;v.fill(command.alpha,offset+14,offset+18);
+      }else{
+        const x=primitive.points[i*2],y=primitive.points[i*2+1];v[offset]=x;v[offset+1]=y;v[offset+12]=primitive.kind;
+        if(primitive.kind===3){v.set(primitive.color,offset+14);v[offset+17]*=command.alpha;}
+        else{const inv=primitive.inv,args=primitive.args;
+          v[offset+4]=inv[0]*x+inv[3]*y+inv[6];v[offset+5]=inv[1]*x+inv[4]*y+inv[7];
+          if(primitive.kind===2){v.set([args[0],args[1],args[3],args[4]],offset+6);v[offset+10]=args[2];v[offset+11]=args[5];}
+          else v.set(args,offset+6);
+          for(let stop=0;stop<3;stop++){const value=primitive.stops[Math.min(stop,primitive.stops.length-1)];
+            v.set(value.color,offset+14+stop*4);v[offset+17+stop*4]*=command.alpha;v[offset+26+stop]=value.offset;}
+        }
+      }
+    }
+    for(let i=0;i<count-2;i++){batch.indices[batch.indexCount++]=start;
+      batch.indices[batch.indexCount++]=start+i+1;batch.indices[batch.indexCount++]=start+i+2;}
+    batch.vertexCount+=count;batch.commandCount++;
+  }
+  function finishWorldBatch(batch){if(!batch)return;
+    for(let i=0;i<WORLD_SAMPLERS;i++)batch.shader.resources['uTexture'+i]=batch.textures[i]||window.PIXI.Texture.EMPTY.source;
+    batch.geometry.indexCount=batch.indexCount;
+    batch.vertexBuffer.update(batch.vertexCount*WORLD_FLOATS*4);batch.indexBuffer.update(batch.indexCount*2);
+  }
+
   // Gradients use device-space shader uniforms. No gradient canvas or texture is
   // made when camera, beat glow or lamp endpoints change.
   const gradientVertex=`precision highp float;
@@ -774,9 +936,12 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
       state.rearBlurTarget.source.pixelWidth!==viewport.width||state.rearBlurTarget.source.pixelHeight!==viewport.height)){
       state.pendingRearViewport={...viewport};state.pendingDirectRear=true;return fallback('preparing-rear-blur-target');
     }
-    const pool=poolFor(kind),groups=groupsFor(kind),stage=stageFor(kind),renderTick=++state.renderTick;
+    const pool=poolFor(kind),groups=groupsFor(kind),stage=stageFor(kind),batches=batchesFor(kind),renderTick=++state.renderTick;
     try{
       let lastClips=null,group=null,groupCount=0,maskCount=0,meshClips=0,gradientMeshes=0,gradientMasks=0;
+      let activeBatch=null,batchCount=0,batchCommands=0,batchVertices=0,batchIndices=0,
+        batchImages=0,batchSolids=0,batchGradients=0,fallbackCommands=0;
+      const flush=()=>{finishWorldBatch(activeBatch);activeBatch=null;};
       for(let i=0;i<commands.length;i++){const command=commands[i],item=slot(pool,i);
         // Clip entries are immutable objects shared by adjacent recorded
         // commands. Reuse the chain once for the complete ordered run so its
@@ -792,9 +957,27 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
               for(let j=0;j<earlier.length;j++)earlier[j]=clips[j];clips=earlier;}
           }
         }
-        if(!sameClips(lastClips,clips)){group=slot(groups,groupCount++);group.frameChildCount=0;group.usedFrame=renderTick;
+        if(!sameClips(lastClips,clips)){flush();group=slot(groups,groupCount++);group.frameChildCount=0;group.usedFrame=renderTick;
           configureClips(group,clips);placeChild(stage,group.root,groupCount-1);visibility(group.root,true);
           maskCount+=clips.length;lastClips=clips;}
+        const primitive=state.worldCompiler.enabled?worldPrimitive(command,quad,entry,clippedCount,item.clipScratch):null;
+        if(primitive){
+          if(command.kind==='image')entry.texture.source.style.scaleMode=command.smoothing===false?'nearest':'linear';
+          const source=primitive.entry?.texture.source,
+            newSampler=source&&activeBatch&&!activeBatch.textures.includes(source);
+          if(activeBatch&&(activeBatch.mesh.blendMode!==blendModes[command.composite]||
+            activeBatch.vertexCount+primitive.count>WORLD_MAX_VERTICES||
+            (newSampler&&activeBatch.textures.length===WORLD_SAMPLERS)))flush();
+          if(!activeBatch){activeBatch=worldBatch(batches,batchCount++);
+            activeBatch.vertexCount=0;activeBatch.indexCount=0;activeBatch.commandCount=0;activeBatch.textures.length=0;
+            activeBatch.usedFrame=renderTick;activeBatch.mesh.blendMode=blendModes[command.composite];
+            placeChild(group.content,activeBatch.mesh,group.frameChildCount++);visibility(activeBatch.mesh,true);}
+          appendWorldPrimitive(activeBatch,primitive,command);batchCommands++;
+          batchVertices+=primitive.count;batchIndices+=(primitive.count-2)*3;
+          if(primitive.kind===0)batchImages++;else if(primitive.kind===3)batchSolids++;else batchGradients++;
+          continue;
+        }
+        flush();fallbackCommands++;
         placeChild(group.content,item.root,group.frameChildCount++);item.usedFrame=renderTick;visibility(item.root,true);
         showContents(item,command.kind==='image'?(command.filter&&command.filter!=='none'?'hueImage':'image'):
           command.kind==='path'?(typeof command.style==='string'?'graphics':'gradient'):'image');
@@ -814,9 +997,13 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
         }
         else{const entry=state.text.get(textKey(command));entry.used=state.tick;paintText(item,command,entry);}
       }
+      flush();
       for(const item of pool)if(item.usedFrame!==renderTick)visibility(item.root,false);
       for(const item of groups)if(item.usedFrame!==renderTick)visibility(item.root,false);
-      state.groupsByKind[kind]={commands:commands.length,groups:groupCount,masks:maskCount,meshClips,gradientMeshes,gradientMasks};
+      for(const batch of batches)if(batch.usedFrame!==renderTick)visibility(batch.mesh,false);
+      state.groupsByKind[kind]={commands:commands.length,groups:groupCount,masks:maskCount,meshClips,gradientMeshes,gradientMasks,
+        worldBatches:batchCount,worldBatchCommands:batchCommands,worldBatchVertices:batchVertices,worldBatchIndices:batchIndices,
+        worldBatchImages:batchImages,worldBatchSolids:batchSolids,worldBatchGradients:batchGradients,fallbackCommands};
       if(deferred){
         state.pendingForward={stage,ctx};
         // The original Canvas remains the sole foreground/HUD surface. Clear
@@ -879,7 +1066,9 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
     }
   }
   function diagnostics(){let demandTexels=0,sourceStorageBytes=0,compressedSources=0,expectedOriginalSources=0;
-    const unique=new Set(),sourceFormats={};
+    const unique=new Set(),sourceFormats={};let retainedWorldBatches=0,retainedWorldGeometryBytes=0;
+    for(const batches of state.worldBatches.values())for(const batch of batches){retainedWorldBatches++;
+      retainedWorldGeometryBytes+=batch.vertices.byteLength+batch.indices.byteLength;}
     for(const entry of state.sources.values()){
       sourceStorageBytes+=entry.storageBytes||entry.cost*4;
       if(entry.compressed)compressedSources++;
@@ -895,6 +1084,8 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
       originalFallbackSources:state.sources.size-compressedSources-expectedOriginalSources,
       compressedFallbackSources:state.sources.size-compressedSources-expectedOriginalSources,sourceStorageBytes,sourceFormats,
       textureBank:B.CacheRoadTextureBank?.diagnostics?.()||null,
+      worldCompiler:{...state.worldCompiler,maxVertices:WORLD_MAX_VERTICES,
+        retainedBatches:retainedWorldBatches,retainedGeometryBytes:retainedWorldGeometryBytes},
       targetTexels:state.canvas?state.targetTexels:0,targetSamples:state.targetSamples,
       rearTarget:state.rearViewport?{...state.rearViewport}:null,antialias:false,frames:state.frames,
       framesByKind:{...state.framesByKind},clipGroupsByKind:{...state.groupsByKind},
@@ -923,6 +1114,13 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
   function releaseLevel(){
     hide();state.layerFrameContext=null;state.frameFailed=false;state.warmupGeneration++;
     state.textureBankSession?.destroy();state.textureBankSession=null;
+    // Bind groups listen to source destruction. Detach retained materials
+    // before destroying the level's sources, rather than leaving null bindings.
+    for(const batches of state.worldBatches.values())for(const batch of batches){
+      batch.textures.length=0;batch.vertexCount=0;batch.indexCount=0;batch.commandCount=0;batch.geometry.indexCount=0;
+      for(let i=0;i<WORLD_SAMPLERS;i++)batch.shader.resources['uTexture'+i]=window.PIXI.Texture.EMPTY.source;
+      visibility(batch.mesh,false);
+    }
     for(const entry of state.sources.values())release(entry);
     for(const entry of state.text.values())release(entry);
     state.sources.clear();state.text.clear();state.pendingSources.clear();state.pendingText.clear();
@@ -939,6 +1137,9 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-renderer.js',
       item.gradient?.geometry.destroy();item.gradient?.shader.destroy(false);item.root.destroy({children:true});}
     for(const groups of state.clipGroups.values())for(const group of groups){group.content.removeChildren();group.root.destroy({children:true});}
     state.clipGroups.clear();
+    for(const batches of state.worldBatches.values())for(const batch of batches){
+      batch.geometry.destroy(true);batch.shader.destroy(false);batch.mesh.destroy();}
+    state.worldBatches.clear();state.worldProgram?.destroy();
     for(const stage of state.sceneStages.values())stage.destroy({children:false});state.sceneStages.clear();
     state.pools.clear();state.gradientProgram?.destroy();state.hueProgram?.destroy();state.rearTarget?.destroy(true);
     state.rearBlurMesh?.geometry.destroy();state.rearBlurMesh?.shader.destroy(false);

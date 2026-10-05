@@ -78,7 +78,7 @@ function nativeContext() {
   return n;
 }
 
-function fixture() {
+function fixture(options={}) {
   const stats = { adds: 0, removes: 0, reorders: 0, visibility: 0 },
     uploads = [], decodes = [], surfaces = [], textReturns = [], renders = [];
   class Container {
@@ -140,12 +140,21 @@ function fixture() {
     constructor(options) {
       Object.assign(this, options); this.buffers = { aPosition: { update() {} }, aUV: { update() {} } };
       this.indexBuffer = { update() {} };
+      if(options.attributes){this.buffers=Object.fromEntries(Object.entries(options.attributes).map(([key,value])=>[key,value.buffer]));
+        this.indexBuffer=options.indexBuffer;}
     }
     getBuffer(key) { return this.buffers[key]; }
-    destroy() { this.destroyed = true; }
+    destroy(buffers) { this.destroyed = true;
+      if(buffers)for(const buffer of new Set([...Object.values(this.buffers),this.indexBuffer]))buffer.destroy?.(); }
+  }
+  class Buffer {
+    constructor(options){Object.assign(this,options);this.updates=[];}
+    update(bytes){this.updates.push(bytes);}
+    destroy(){this.destroyed=true;this.data=null;}
   }
   class Shader {
     constructor(options) {
+      this.glProgram=options.glProgram;
       this.resources = {};
       for (const [key, value] of Object.entries(options.resources)) {
         this.resources[key] = key.endsWith('Uniforms')
@@ -169,6 +178,14 @@ function fixture() {
     constructor() {
       this.gl = { SAMPLES: 'samples', MAX_TEXTURE_SIZE: 'maxSize',
         getParameter: key => key === 'samples' ? (this.options?.antialias ? 4 : 0) : 16384 };
+      if(options.worldBatch){const gl=this.gl;
+        Object.assign(gl,{MAX_TEXTURE_IMAGE_UNITS:'samplers',MAX_VERTEX_ATTRIBS:'attributes',MAX_VARYING_VECTORS:'varyings',
+          VERTEX_SHADER:'vertex',FRAGMENT_SHADER:'fragment',COMPILE_STATUS:'compiled',LINK_STATUS:'linked',
+          getParameter:key=>({samples:0,maxSize:16384,samplers:options.samplers??8,attributes:8,varyings:7})[key],
+          createShader:type=>({type}),shaderSource:(shader,source)=>{shader.source=source;},compileShader(){},
+          getShaderParameter:()=>!options.shaderFailure,getShaderInfoLog:()=> 'Fixture shader rejection',deleteShader(){},
+          createProgram:()=>({}),attachShader(){},linkProgram(){},getProgramParameter:()=>true,getProgramInfoLog:()=>'',deleteProgram(){}});
+      }
       this.texture = { initSource: source => uploads.push({ source, resource: source.resource }) };
       this.events = { setTargetElement: target => { this.eventTarget = target; } };
       this.gc = { run() {} };
@@ -187,6 +204,7 @@ function fixture() {
     GlProgram: { from: options => ({ ...options, destroy() {} }) },
     RenderTexture: { create: options => new Texture({ source: new ImageSource(options) }) },
     CanvasTextMetrics: { measureText: () => ({ width: 32, height: 64, fontProperties: { ascent: 52, descent: 12 } }) } };
+  if(options.worldBatch)Object.assign(P,{Geometry,Buffer,BufferUsage:{VERTEX:1,INDEX:2,COPY_DST:4}});
   const elements = new Map();
   const document = { fonts: { check: () => true }, getElementById: id => elements.get(id), createElement: tag => {
     assert.equal(tag, 'canvas');
@@ -198,7 +216,7 @@ function fixture() {
   } };
   const window = { BARCODE: {}, PIXI: P, Path2D: NativePath, performance: { now: () => 1 } };
   vm.runInNewContext(contextBytes.toString(), { window });
-  const injection = '\n  B._testGPU={state,paintGradient,showContents,convexClipOrientation,updateQuad,slot,imageQuad,clipImageQuad};\n  B.CacheRoadGPU=';
+  const injection = '\n  B._testGPU={state,paintGradient,showContents,convexClipOrientation,updateQuad,slot,imageQuad,clipImageQuad,worldVertex,worldFragment,worldPrimitive,worldBatch,appendWorldPrimitive,finishWorldBatch};\n  B.CacheRoadGPU=';
   const instrumented = rendererBytes.toString().replace('\n  B.CacheRoadGPU=', injection);
   assert.notEqual(instrumented, rendererBytes.toString(), 'renderer test exposure must match the actual API export');
   vm.runInNewContext(instrumented, { window, document });
@@ -211,6 +229,22 @@ function fixture() {
   return { gpu: window.BARCODE.CacheRoadGPU, internals: window.BARCODE._testGPU,
     state: window.BARCODE._testGPU.state, Recorder: window.BARCODE.CacheRoadGPUContext,
     P, window, document, elements, ctx: native, image, stats, uploads, decodes, surfaces, textReturns, renders };
+}
+
+let pinnedPixiCache;
+function pinnedPixi(){
+  if(pinnedPixiCache)return pinnedPixiCache;
+  // Execute the shipped, pinned library for its actual geometry/resource APIs.
+  // The precision-query host is explicit; it does not compile or render GL.
+  const sandbox={console,performance:{now:()=>0},setTimeout,clearTimeout,setInterval,clearInterval,
+    URL,URLSearchParams,TextEncoder,TextDecoder,navigator:{userAgent:'GPU contracts',platform:'Win32'}};
+  sandbox.window=sandbox;sandbox.self=sandbox;
+  sandbox.document={createElement:()=>({getContext:()=>({getShaderPrecisionFormat:()=>({precision:23}),
+    VERTEX_SHADER:1,FRAGMENT_SHADER:2,HIGH_FLOAT:3})})};
+  vm.createContext(sandbox);
+  vm.runInContext(fs.readFileSync(path.join(root,'src/vendor/pixi-8.22.0/pixi.min.js'),'utf8'),sandbox);
+  assert.equal(sandbox.PIXI.VERSION,'8.22.0');
+  return pinnedPixiCache=sandbox.PIXI;
 }
 
 function compressedBank(f, descriptors, options={}) {
@@ -367,4 +401,4 @@ function roadSceneApi(f) {
 }
 
 module.exports = { fixture, nativeContext, NativePath, rendererBytes, contextBytes,
-  cinematicsBytes, roadBytes, bankBytes, textureWorkerBytes, compressedBank, levelSourceDescriptors, roadSceneApi };
+  cinematicsBytes, roadBytes, bankBytes, textureWorkerBytes, compressedBank, levelSourceDescriptors, roadSceneApi, pinnedPixi };

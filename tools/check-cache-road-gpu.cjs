@@ -7,7 +7,7 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { fixture, nativeContext: native, NativePath: Path, rendererBytes, contextBytes,
   cinematicsBytes, roadBytes, bankBytes, textureWorkerBytes, compressedBank,
-  levelSourceDescriptors, roadSceneApi } = require('./lib/cache-road-gpu-fixture.cjs');
+  levelSourceDescriptors, roadSceneApi, pinnedPixi } = require('./lib/cache-road-gpu-fixture.cjs');
 const plain = value => JSON.parse(JSON.stringify(value));
 const checks = [];
 function check(name, run) { checks.push({ name, run }); }
@@ -697,6 +697,144 @@ check('compressed context recovery reuploads retained mip buffers and exit relea
   assert.equal(f.gpu.diagnostics().sourceStorageBytes,0);assert.equal(f.gpu.diagnostics().compressedSources,0);
 });
 
+check('compound world batch preserves ordered mixed image, solid and analytic gradient triangles',async()=>{
+  const f=fixture({worldBatch:true}),d=f.image('mixed');await f.gpu.warmup(f.ctx,[d],{texts:[]});
+  const c=new f.Recorder(f.ctx);c.globalAlpha=.5;c.drawImage(d.image,10,20,30,40);
+  c.fillStyle='#ff000080';c.fillRect(50,60,20,10);
+  const g=c.createLinearGradient(0,0,100,0);g.addColorStop(0,'#ff000040');g.addColorStop(1,'#00ff00c0');
+  c.fillStyle=g;c.fillRect(70,80,20,10);
+  assert.equal(f.gpu.render(c.commands,f.ctx),true);
+  const b=f.state.worldBatches.get('forward')[0],v=b.vertices;
+  assert.equal(b.commandCount,3);assert.equal(b.vertexCount,12);assert.equal(b.geometry.indexCount,18);
+  assert.deepEqual(Array.from(b.indices.subarray(0,18)),[0,1,2,0,2,3,4,5,6,4,6,7,8,9,10,8,10,11]);
+  assert.deepEqual(Array.from(v.subarray(0,2)),[10,20]);assert.deepEqual(Array.from(v.subarray(4*29,4*29+2)),[50,60]);
+  assert.equal(v[4*29+12],3);assert.equal(v[8*29+12],1);
+  assert.equal(b.shader.resources.uTexture0,f.state.sources.get(d.image).texture.source);
+  const diag=f.gpu.diagnostics().clipGroupsByKind.forward;
+  assert.equal(diag.worldBatches,1);assert.equal(diag.worldBatchImages,1);assert.equal(diag.worldBatchSolids,1);
+  assert.equal(diag.worldBatchGradients,1);assert.equal(diag.fallbackCommands,0);assert.equal(diag.gradientMeshes,0);
+});
+
+check('compound material retains affine gradient coordinates, radii and straight-alpha stops',async()=>{
+  const f=fixture({worldBatch:true});await f.gpu.warmup(f.ctx,[],{texts:[]});
+  const c=new f.Recorder(f.ctx);c.setTransform(2,0,0,3,10,20);c.globalAlpha=.5;
+  const g=c.createRadialGradient(1,2,3,5,6,9);g.addColorStop(.75,'#00ff00c0');
+  g.addColorStop(.25,'#ff000040');c.fillStyle=g;c.fillRect(4,5,6,7);
+  assert.equal(f.gpu.render(c.commands,f.ctx),true);const v=f.state.worldBatches.get('forward')[0].vertices;
+  assert.deepEqual(Array.from(v.subarray(0,2)),[18,35]);
+  assert(Math.abs(v[4]-4)<1e-6);assert(Math.abs(v[5]-5)<1e-6);
+  assert.deepEqual(Array.from(v.subarray(6,14)),[1,2,5,6,3,9,2,0]);
+  assert.deepEqual(Array.from(v.subarray(14,17)),[1,0,0]);assert(Math.abs(v[17]-64/255*.5)<1e-7);
+  assert.deepEqual(Array.from(v.subarray(18,21)),[0,1,0]);assert(Math.abs(v[21]-192/255*.5)<1e-7);
+  assert.deepEqual(Array.from(v.subarray(18,22)),Array.from(v.subarray(22,26)));
+  assert.deepEqual(Array.from(v.subarray(26,29)),[.25,.75,.75]);
+  assert(f.internals.worldFragment.includes('color=mix(vColor0,vColor1,f)'));
+  assert(f.internals.worldFragment.includes('vec4(color.rgb*color.a,color.a)'));
+});
+
+check('world sampler capacity splits at eight without losing the ninth original',async()=>{
+  const f=fixture({worldBatch:true}),ds=Array.from({length:9},(_,i)=>f.image('sampler-'+i));
+  await f.gpu.warmup(f.ctx,ds,{texts:[]});const c=new f.Recorder(f.ctx);
+  ds.forEach((d,i)=>c.drawImage(d.image,i*10,0));assert.equal(f.gpu.render(c.commands,f.ctx),true);
+  const batches=f.state.worldBatches.get('forward');assert.equal(batches.length,2);
+  assert.equal(batches[0].commandCount,8);assert.equal(batches[1].commandCount,1);
+  ds.slice(0,8).forEach((d,i)=>assert.equal(batches[0].shader.resources['uTexture'+i],f.state.sources.get(d.image).texture.source));
+  assert.equal(batches[1].shader.resources.uTexture0,f.state.sources.get(ds[8].image).texture.source);
+  assert.equal(f.gpu.diagnostics().clipGroupsByKind.forward.worldBatchCommands,9);
+});
+
+check('clip and blend boundaries preserve interleaved legacy fallback order',async()=>{
+  const f=fixture({worldBatch:true}),d=f.image('boundary');await f.gpu.warmup(f.ctx,[d],{texts:[]});
+  const c=new f.Recorder(f.ctx);c.beginPath();c.arc(20,20,18,0,Math.PI*2);c.clip();
+  c.drawImage(d.image,0,0);c.fillRect(1,2,3,4);c.globalCompositeOperation='screen';c.fillRect(2,3,4,5);
+  c.strokeRect(3,4,5,6);c.drawImage(d.image,4,5);c.filter='hue-rotate(315deg)';c.drawImage(d.image,5,6);
+  assert.equal(f.gpu.render(c.commands,f.ctx),true);
+  const bs=f.state.worldBatches.get('forward'),pool=f.state.pools.get('forward'),group=f.state.clipGroups.get('forward')[0];
+  assert.deepEqual(group.content.children.filter(child=>child.visible),[bs[0].mesh,bs[1].mesh,pool[3].root,bs[2].mesh,pool[5].root]);
+  assert.equal(bs[0].mesh.blendMode,'normal');assert.equal(bs[1].mesh.blendMode,'screen');assert.equal(bs[2].mesh.blendMode,'screen');
+  assert.equal(group.clips[0].container.mask,group.clips[0].graphics);
+  const diag=f.gpu.diagnostics().clipGroupsByKind.forward;assert.equal(diag.worldBatches,3);
+  assert.equal(diag.worldBatchCommands,4);assert.equal(diag.fallbackCommands,2);assert.equal(diag.masks,1);
+});
+
+check('complex paths, strokes and more than three stops retain their complete old material',async()=>{
+  const f=fixture({worldBatch:true});await f.gpu.warmup(f.ctx,[],{texts:[]});const c=new f.Recorder(f.ctx);
+  const g=c.createLinearGradient(0,0,10,0);[0,.3,.6,1].forEach(offset=>g.addColorStop(offset,'#ffffff'));
+  c.fillStyle=g;c.strokeStyle=g;c.fillRect(0,0,5,5);c.beginPath();c.arc(5,5,4,0,Math.PI*2);c.fill();c.stroke();
+  assert.equal(f.gpu.render(c.commands,f.ctx),true);const diag=f.gpu.diagnostics().clipGroupsByKind.forward;
+  assert.equal(diag.worldBatches,0);assert.equal(diag.fallbackCommands,3);assert.equal(diag.gradientMeshes,1);assert.equal(diag.gradientMasks,2);
+  const pool=f.state.pools.get('forward');assert.equal(pool[0].gradient.shader.resources.gradientUniforms.uniforms.uCount,4);
+  assert.equal(pool[1].gradient.mask,pool[1].gradientMask);assert.equal(pool[2].gradient.mask,pool[2].gradientMask);
+});
+
+check('compound image clipping keeps padded compressed UVs and exact visible polygon',async()=>{
+  const f=fixture({worldBatch:true}),d=f.image('padded-clip',35,17);compressedBank(f,[d]);
+  await f.gpu.warmup(f.ctx,[d],{texts:[]});const c=new f.Recorder(f.ctx);
+  c.beginPath();c.moveTo(2,2);c.lineTo(8,2);c.lineTo(5,8);c.closePath();c.clip();c.drawImage(d.image,0,0,10,10);
+  assert.equal(f.gpu.render(c.commands,f.ctx),true);const b=f.state.worldBatches.get('forward')[0],positions=[];
+  assert.equal(b.vertexCount,3);assert.equal(b.geometry.indexCount,3);
+  for(let i=0;i<3;i++){const v=i*29,x=b.vertices[v],y=b.vertices[v+1];positions.push([x,y]);
+    assert(Math.abs(b.vertices[v+2]-x/10*35/36)<1e-6);assert(Math.abs(b.vertices[v+3]-y/10*17/20)<1e-6);}
+  assert.deepEqual(positions.sort(),[[2,2],[8,2],[5,8]].sort());
+  assert.equal(f.gpu.diagnostics().clipGroupsByKind.forward.masks,0);
+});
+
+check('retained world buffers draw only their active prefix and clear previous primitive data',async()=>{
+  const f=fixture({worldBatch:true}),d=f.image('retained-world');await f.gpu.warmup(f.ctx,[d],{texts:[]});
+  const c=new f.Recorder(f.ctx);for(let i=0;i<40;i++)c.fillRect(i,0,2,3);
+  assert.equal(f.gpu.render(c.commands,f.ctx),true);const b=f.state.worldBatches.get('forward')[0],vertices=b.vertices,indices=b.indices;
+  const next=new f.Recorder(f.ctx);next.drawImage(d.image,0,0);assert.equal(f.gpu.render(next.commands,f.ctx),true);
+  assert.equal(b.vertices,vertices);assert.equal(b.indices,indices);assert.equal(b.geometry.indexCount,6);
+  assert.equal(b.vertexBuffer.updates.at(-1),4*29*4);assert.equal(b.indexBuffer.updates.at(-1),12);
+  assert.equal(b.vertices[12],0);assert.deepEqual(Array.from(b.vertices.subarray(6,14)),Array(8).fill(0));
+  const empty=new f.Recorder(f.ctx);assert.equal(f.gpu.render(empty.commands,f.ctx),true);assert.equal(b.mesh.visible,false);
+});
+
+check('unsupported shader capacity and compilation keep full legacy GPU output',async()=>{
+  for(const options of [{worldBatch:true,samplers:7},{worldBatch:true,shaderFailure:true}]){
+    const f=fixture(options),d=f.image('unsupported-batch');await f.gpu.warmup(f.ctx,[d],{texts:[]});
+    assert.equal(f.gpu.diagnostics().worldCompiler.enabled,false);const c=new f.Recorder(f.ctx);c.drawImage(d.image,0,0);
+    assert.equal(f.gpu.render(c.commands,f.ctx),true);assert.equal(f.state.pools.get('forward')[0].image.visible,true);
+    assert.equal(f.gpu.diagnostics().clipGroupsByKind.forward.worldBatches,0);
+  }
+  const f=fixture({worldBatch:true}),d=f.image('mixed-smoothing');await f.gpu.warmup(f.ctx,[d],{texts:[]});
+  const c=new f.Recorder(f.ctx);c.drawImage(d.image,0,0);c.imageSmoothingEnabled=false;c.drawImage(d.image,5,5);
+  assert.equal(f.gpu.render(c.commands,f.ctx),false);assert.equal(f.gpu.diagnostics().fallback,'mixed-source-samplers');
+});
+
+check('world batches survive context recovery and release every source binding on exit',async()=>{
+  const f=fixture({worldBatch:true}),d=f.image('world-recovery');compressedBank(f,[d]);
+  await f.gpu.warmup(f.ctx,[d],{texts:[]});const c=new f.Recorder(f.ctx);c.drawImage(d.image,0,0);
+  assert.equal(f.gpu.render(c.commands,f.ctx),true);const b=f.state.worldBatches.get('forward')[0],source=b.textures[0];
+  f.state.canvas.listeners.webglcontextlost();f.state.canvas.listeners.webglcontextrestored();f.gpu.prepare(f.ctx);
+  assert.equal(f.gpu.diagnostics().worldCompiler.enabled,true);assert.equal(f.gpu.render(c.commands,f.ctx),true);
+  assert.equal(f.state.worldBatches.get('forward')[0],b);assert.equal(b.shader.resources.uTexture0,source);
+  f.gpu.releaseLevel();assert.equal(b.textures.length,0);assert.equal(b.mesh.visible,false);assert.equal(source.resource,null);
+  for(let i=0;i<8;i++)assert.equal(b.shader.resources['uTexture'+i],f.P.Texture.EMPTY.source);
+  f.gpu.destroy();assert.equal(b.geometry.destroyed,true);assert.equal(b.vertexBuffer.destroyed,true);
+  assert.equal(b.indexBuffer.destroyed,true);assert.equal(b.shader.destroyed,true);
+});
+
+check('shipped Pixi accepts actual shared world buffers, shader resources and active index count',async()=>{
+  const f=fixture({worldBatch:true}),P=pinnedPixi();
+  for(const key of ['Buffer','BufferUsage','Geometry','MeshGeometry','Shader','GlProgram','Mesh','Texture','ImageSource','Container','Graphics','Matrix'])f.P[key]=P[key];
+  const d=f.image('actual-pixi');await f.gpu.warmup(f.ctx,[d],{texts:[]});const c=new f.Recorder(f.ctx);
+  c.drawImage(d.image,0,0);c.fillRect(1,2,3,4);assert.equal(f.gpu.render(c.commands,f.ctx),true);
+  const b=f.state.worldBatches.get('forward')[0];assert(b.geometry instanceof P.Geometry);assert(b.mesh instanceof P.Mesh);
+  assert.equal(b.mesh.batched,false);assert.equal(b.geometry.indexCount,12);assert.equal(b.geometry.buffers.length,2);
+  assert.equal(Object.keys(b.geometry.attributes).length,8);
+  for(const attribute of Object.values(b.geometry.attributes)){assert.equal(attribute.buffer,b.vertexBuffer);assert.equal(attribute.stride,116);}
+  assert.equal(b.geometry.getBuffer('aPosition'),b.vertexBuffer);assert.equal(b.geometry.indexBuffer,b.indexBuffer);
+  assert.equal(b.shader.glProgram,f.state.worldProgram);assert.equal(Object.keys(b.shader._uniformBindMap[99]).length,8);
+  assert.equal(b.shader.resources.uTexture0,f.state.sources.get(d.image).texture.source);
+  assert.equal(b.vertexBuffer.data,b.vertices);assert.equal(b.indexBuffer.data,b.indices);
+  assert.equal(b.vertexBuffer._updateSize,8*29*4);assert.equal(b.indexBuffer._updateSize,24);
+  b.shader.resources.uTexture0.on('destroy',()=>{
+    for(let i=0;i<8;i++)assert.equal(b.shader.resources['uTexture'+i],P.Texture.EMPTY.source);
+  });
+  f.gpu.destroy();assert.equal(b.geometry.buffers,null);assert.equal(b.vertexBuffer.destroyed,true);assert.equal(b.indexBuffer.destroyed,true);
+});
+
 async function main() {
   const groups = [];
   for (const test of checks) {
@@ -712,7 +850,7 @@ async function main() {
     cinematicsSHA256: crypto.createHash('sha256').update(cinematicsBytes).digest('hex'),
     textureBankSHA256: crypto.createHash('sha256').update(bankBytes).digest('hex'),
     textureWorkerSHA256: crypto.createHash('sha256').update(textureWorkerBytes).digest('hex'),
-    browserRun: false, nativeCanvasRun: false, performanceAcceptance: false
+    pinnedPixiAPIRun: true, browserRun: false, nativeCanvasRun: false, performanceAcceptance: false
   };
   if (process.env.CACHE_ROAD_GPU_RECEIPT) {
     const destination = path.resolve(process.env.CACHE_ROAD_GPU_RECEIPT);

@@ -1,5 +1,11 @@
 # Acceptance and Test Status
 
+## October 4, 2026 — full bank functional; compiler pacing pending
+
+Source checkpoint `bf99ed98a61120611593420c333353fca9b8dd9f` passed fresh run 21 (412 complete GPU frames) and earned-boss run 22 (206), with all 171 sources resident, 248.328 MiB exact mip storage and zero playing uploads/copies/fallbacks. Real steering/gear, audio, road P/Escape, genuine graphics loss/full native fallback/ordinary restoration, Level 1 resource reload and authored bridge P/P pause passed. Decoder ownership and all 415 input hashes remained intact. Fresh draw median/p95/max was 32.0/43.8/63.9 ms; boss was 18.8/24.1/34.3 ms. This functional/resource result does not accept the remaining fresh lag.
+
+The combined ordered world batches and frame-local clip cache require final built-game acceptance. The hardware checker now records and requires actual image/analytic-gradient batches in both views and after graphics recovery. It distinguishes submitted batch counts from measured GL calls; the timing threshold is unchanged and software remains performanceUnexercised. Publication is authorized and pending the actual improved result plus source/site delivery checks.
+
 ## October 4, 2026 — compressed GPU revision requires final acceptance
 
 The adopted revision prepares all 171 scenery sources before driving: 149 full-resolution compressed raster images and 22 small original browser-rendered vector images. It uses a local pinned decoder and one bounded worker. Original art bytes, native foreground, controls/music/saves and the single frame owner remain. The complete compressed build is not yet accepted or published; full-bank integrity, fresh play, earned boss, actual memory/cadence, graphics loss/restoration and exact-head source/site delivery remain required. The existing 33.333 ms hardware draw gate is unchanged; software GL remains performanceUnexercised.

@@ -1,5 +1,11 @@
 # Changelog
 
+## October 4, 2026 — compile compatible scenery into retained GPU batches, unpublished
+
+- Reuse immutable ground-path geometry and clip identity within a frame, invalidating by authored revision, exact transform and fill rule; preserve complete native replay.
+- Combine ordered image, convex solid and short analytic gradient triangles through one retained world shader, preserving texture UVs, straight-RGBA gradient interpolation, alpha, clip and blend boundaries. Unsupported primitives retain their complete existing rendering path.
+- Preserve the complete full-resolution bank and its actual run 21/22 ownership/recovery results. Fresh 32-ms draw median remains unaccepted; final compiler pacing and authorized publication are pending.
+
 ## October 4, 2026 — adopt compressed scenery textures, unpublished
 
 - Adopt full-resolution offline legacy UASTC KTX2 for 149 raster sources, retaining the 22 small original vector sources on the GPU with their exact browser rasterization. Preserve all 171 required sources, original dimensions/crops, padded edges, complete mips and premultiplied UNORM alpha. Preserve all 624 original assets.

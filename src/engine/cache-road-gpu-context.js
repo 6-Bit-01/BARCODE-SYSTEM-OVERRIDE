@@ -22,6 +22,10 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-context.js',
     shadowOffsetX:0,shadowOffsetY:0,imageSmoothingEnabled:true,
     imageSmoothingQuality:'high',filter:'none'};
   const clonePaths=paths=>paths.map(p=>({points:p.points.slice(),closed:p.closed}));
+  const immutablePaths=paths=>Object.freeze(paths.map(path=>Object.freeze({
+    points:Object.freeze(path.points.slice()),closed:path.closed})));
+  const sameMatrix=(a,b)=>Object.is(a.a,b.a)&&Object.is(a.b,b.b)&&
+    Object.is(a.c,b.c)&&Object.is(a.d,b.d)&&Object.is(a.e,b.e)&&Object.is(a.f,b.f);
   const snapshotStyle=value=>value instanceof SceneGradient?{type:value.type,
     args:value.args.slice(),transform:matrix(value.transform),
     stops:value.stops.map(stop=>({...stop}))}:value;
@@ -46,16 +50,17 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-context.js',
     flattenCubic(center,bcd,cd,d,append,depth+1);
   }
   class ScenePath {
-    constructor(){this.operations=[];}
-    moveTo(...args){this.operations.push(['moveTo',args]);}
-    lineTo(...args){this.operations.push(['lineTo',args]);}
-    closePath(){this.operations.push(['closePath',[]]);}
-    rect(...args){this.operations.push(['rect',args]);}
-    arc(...args){this.operations.push(['arc',args]);}
-    ellipse(...args){this.operations.push(['ellipse',args]);}
-    bezierCurveTo(...args){this.operations.push(['bezierCurveTo',args]);}
-    quadraticCurveTo(...args){this.operations.push(['quadraticCurveTo',args]);}
-    roundRect(...args){this.operations.push(['roundRect',args]);}
+    constructor(){this.operations=[];this.revision=0;}
+    _append(method,args){this.operations.push([method,args]);this.revision++;}
+    moveTo(...args){this._append('moveTo',args);}
+    lineTo(...args){this._append('lineTo',args);}
+    closePath(){this._append('closePath',[]);}
+    rect(...args){this._append('rect',args);}
+    arc(...args){this._append('arc',args);}
+    ellipse(...args){this._append('ellipse',args);}
+    bezierCurveTo(...args){this._append('bezierCurveTo',args);}
+    quadraticCurveTo(...args){this._append('quadraticCurveTo',args);}
+    roundRect(...args){this._append('roundRect',args);}
     toNative(){const result=new window.Path2D();for(const [method,args]of this.operations)result[method](...args);return result;}
   }
   class SceneGradient {
@@ -73,6 +78,9 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-context.js',
       this._initialStyles={...this._styles};this._dash=Array.from(nativeContext.getLineDash?.()||[]);
       this._initialDash=this._dash.slice();
       this._stack=[];this._clips=[];this._paths=[];this._current=null;this._underflow=false;
+      // Frame-local weak ownership: published paths/clips remain immutable,
+      // while another transform or an authored path edit gets new geometry.
+      this._pathCache=new WeakMap();
       Object.defineProperty(this.commands,'balanced',{get:()=>!this._underflow&&this._stack.length===0});
     }
     createPath(){return new ScenePath();}
@@ -124,9 +132,19 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-context.js',
       this._current.points=point(this._matrix,x,y);
       this._operations=savedOperations;
     }
-    _geometry(path){if(path instanceof ScenePath){const recording=new SceneContext(this._native);
-      recording._matrix=matrix(this._matrix);for(const [method,args]of path.operations)recording[method](...args);
-      return clonePaths(recording._paths);}if(path){
+    _pathVariant(path){
+      let cached=this._pathCache.get(path);
+      if(!cached||cached.revision!==path.revision){
+        cached={revision:path.revision,variants:[]};this._pathCache.set(path,cached);
+      }
+      for(const variant of cached.variants)if(sameMatrix(variant.transform,this._matrix))return variant;
+      const recording=new SceneContext(this._native);
+      recording._matrix=matrix(this._matrix);
+      for(const [method,args]of path.operations)recording[method](...args);
+      const variant={transform:matrix(this._matrix),paths:immutablePaths(recording._paths),clips:new Map()};
+      cached.variants.push(variant);return variant;
+    }
+    _geometry(path){if(path instanceof ScenePath)return this._pathVariant(path).paths;if(path){
         // A native opaque Path2D cannot be introspected. Retain its original
         // operation for replay and reject this GPU frame before compositing.
         this.commands.push({kind:'unsupported',reason:'opaque-native-path'});return [];
@@ -152,7 +170,11 @@ window.FILE_MANIFEST.push({name:'src/engine/cache-road-gpu-context.js',
     fillRect(x,y,w,h){this._call('fillRect',arguments);this._rectanglePaint(x,y,w,h,false);}
     strokeRect(x,y,w,h){this._call('strokeRect',arguments);this._rectanglePaint(x,y,w,h,true);}
     clip(path,rule){this._call('clip',arguments);if(typeof path==='string'){rule=path;path=null;}
-      this._clips=this._clips.concat({paths:this._geometry(path),rule:rule||'nonzero'});}
+      rule=rule||'nonzero';let clip;
+      if(path instanceof ScenePath){const variant=this._pathVariant(path);clip=variant.clips.get(rule);
+        if(!clip){clip=Object.freeze({paths:variant.paths,rule});variant.clips.set(rule,clip);}
+      }else clip={paths:this._geometry(path),rule};
+      this._clips=this._clips.concat(clip);}
     save(){this._call('save',arguments);this._stack.push({styles:{...this._styles},transform:matrix(this._matrix),dash:this._dash.slice(),clips:this._clips.slice()});}
     restore(){this._call('restore',arguments);const s=this._stack.pop();if(s){this._styles=s.styles;this._matrix=s.transform;this._dash=s.dash;this._clips=s.clips;}
       else this._underflow=true;}

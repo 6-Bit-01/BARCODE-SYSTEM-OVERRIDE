@@ -1,5 +1,9 @@
 # Decision Register
 
+## October 4 — Level 2 engine replacement and publication authorized
+
+The owner directs replacing the repeated cache/sampler fixes with the approach used by established games, and has authorized completing the performance repair through publication on the existing BARCODE website. Adopt the pinned local Pixi GPU scene, level-owned resources, full-resolution compressed texture bank and retained ordered triangle batches for artwork, solid fills and analytic gradients. Keep original art/audio, native dimensions, existing gameplay/input/music/save owners and complete native fallback. The current 149-raster/22-vector bank is verified, but its preceding fresh 32-ms median is still too slow; require actual improvement from the combined compiler before accepting the performance repair. No further publication permission is pending. The former Makko-only context restriction and import-before-merge gate describe the historical host and do not block this owner-authorized standalone engine replacement.
+
 ## October 1 — Combat polish authorized
 
 The owner likes #169 and asks for one targeted enemy per shot, improved ram
