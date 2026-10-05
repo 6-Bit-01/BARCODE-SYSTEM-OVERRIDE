@@ -1,5 +1,11 @@
 # Repository Guidance
 
+## October 5, 2026 — contextual mobile control redesign
+
+The owner tested published source PR184 (`3daea2cccd1ad21fe096750dc0fd1a270cc448dd`) and website PR481 and requests stylish controls that appear/change when useful instead of an obstructive permanent button grid, especially on Level 2. Continue the authorized site update from that merged baseline. Read `docs/source-pack/MOBILE_CONTROLS.md`. Keep a compact next-cue button, contextual combat/Hack/Rhythm controls, separate gear pair and an on-demand secondary drawer. Never automate beat input or change its timing/lane/judgment rules.
+
+Keep scene ownership stable while cues/availability change: patch buttons in place, preserve steering and completed short taps, and freeze each held button's semantic action until release. Screen transitions and cancellation must still clear all touch holds; hidden drawer actions must release without clearing physical inputs or the other thumb. Preserve the accepted GPU/loading pipeline, native frame, all original artwork/audio, saves and one existing input/gameplay-frame/audio owner. Add no control RAF, timer or canvas. Require meaningful dynamic-state tests and visual portrait/landscape review before the normal source/site checks, guarded merges and live verification. Publication remains authorized; no new owner permission gate is introduced. Prior pending/draft notes below are historical for the already published PR183/184 and website PR481.
+
 ## October 5, 2026 — whole-game mobile controls implemented; release checks pending
 
 The owner confirms mobile joystick and touch controls for the whole game before publication. Continue from merged performance PR183, `42b2a3157638a8742717095fbdea7055b6efeb71`. Preserve its retained GPU renderer, native 1920×1080 frame, all 624 original asset hashes, gameplay judgments, music and compatible saves. Earlier pending/draft statements for PR183 below are historical.

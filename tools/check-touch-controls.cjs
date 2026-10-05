@@ -19,13 +19,17 @@ class Element extends EventTarget {
   this.classList={add:(...names)=>{this.className=[...new Set([...this.className.split(/\s+/).filter(Boolean),...names])].join(' ');},
    remove:(...names)=>{this.className=this.className.split(/\s+/).filter(name=>!names.includes(name)).join(' ');},contains:name=>this.className.split(/\s+/).includes(name),
    toggle:(name,force)=>{const wanted=force??!this.classList.contains(name);wanted?this.classList.add(name):this.classList.remove(name);return wanted;}};}
- appendChild(child){child.parentNode=this;this.children.push(child);return child;}
+ appendChild(child){child.parentNode?.removeChild?.(child);child.parentNode=this;this.children.push(child);return child;}
+ get textContent(){return (this._text||'')+this.children.map(child=>child.textContent).join('');}
+ set textContent(value){this._text=String(value);for(const child of this.children||[])child.parentNode=null;this.children=[];}
  append(...children){for(const child of children)this.appendChild(child);}
  replaceChildren(...children){for(const child of this.children)child.parentNode=null;this.children=[];this.append(...children);}
  removeChild(child){this.children=this.children.filter(item=>item!==child);child.parentNode=null;return child;}
  remove(){this.parentNode?.removeChild(this);}
  setAttribute(key,value){this.attributes[key]=String(value);if(key==='id')this.id=String(value);if(key==='class')this.className=String(value);
   if(key.startsWith('data-'))this.dataset[key.slice(5).replace(/-([a-z])/g,(_,char)=>char.toUpperCase())]=String(value);}
+ removeAttribute(key){delete this.attributes[key];if(key==='id')this.id='';if(key==='class')this.className='';
+  if(key.startsWith('data-'))delete this.dataset[key.slice(5).replace(/-([a-z])/g,(_,char)=>char.toUpperCase())];}
  getAttribute(key){if(key.startsWith('data-'))return this.dataset[key.slice(5).replace(/-([a-z])/g,(_,char)=>char.toUpperCase())]??null;
   return key==='id'?this.id:key==='class'?this.className:this.attributes[key]??null;}
  matches(selector){if(selector.includes(','))return selector.split(',').some(part=>this.matches(part.trim()));
@@ -179,7 +183,94 @@ function run(){
   r.button=id=>{const node=r.T.buttons.get(id)?.node;assert(node,'Missing touch control '+id);return node;};
   r.press=(id,pointerId=2)=>r.pointer(r.button(id),'pointerdown',pointerId,100,650);
   r.release=(id,pointerId=2,type='pointerup')=>r.pointer(r.button(id),type,pointerId,100,650);
-  r.tap=(id,pointerId=2)=>{const node=r.button(id);r.pointer(node,'pointerdown',pointerId,100,650);r.pointer(node,'pointerup',pointerId,100,650);};return r;};
+  r.tap=(id,pointerId=2)=>{const node=r.button(id);r.pointer(node,'pointerdown',pointerId,100,650);r.pointer(node,'pointerup',pointerId,100,650);};
+  r.more=()=>{if(!r.T.toolsOpen)r.tap('ui:more');assert(r.T.toolsOpen,'More opens secondary controls');};return r;};
+ const roadRig=({combat=false}={})=>{
+  const r=touchRig(),state={elapsedMs:1,musicBeatFloat:20,lanePos:1.5,gear:1,pulseTargets:{},caughtPulses:{},missedPulses:{},boost:1,echoEnergy:100};
+  const pulses=[];let view={target:null,actors:[],projectiles:[],skills:Object.fromEntries(['attack','defend','turbo','disrupt'].map(id=>[id,{ready:true,charges:3}]))};
+  if(combat)state.combat={version:4};
+  Object.assign(r.B.CacheRoadProof,{active:true,state,pulses:()=>pulses,combatInput:()=>({progress:100,lanePos:state.lanePos})});
+  r.B.CacheRoadCombat={pose:()=>view};r.advance=()=>{state.elapsedMs++;r.T.sync();};r.setView=value=>{view=value;r.advance();};
+  r.state=state;r.pulses=pulses;r.view=()=>view;r.advance();return r;
+ };
+ check('Level1 defaults expose only currently usable gameplay and secondary tools',()=>{
+  const r=touchRig();r.w.tutorialSystem={storyChapter:1,isActive:()=>true,getInstructionOwner:()=> 'mission'};
+  let active=false,canEnter=false,canHack=false;
+  r.w.rhythmSystem={isActive:()=>active,canEnterRhythmMode:()=>({ok:canEnter})};
+  r.w.hackingSystem={isActive:()=>false,getAvailability:()=>({canStart:canHack,state:'ready'})};r.T.sync();
+  assert.deepEqual(r.T.actions.children.map(node=>node.dataset.touchAction),['jump'],'Early tutorial has no inactive Beat, unavailable Rhythm or distant Hack');
+  assert(r.T.buttons.has('ui:more')&&r.T.buttons.has('pause'));assert(!r.T.buttons.has('run')&&!r.T.buttons.has('inspect'));assert(r.T.tools.hidden);
+  canEnter=true;r.T.sync();assert(r.T.buttons.has('rhythm_mode')&&!r.T.buttons.has('primary'));
+  active=true;r.T.sync();assert(r.T.buttons.has('primary'));assert.match(r.button('rhythm_mode').textContent,/Exit/);
+  canHack=true;r.T.sync();assert(r.T.buttons.has('interact'));canHack=false;r.T.sync();assert(!r.T.buttons.has('interact'));
+  r.more();for(const id of ['inspect','run'])assert(r.T.buttons.has(id)&&r.button(id).parentNode===r.T.tools,id+' stays accessible in More');
+  assert.deepEqual(r.work,r.before,'Contextual controls add no work owner');
+ });
+ check('availability and rhythm changes preserve joystick nodes and held actions',()=>{
+  const r=touchRig();let active=false,canHack=false,canEnter=false;
+  r.w.rhythmSystem={isActive:()=>active,canEnterRhythmMode:()=>({ok:canEnter})};
+  r.w.hackingSystem={isActive:()=>false,getAvailability:()=>({canStart:canHack,state:'ready'})};r.T.sync();
+  const jump=r.button('jump'),stick=r.stick;r.pointer(stick,'pointerdown',1,90,670);r.pointer(stick,'pointermove',1,125,670);r.press('jump',2);r.frame();
+  canHack=true;canEnter=true;r.T.sync();assert.equal(r.button('jump'),jump);assert.equal(r.T.joystick,stick);assert.equal(r.T.joystickPointer,1);
+  assert(r.frame().move_right.held&&r.manager.actionInput.held('jump'),'Adding available controls keeps held input');
+  active=true;canHack=false;r.T.sync();assert(r.T.buttons.has('primary')&&!r.T.buttons.has('interact'));assert.equal(r.T.pointers.size,2);
+  assert(r.frame().move_right.held&&r.manager.actionInput.held('jump'),'Same-screen rhythm changes do not cancel fingers');
+  r.release('jump',2);r.pointer(stick,'pointerup',1,125,670);assert(!r.frame().jump.held);
+  r.tap('primary');active=false;r.T.sync();assert(!r.T.buttons.has('primary'));const state=r.frame();
+  assert(state.primary.pressed&&state.primary.released,'A completed tap survives removal of its now-unavailable button');assert(!r.frame().primary.pressed);
+ });
+ check('road defaults show the next real announced beat and never autoplay',()=>{
+  const r=roadRig({combat:true});assert(!r.T.buttons.has('road:beat'));assert.equal(r.T.actions.children.length,0);
+  r.pulses.push({id:'unannounced',action:1,lane:1.5},{id:'caught',action:1,lane:1.5},{id:'missed',action:2,lane:1.5},{id:'far',action:3,lane:1.5},{id:'real',action:0,lane:1.5});
+  Object.assign(r.state.pulseTargets,{caught:20.5,missed:21,far:24.01,real:22});r.state.caughtPulses.caught=true;r.state.missedPulses.missed=true;r.advance();
+  const beat=r.T.buttons.get('road:beat');assert.equal(beat.spec.action,'road_a');assert.match(beat.node.textContent,/A.*Sync/);assert(!r.frame().road_a.pressed);
+  assert.deepEqual(r.T.gears.children.map(node=>node.dataset.touchAction).sort(),['move_down','move_up']);assert(r.T.actions.children.length<=3);
+  r.state.caughtPulses.real=true;r.advance();assert(!r.T.buttons.has('road:beat'));assert(!r.frame().road_a.pressed,'Removing spent cues never synthesizes an action');
+  r.state.musicBeatFloat=24;r.advance();assert.equal(r.T.buttons.get('road:beat').spec.action,'road_y');
+  delete r.state.combat;r.advance();assert.match(r.button('road:beat').textContent,/Y.*Refill/,'Legacy effects keep their distinct meaning');
+ });
+ check('dynamic road mapping stays pinned to a held finger until release',()=>{
+  const r=roadRig({combat:true});r.pulses.push({id:'a',action:0,lane:1.5},{id:'x',action:2,lane:1.5});r.state.pulseTargets={a:22,x:23};r.advance();
+  const beat=r.button('road:beat'),gear=r.button('move_up');r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,125,670);r.press('road:beat',2);r.frame();
+  r.state.caughtPulses.a=true;r.advance();assert.equal(r.button('road:beat'),beat);assert.equal(r.button('move_up'),gear);assert.equal(r.T.joystickPointer,1);
+  assert.equal(r.T.pointers.get(2).spec.action,'road_a');assert.equal(r.T.buttons.get('road:beat').spec.action,'road_a');
+  const held=r.frame();assert(held.road_a.held&&held.move_right.held&&!held.road_x.held,'Changed cue cannot remap an existing finger');
+  r.release('road:beat',2);assert.equal(r.button('road:beat'),beat);assert.equal(r.T.buttons.get('road:beat').spec.action,'road_x');
+  r.press('road:beat',3);const next=r.frame();assert(next.road_x.pressed&&next.move_right.held&&!next.road_a.held);r.release('road:beat',3);r.pointer(r.stick,'pointerup',1,125,670);
+ });
+ check('completed contextual beat taps retain their captured action across same-bar sync',()=>{
+  const r=roadRig({combat:true});r.pulses.push({id:'a',action:0,lane:1.5},{id:'b',action:1,lane:1.5});r.state.pulseTargets={a:22,b:23};r.advance();
+  const node=r.button('road:beat');r.tap('road:beat');r.state.missedPulses.a=true;r.advance();assert.equal(r.button('road:beat'),node);assert.equal(r.T.buttons.get('road:beat').spec.action,'road_b');
+  const state=r.frame();assert.equal(state.road_a.presses.length,1);assert(state.road_a.pressed&&!state.road_b.pressed,'Queued tap uses the action captured at pointer down');
+  assert(Math.abs(state.road_a.presses[0].audibleAudioTimeSec-1.94)<1e-8);assert(!r.frame().road_a.pressed&&!r.manager.actionInput.pressed('road_b'));
+  r.state.missedPulses.b=true;r.advance();assert(!r.T.buttons.has('road:beat'));assert.equal(r.T.pointers.size,0);
+ });
+ check('road Attack and Guard appear only for real usable targets and threats',()=>{
+  const r=roadRig({combat:true}),view=r.view();view.target={attackMode:'shot'};view.skills.attack.charges=0;r.advance();assert(!r.T.buttons.has('road_attack'));
+  view.skills.attack.charges=1;r.advance();assert(r.T.buttons.has('road_attack')&&!r.T.buttons.has('road_defend'));
+  view.skills.attack.ready=false;r.advance();assert(!r.T.buttons.has('road_attack'));view.skills.attack.ready=true;view.skills.attack.charges=0;view.target.attackMode='strike';r.advance();assert(r.T.buttons.has('road_attack'),'Melee strike does not require shot ammo');
+  view.actors.push({warning:true});r.advance();assert(r.T.buttons.has('road_defend'));view.skills.defend.ready=false;r.advance();assert(!r.T.buttons.has('road_defend'));
+  view.actors=[];view.projectiles=[{friendly:false}];view.skills.defend.ready=true;r.advance();assert(r.T.buttons.has('road_defend'));
+  view.projectiles=[{friendly:true}];r.advance();assert(!r.T.buttons.has('road_defend'));r.B.CacheRoadProof.handoffMs=10;r.advance();assert.deepEqual([...r.T.buttons.keys()],['pause'],'Handoff remains exclusive');
+ });
+ check('More keeps every usable action accessible and closes only drawer holds',()=>{
+  const r=roadRig({combat:true}),view=r.view();view.target={attackMode:'shot'};r.advance();r.key('keydown','d');r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,55,670);r.more();
+  for(const id of ['road_attack','road_defend','road_turbo','road_disrupt','ui:pads'])assert(r.T.buttons.has(id),id+' is accessible in More');assert(r.T.tools.children.length<=5);
+  r.press('road_disrupt',2);r.tap('ui:pads',3);assert(r.T.padsOpen);assert.equal(r.T.joystickPointer,1);assert(!r.T.pointers.has(2));assert(!r.frame().road_disrupt.held&&!r.manager.actionInput.pressed('road_disrupt'),'Tab cancellation discards an unconsumed held press');
+  for(const id of ['road_a','road_b','road_x','road_y','ui:pads'])assert(r.T.buttons.has(id),id+' is accessible in Beat pads');assert(r.T.tools.children.length<=5);
+  r.press('road_a',2);r.frame();r.tap('ui:more',3);assert(!r.T.toolsOpen&&!r.T.padsOpen&&r.T.tools.hidden);assert.equal(r.T.joystickPointer,1);assert(!r.T.pointers.has(2));
+  const state=r.frame();assert(state.move_left.held&&state.move_right.held&&!state.road_a.held&&!state.road_a.pressed,'Close releases drawer without cancelling steering or a physical key');
+  r.pointer(r.stick,'pointerup',1,55,670);r.key('keyup','d');delete r.state.combat;r.advance();r.more();for(const id of ['road_a','road_b','road_x','road_y','road_turbo','road_echo'])assert(r.T.buttons.has(id),id+' remains accessible for legacy play');
+  assert(r.T.tools.children.length<=6);
+  r.tap('ui:more');assert(!r.T.toolsOpen);assert.equal(r.manager.actionInput.virtualOwners.size,0);assert.deepEqual(r.work,r.before);
+ });
+ check('drawer tabs preserve completed taps and release only active access holds',()=>{
+  const r=roadRig({combat:true});r.view().target={attackMode:'strike'};r.advance();r.more();
+  r.tap('road_defend');r.tap('ui:pads');const tap=r.frame();assert(tap.road_defend.pressed&&tap.road_defend.released,'Completed skill tap remains valid after the drawer changes tabs');assert(!r.frame().road_defend.pressed);
+  const a=r.button('road_a');a.dispatchEvent({type:'keydown',key:'Enter',repeat:false,timeStamp:990,bubbles:true});assert.equal(r.T.accessHolds.size,1);
+  r.tap('ui:pads');assert(!r.T.padsOpen);assert.equal(r.T.accessHolds.size,0);const cancelled=r.frame();assert(!cancelled.road_a.held&&!cancelled.road_a.pressed,'Switching tabs cancels the still-held accessible action');
+  r.key('keyup','Enter');r.tap('road_turbo');r.tap('ui:more');const boost=r.frame();assert(boost.road_turbo.pressed,'A completed boost tap survives closing its panel');assert.equal(r.T.pointers.size,0);assert(!r.T.toolsOpen&&!r.T.padsOpen);
+ });
  check('touch module is idempotent and desktop stays dormant with no frame owner',()=>{
   const r=touchRig({touch:false});assert(!r.T.enabled&&r.T.root.hidden);
   const listenerCount=r.T.root.listeners.get('pointerdown').length;r.T.init();assert.equal(r.T.root.listeners.get('pointerdown').length,listenerCount);
@@ -238,28 +329,28 @@ function run(){
   jump.dispatchEvent({type:'click',detail:0,timeStamp:990,bubbles:true});state=r.frame();assert(state.jump.pressed&&!state.jump.held,'Assistive click is a pulse');
   assert(!r.frame().jump.pressed);assert.equal(r.manager.actionInput.virtualOwners.size,0);
   r.key('keydown','d');jump.dispatchEvent({type:'click',detail:0,timeStamp:990,bubbles:true});assert(r.frame().move_right.held,'Accessible activation preserves held physical movement');
-  r.w.cutsceneSystem={isActive:true,cutsceneGeneration:1,startSkipHold:()=>r.route.push(['skip','start']),endSkipHold:()=>r.route.push(['skip','stop'])};r.T.sync();r.route.length=0;
+  r.w.cutsceneSystem={isActive:true,cutsceneGeneration:1,startSkipHold:()=>r.route.push(['skip','start']),endSkipHold:()=>r.route.push(['skip','stop'])};r.T.sync();r.more();r.route.length=0;
   const skip=r.button('intro:skip');event(skip,'keydown',' ');r.press('intro:skip',4);assert.deepEqual(r.route,[['skip','start']]);
   r.key('keyup',' ');assert.deepEqual(r.route.filter(row=>row[0]==='skip'),[['skip','start']],'Keyboard release preserves the held pointer skip');
   r.release('intro:skip',4);assert.deepEqual(r.route.filter(row=>row[0]==='skip'),[['skip','start'],['skip','stop']],'Last control releases the shared touch skip hold');
  });
  check('pause, resize, visibility and blur clean active touches and latched run',()=>{
   for(const event of ['resize','blur','visibilitychange']){
-   const r=touchRig();r.tap('run');r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,125,670);r.press('jump',2);
+   const r=touchRig();r.more();r.tap('run');r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,125,670);r.press('jump',2);
    if(event==='visibilitychange'){r.doc.hidden=true;r.doc.dispatchEvent({type:event});}else r.w.dispatchEvent({type:event});
    assert.equal(r.T.pointers.size,0);assert.equal(r.T.runLatched,false);assert.equal(r.manager.actionInput.virtualOwners.size,0);
    assert(!r.frame().jump.pressed,'Interrupted tap does not leak into the next shared update');
   }
-  const r=touchRig();r.tap('run');assert(r.T.runLatched);r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,125,670);r.press('jump',2);
+  const r=touchRig();r.more();r.tap('run');assert(r.T.runLatched);r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,125,670);r.press('jump',2);
   r.press('pause',3);assert.equal(r.T.context.name,'menu');assert.equal(r.T.pointers.size,0);assert(!r.T.runLatched);assert(!r.frame().jump.pressed);
   assert(r.T.buttons.has('menu:resume')&&!r.T.buttons.has('jump'),'Paused context has menu controls exclusively');
  });
  check('road faces and skills stay simultaneous and context changes release them',()=>{
-  const r=touchRig();r.B.CacheRoadProof.active=true;r.B.CacheRoadProof.state={combat:{version:4}};r.T.sync();
-  for(const id of ['move_up','move_down','road_a','road_b','road_x','road_y','road_turbo','road_attack','road_defend','road_disrupt'])assert(r.T.buttons.has(id),id);
+  const r=roadRig({combat:true});r.pulses.push({id:'a',action:0,lane:1.5});r.state.pulseTargets.a=22;r.view().actors.push({threatActive:true});r.advance();
+  for(const id of ['move_up','move_down','road:beat','road_defend'])assert(r.T.buttons.has(id),id);
   r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,125,670);
-  r.press('road_a',2);r.press('road_defend',3);let state=r.frame();assert(state.move_right.held&&state.road_a.pressed&&state.road_defend.pressed);
-  r.release('road_a',2);state=r.frame();assert(state.move_right.held&&state.road_defend.held&&!state.road_a.held);
+  r.press('road:beat',2);r.press('road_defend',3);let state=r.frame();assert(state.move_right.held&&state.road_a.pressed&&state.road_defend.pressed);
+  r.release('road:beat',2);state=r.frame();assert(state.move_right.held&&state.road_defend.held&&!state.road_a.held);
   r.B.CacheRoadProof.status='failed';r.B.CacheRoadProof.resultButtons=()=>[{id:'retry',label:'Retry'},{id:'title',label:'Title'}];r.T.sync();
   assert.equal(r.T.context.name,'road-results');assert.equal(r.T.pointers.size,0);assert.equal(r.manager.actionInput.virtualOwners.size,0);
   assert(!r.T.buttons.has('road_a')&&r.T.buttons.has('road:result:retry'));assert.deepEqual(r.work,r.before,'No extra frame/work owners');
@@ -271,18 +362,20 @@ function run(){
   surface('title',['title:start','title:settings']);r.doc.getElementById('continueButton').hidden=false;surface('title',['title:continue']);
   r.B.PauseMenu.titleOpen=true;surface('menu',['menu:up','menu:down','menu:left','menu:right','menu:select','menu:back','menu:resume']);
   r.B.PauseMenu.titleOpen=false;r.w.cutsceneSystem={isActive:true,cutsceneGeneration:1,userPaused:false,startSkipHold:owner=>r.route.push(['intro-hold',owner]),endSkipHold:owner=>r.route.push(['intro-release',owner])};
-  surface('intro',['intro:dialogue','intro:scene','intro:transcript','intro:caption','intro:skip','pause']);r.press('intro:skip',1);r.press('intro:skip',2);
+  surface('intro',['intro:dialogue','intro:scene','ui:more','pause']);r.more();for(const id of ['intro:transcript','intro:caption','intro:skip'])assert(r.T.buttons.has(id));r.press('intro:skip',1);r.press('intro:skip',2);
   assert.equal(r.route.filter(row=>row[0]==='intro-hold').length,1,'Two fingers share one continuous skip hold');
   r.release('intro:skip',1);assert.equal(r.route.at(-1)[0],'intro-hold','First finger release leaves the second hold');r.release('intro:skip',2);assert.equal(r.route.at(-1)[0],'intro-release');
   r.w.cutsceneSystem.userPaused=true;surface('intro-paused',['pause']);assert(!r.T.buttons.has('intro:scene'));
   r.w.cutsceneSystem.isActive=false;r.B.LevelDifficulty.open=true;surface('difficulty',['difficulty:left','difficulty:right','difficulty:recovery','difficulty:begin']);
   r.B.LevelDifficulty.open=false;overlay.classList.add('hidden');r.w.isRunning=true;r.w.tutorialSystem={storyChapter:1,isActive:()=>true,getInstructionOwner:()=> 'dialogue'};
-  surface('level1',['jump','primary','interact','rhythm_mode','inspect','run','tutorial:continue','pause']);
+  surface('level1',['jump','primary','tutorial:continue','ui:more','pause']);
+  assert(!r.T.buttons.has('interact')&&!r.T.buttons.has('rhythm_mode'),'Unready Hack and early-tutorial Rhythm stay out of the default controls');
+  r.more();for(const id of ['inspect','run'])assert(r.T.buttons.has(id));r.tap('ui:more');
   r.press('jump',1);r.w.hackingSystem={phase:'answer',isActive:()=>true};surface('hack',['hack:0','hack:1','hack:9','hack:Backspace','hack:Enter','hack:Escape','pause']);assert(r.stick.hidden);
   r.w.hackingSystem.isActive=()=>false;r.B.CacheBridge={active:true,generation:1,page:0,pending:false,holdSkip(){}};
-  surface('comic',['comic:dialogue','comic:scene','comic:transcript','comic:skip','comic:back','pause']);
+  surface('comic',['comic:dialogue','ui:more','pause']);r.more();for(const id of ['comic:scene','comic:transcript','comic:skip','comic:back'])assert(r.T.buttons.has(id));
   r.setState('paused');surface('comic-paused',['pause']);r.setState('running');r.B.CacheBridge.active=false;
-  r.B.CacheEnding={active:true,generation:1,page:0,pending:false,holdSkip(){}};surface('comic',['comic:scene','comic:back']);r.B.CacheEnding.active=false;
+  r.B.CacheEnding={active:true,generation:1,page:0,pending:false,holdSkip(){}};surface('comic',['comic:dialogue','ui:more']);r.more();for(const id of ['comic:scene','comic:back'])assert(r.T.buttons.has(id));r.B.CacheEnding.active=false;
   r.w.gameState.victory=true;r.w.sector1Progression={areCompletionControlsReady:()=>true};surface('results',['result:retry','result:continue','result:title']);r.w.gameState.victory=false;
   r.B.CacheRoadProof.active=true;r.B.CacheRoadProof.introMs=0;surface('road-intro',['road:intro','pause']);
   r.B.CacheRoadProof.introMs=null;r.B.CacheRoadProof.outroMs=0;surface('road-outro',['road:outro','pause']);

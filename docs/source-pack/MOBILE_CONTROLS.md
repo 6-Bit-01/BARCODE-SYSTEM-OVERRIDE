@@ -1,5 +1,13 @@
 # Whole-game mobile controls
 
+## Contextual controls revision
+
+The owner tested the published joystick release (source PR184, `3daea2cccd1ad21fe096750dc0fd1a270cc448dd`; website PR481) and requests stylish, contextual buttons that leave the road clear. The new design keeps the transparent movement/steering stick, moves gears beside it, and shows one mapped Sync cue plus useful combat actions on the opposite edge. A More drawer holds the four manual face pads and secondary abilities. The primary cue submits the captured mapped action only on a real tap; timing, lane, judgments and rewards remain owned by the game. No input is automated.
+
+Level 1 shows Jump, Rhythm when entering is allowed, Beat while Rhythm is active, and Hack when the existing availability owner allows it. Run/Inspect and cinematic transcript/skip controls are available on demand. Native menu labels, touch-safe sizes, cancellation, physical keys/gamepads and all whole-game screen transitions are retained. Within a gameplay screen, buttons are patched in place and a held control keeps its original action until release; a changing cue cannot cancel steering or discard a completed tap. Opening/closing a drawer clears its hidden holds without affecting the other thumb.
+
+This revision preserves the accepted GPU and loading pipelines, original artwork/audio, music, saves, native frame and existing input/frame/audio owners. Contextual module checks, portrait/landscape browser review and exact-head source/site release checks are pending. The earlier implementation/checkpoint notes below describe the initial mobile release and are historical.
+
 Current work: October 5, 2026. The implementation passes 20 mobile contracts and bounded prototype browser flow. Full source regression, all-file syntax and immutable C113 standalone checks pass. Settings readout/short-road layout corrections are implemented; control-polish and the added real-menu readout group pass. Final strict-build visual/layout recheck, exact corrected-source CI/merge and publication remain pending. Base: merged performance PR183, `42b2a3157638a8742717095fbdea7055b6efeb71`.
 
 The owner requests mobile joystick and touch controls throughout the game before the website release. Cover the real opening/title/menu, difficulty/tutorial, hacking, Level 1, road steering/gears/beat pads/skills, bridge, ending and results. Contextual actions must call the existing screen owners and keep their timing, completion and pause rules.

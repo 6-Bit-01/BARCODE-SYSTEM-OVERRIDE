@@ -7,6 +7,7 @@ on:
       - agent/native-road-quality-repair
       - agent/level2-minimal-road-cues
       - agent/mobile-joystick-controls
+      - agent/contextual-mobile-controls
       - main
   pull_request:
     paths:
