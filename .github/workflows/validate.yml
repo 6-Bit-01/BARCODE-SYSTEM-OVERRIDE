@@ -62,7 +62,10 @@ jobs:
               for scenario in ['fresh', 'boss']:
                   receipt = Path(os.environ['GPU_EVIDENCE_ROOT']) / scenario / 'performance-gate.json'
                   gate = json.loads(receipt.read_text()) if receipt.exists() else {}
+                  functional_receipt = receipt.with_name('functional-gate.json')
+                  functional = json.loads(functional_receipt.read_text()) if functional_receipt.exists() else {}
                   summary.write(f"- Actual GPU {scenario}: {gate.get('status', 'not recorded')}; {gate.get('backend', 'see checker artifacts')}; budget {gate.get('budgetMs', 'not recorded')} ms.\n")
+                  summary.write(f"  Actual GPU gameplay functionality: {functional.get('status', 'not recorded')}; bootstrap: {gate.get('bootstrap', {}).get('status', 'see checker artifacts')} at {gate.get('bootstrap', {}).get('stage', 'see checker artifacts')}.\n")
                   summary.write(f"  Final direct present accepted: {gate.get('directPresentAccepted', 'not recorded')}; zero canvas copies: {gate.get('zeroCanvasCopies', 'not recorded')}; both views accepted: {gate.get('fullyGpuAccepted', 'not recorded')}.\n")
               receipt = Path(os.environ['NATIVE_TIMING_RECEIPT'])
               timing = json.loads(receipt.read_text()) if receipt.exists() else {}

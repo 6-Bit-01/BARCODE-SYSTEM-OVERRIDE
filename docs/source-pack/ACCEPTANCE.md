@@ -11,7 +11,9 @@ Code checkpoint `a7b2ba5ed3115bcd24903a7729b5060efacadd92` passed fresh run 23 a
 
 The unchanged median gate passes; observed tails remain. RAF intervals do not establish physical-display FPS. Both runs retained 149 BC7 plus 22 original SVG sources, exact 260,390,544 mip bytes, terminated-worker ownership and zero driving copies/uploads/fallbacks. Keyboard/gear, audio, road P/Escape, Level 1 return/bridge P/P and all 415 input hashes passed. Fresh HUD/restoration was visually reviewed.
 
-Seventy GPU contract groups, focused path-cache checks, all syntax and generated-bundle checks pass locally. Full local npm test was interrupted after no failures and does not count as complete regression. Exact-head CI, final packaging/visual release review and authorized publication are pending; no entire-race, universal 60-FPS or glitch-free claim is made.
+Seventy GPU contract groups, focused path-cache checks, all syntax and generated-bundle checks pass locally. CI at `70378e8f531c405d200c766d12ea6447b45f5820` also completed full `npm test`, all-file syntax and standalone-build checks. Its software cloud GL warmed all 171 sources, then timed out during the natural intro before the HUD; downstream browser/export checks were unexercised, not passed.
+
+The final checker/docs-only head keeps the physically tested a7b2 runtime/assets unchanged and classifies the actual game context after real preparation. Software, unavailable and unidentified GL receive `performanceUnexercised`; gameplay, controls, audio, pause, graphics recovery and Level 1 return receive `notExercised`, separately from bootstrap/resource checks. Required native browser jobs and the complete hardware functional/1000/30-ms gates remain unchanged. Final-head CI, source/site packaging, visual release review and publication remain pending; no entire-race, universal 60-FPS or glitch-free claim is made.
 
 ## October 4, 2026 — compressed GPU revision requires final acceptance
 

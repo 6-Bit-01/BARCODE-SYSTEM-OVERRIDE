@@ -47,6 +47,31 @@ def git(*args):
     return subprocess.check_output(["git", "-C", str(ROOT), *args])
 
 
+def runtime_limitations(entries):
+    """Describe the exported commit's entry modes, never the current checkout."""
+    snapshot = "repository-snapshot/"
+    standalone = all(snapshot + name in entries for name in (
+        "tools/build-standalone.py", "src/engine/standalone-sprites.js",
+        "sprites-manifest.json", "assets/standalone/originals.json"))
+    if not standalone:
+        return [
+            "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
+            "Artwork and audio referenced by remote URLs remain externally hosted.",
+            "This source snapshot is not a self-contained offline build."
+        ]
+    limitations = [
+        "This committed snapshot includes the standalone builder, local sprite adapter and original assets; generate the playable game document with tools/build-standalone.py.",
+        "The authored entry retains Makko embedding compatibility. Generated standalone output replaces that host SDK and resolves artwork and audio locally.",
+        "Standalone fonts may request Google Fonts; a source archive does not establish offline browser operation, gameplay or performance."
+    ]
+    if all(snapshot + name in entries for name in (
+        "src/vendor/pixi-8.22.0/pixi.min.js", "src/vendor/pixi-8.22.0/LICENSE",
+        "src/vendor/basis-2.50/basis_transcoder.js", "src/vendor/basis-2.50/basis_transcoder.wasm",
+        "src/vendor/basis-2.50/LICENSE", "assets/cache-road/gpu-textures/manifest.json")):
+        limitations.append("Pinned PixiJS and Basis Universal distributions and their licenses are local committed inputs; GPU texture derivatives are separate from preserved originals.")
+    return limitations
+
+
 def build(args):
     revision = git("rev-parse", "--verify", args.revision + "^{commit}").decode().strip()
     base = git("rev-parse", "--verify", args.base + "^{commit}").decode().strip() if args.base else None
@@ -111,11 +136,7 @@ def build(args):
         "supersedes": ["Source Pack v2", "Source Pack v3", "Source Pack v4"],
         "authority": "Newest explicit owner decisions, then current pack decisions; snapshot proves implementation, not design approval.",
         "verification": evidence or {"automatedTests": "not recorded in this export", "makkoPlaytest": "not recorded in this export"},
-        "runtimeLimitations": [
-            "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
-            "Artwork and audio referenced by remote URLs remain externally hosted.",
-            "This source snapshot is not a self-contained offline build."
-        ],
+        "runtimeLimitations": runtime_limitations(entries),
         "hashScope": "FILE_HASHES.sha256 covers every archive file except itself."
     }
     entries["SOURCE_MANIFEST.json"] = (json.dumps(manifest, indent=2) + "\n").encode()

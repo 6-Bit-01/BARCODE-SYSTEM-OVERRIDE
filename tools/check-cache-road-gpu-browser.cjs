@@ -4,6 +4,7 @@
 // performance acceptance. The earned boss fixture preserves production save bytes.
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),http=require('node:http');
 const cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict'),{once}=require('node:events');
+const {classifyBackend,inspectBootstrap,unexercisedGate}=require('./lib/cache-road-gpu-backend.cjs');
 const usage='Usage: node tools/check-cache-road-gpu-browser.cjs BUILT_GAME OUTPUT [fresh|boss|diagnose-startup]';
 if(process.argv[2]==='--help'){console.log(usage);process.exit(0);}
 assert(process.argv[2]&&process.argv[3],usage);
@@ -181,9 +182,9 @@ function instrument(){
  HTMLCanvasElement.prototype.getContext=function(type,options){const ctx=get.call(this,type,options);if(!ids.has(this))ids.set(this,++id);
   gpuSmoke.contexts.push({id:ids.get(this),element:this.id||null,type,options:options||null,width:this.width,height:this.height});
   if(ctx&&/webgl/.test(type)){gpuSmoke.gpuCanvases.add(this);if(this.width===1920&&this.height===1080)gpuSmoke.gpuContext=ctx;
-   const ext=ctx.getExtension('WEBGL_debug_renderer_info');
-   gpuSmoke.gl={version:ctx.getParameter(ctx.VERSION),unmaskedRenderer:!!ext,vendor:ctx.getParameter(ext?ext.UNMASKED_VENDOR_WEBGL:ctx.VENDOR),
-    renderer:ctx.getParameter(ext?ext.UNMASKED_RENDERER_WEBGL:ctx.RENDERER),attributes:ctx.getContextAttributes()};}return ctx;};
+   if(ctx===gpuSmoke.gpuContext){const ext=ctx.getExtension('WEBGL_debug_renderer_info');
+    gpuSmoke.gl={version:ctx.getParameter(ctx.VERSION),unmaskedRenderer:!!ext,vendor:ctx.getParameter(ext?ext.UNMASKED_VENDOR_WEBGL:ctx.VENDOR),
+     renderer:ctx.getParameter(ext?ext.UNMASKED_RENDERER_WEBGL:ctx.RENDERER),attributes:ctx.getContextAttributes()};}}return ctx;};
  const raf=window.requestAnimationFrame;
  window.requestAnimationFrame=function(callback){const owner=(new Error()).stack.split('\n')[2]?.trim()||'unknown';
   gpuSmoke.rafOwners[owner]=(gpuSmoke.rafOwners[owner]||0)+1;
@@ -406,9 +407,8 @@ async function checkPerformance(result){
  assert.equal(result.gpu.pixiSystemTickerStarted,false);assert.equal(result.gpu.pixiSharedTickerStarted,false);
  assert.equal(Object.keys(result.activeRafOwners).length,1,'More than one active RAF owner');
  assert(Object.keys(result.activeRafOwners)[0].includes('/src/core/loop.js:'),'Gameplay RAF owner changed');
- const software=/(SwiftShader|llvmpipe|lavapipe|swrast|software rasterizer|Microsoft Basic Render)/i.test(result.gl?.renderer||''),
-  unavailable=result.gpu.status==='unavailable'||!result.gl,unidentified=!result.gl?.unmaskedRenderer,
-  budget=1000/30,hardware=!software&&!unavailable&&!unidentified,
+ const classification=classifyBackend(result.gl,result.gpu),{unavailable,hardware}=classification,
+  budget=1000/30,
   fullyGpuAccepted=result.fullyGpu.frames===result.framePhaseRows.length&&result.framePhaseRows.length>0,
   zeroDrivingUploads=result.measuredTextureUploads.delta===0,
   completeLevelSources=result.presentationResult?.complete===true&&Array.isArray(result.presentationResult?.missingKeys)&&
@@ -419,7 +419,7 @@ async function checkPerformance(result){
   zeroCanvasCopies=direct.gpuToNativeCopies===0&&direct.otherMeasuredGpuToNativeCopies===0,
   compressedBankAcceptance=inspectTextureBank(result.gpu),
   worldBatchAcceptance=inspectWorldBatches(result.gpu),
-  gate={budgetMs:budget,backend:unavailable?'unavailable GL':software?'software GL':unidentified?'unidentified GL':'default hardware GL',
+  gate={budgetMs:budget,backend:classification.backend,
    performanceExercised:hardware,status:hardware?(result.cpuDrawMs.median<=budget&&fullyGpuAccepted&&zeroDrivingUploads&&completeLevelSources&&directPresentAccepted&&zeroCanvasCopies&&compressedBankAcceptance.accepted&&worldBatchAcceptance.accepted?'passed':'failed'):'performanceUnexercised',
    fullyGpuAccepted,zeroDrivingUploads,completeLevelSources,directPresentAccepted,zeroCanvasCopies,
    directScreenAcceptance:{...direct,layerDisplay},presentationResult:result.presentationResult,
@@ -519,11 +519,9 @@ async function verifyPausedBoss(){
  await waitFor("audioSystem.context.state==='running'&&BARCODE.MusicTransport.getDiagnostics().running",'boss audio resumes',3000);
  return {paused,stillPaused,resumed:await evaluate(expression)};
 }
-async function finishChecks(result){
- assert.equal(result.native.width,1920);assert.equal(result.native.height,1080);assert.equal(exceptions.length,0);
- assert.deepEqual(resourceFailures.filter(n=>n!=='/favicon.ico'),[],'Built game requested missing resources');
+function inspectExternalResources(resources){
  const fonts=[],unexpected=[];
- for(const url of result.externalResources){if(allowedFontCSS.has(url)){fonts.push({url,type:'authored Google Fonts stylesheet'});continue;}
+ for(const url of resources){if(allowedFontCSS.has(url)){fonts.push({url,type:'authored Google Fonts stylesheet'});continue;}
   const request=Array.from(networkRequests.values()).find(row=>row.url===url),parsed=new URL(url),
    fontPath=parsed.hostname==='fonts.gstatic.com'&&/\.(?:woff2?|ttf|otf)$/.test(parsed.pathname),
    fontMime=!request?.mimeType||/^(?:font\/|application\/(?:font-woff|x-font-ttf))/.test(request.mimeType);
@@ -532,6 +530,12 @@ async function finishChecks(result){
  fs.writeFileSync(path.join(out,'external-fonts.json'),JSON.stringify({existingBuilderException:true,externalFonts:fonts,
   unexpectedExternalResources:unexpected},null,2));
  assert.deepEqual(unexpected,[],'Built game fetched graphics, audio, scripts or unauthorized resources outside its host');
+ return fonts;
+}
+async function finishChecks(result){
+ assert.equal(result.native.width,1920);assert.equal(result.native.height,1080);assert.equal(exceptions.length,0);
+ assert.deepEqual(resourceFailures.filter(n=>n!=='/favicon.ico'),[],'Built game requested missing resources');
+ const fonts=inspectExternalResources(result.externalResources);
  assert.equal(result.audio.contextState,'running');assert.equal(result.audio.transport.running,true);
  if(result.gpu.status!=='unavailable'){assert.equal(result.gpu.status,'ready');assert.equal(result.gpu.fallback,null);assert.equal(result.gpu.error,null);
   assert(result.gpu.framesByKind.forward>0&&result.gpu.framesByKind.rear>0,'Both GPU views must render');}
@@ -567,6 +571,23 @@ async function finishChecks(result){
 }
 function compactGpu(gpu){const {residentSourceDescriptors,...rest}=gpu;
  return {...rest,residentSourceDescriptorCount:residentSourceDescriptors?.length||0};}
+function backendSnapshot(){
+ const R=BARCODE.CacheRoadProof,ctx=gpuSmoke.gpuContext;
+ let gl=null;
+ if(ctx&&!ctx.isContextLost()){
+  const ext=ctx.getExtension('WEBGL_debug_renderer_info');
+  gl={version:ctx.getParameter(ctx.VERSION),unmaskedRenderer:!!ext,
+   vendor:ctx.getParameter(ext?ext.UNMASKED_VENDOR_WEBGL:ctx.VENDOR),
+   renderer:ctx.getParameter(ext?ext.UNMASKED_RENDERER_WEBGL:ctx.RENDERER),attributes:ctx.getContextAttributes()};
+ }
+ return {gl,gpu:BARCODE.CacheRoadGPU.diagnostics(),
+  actualContext:ctx?{width:ctx.canvas.width,height:ctx.canvas.height,element:ctx.canvas.id||null,lost:ctx.isContextLost()}:null,
+  road:{active:R.active,presentationPreparing:R.presentationPreparing,status:R.status,introMs:R.introMs,handoffMs:R.handoffMs},
+  presentationResult:R.presentationResult,warmupActive:gpuSmoke.warmupActive||null,warmupCalls:gpuSmoke.warmupCalls,
+  stageMarks:gpuSmoke.stageMarks||[],contexts:gpuSmoke.contexts,
+  externalResources:performance.getEntriesByType('resource').map(r=>r.name).filter(n=>
+   !n.startsWith(location.origin)&&!n.startsWith('blob:'+location.origin)&&!n.startsWith('data:'))};
+}
 async function main(){
  server.listen(0,'127.0.0.1');await once(server,'listening');const origin='http://127.0.0.1:'+server.address().port;
  const args=['--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-first-run','--autoplay-policy=no-user-gesture-required',
@@ -620,6 +641,36 @@ async function main(){
   await send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...button});
   started={scenario:'earned-live-boss',resume:{levelId:resume.levelId,checkpointId:resume.checkpointId,progress:resume.levelState.proof.progress,boss:resume.levelState.proof.combat.boss}};
  }else {operation('fresh: normal Runtime.start and Road.enter');started=await evaluate('('+stage.toString().replace('PARENT_FIXTURE',fixture)+')()');}
+ operation('backend: actual game context after settled normal presentation preparation');
+ await waitFor('BARCODE.CacheRoadProof.active&&!BARCODE.CacheRoadProof.presentationPreparing',
+  'normal Road entry and settled presentation preparation',60000);
+ const backendState=await evaluate('('+backendSnapshot.toString()+')()'),classification=classifyBackend(backendState.gl,backendState.gpu);
+ backendState.compressedBankAcceptance=inspectTextureBank(backendState.gpu);
+ // Persist raw context/compiler/preparation evidence before any assertion, so
+ // a real bootstrap defect remains diagnosable rather than a backend waiver.
+ fs.writeFileSync(path.join(out,'gpu-backend.json'),JSON.stringify({...backendState,classification,
+  scenario,sourceCommit:manifest.sourceCommit,inputHashes},null,2));
+ assert.equal(exceptions.length,0,'Actual index raised exceptions before backend classification');
+ assert.deepEqual(resourceFailures.filter(n=>n!=='/favicon.ico'),[],'Built game requested missing resources during bootstrap');
+ assert.deepEqual(hashes(),inputHashes,'Build changed during bootstrap');
+ inspectExternalResources(backendState.externalResources);
+ const bootstrap=inspectBootstrap(backendState);
+ fs.writeFileSync(path.join(out,'gpu-backend.json'),JSON.stringify({...backendState,classification,bootstrap,
+  scenario,sourceCommit:manifest.sourceCommit,inputHashes},null,2));
+ console.log('GPU_BACKEND '+JSON.stringify({backend:classification.backend,hardware:classification.hardware,
+  actualContext:backendState.actualContext,gl:backendState.gl,gpu:compactGpu(backendState.gpu),bootstrap}));
+ if(!classification.hardware&&!diagnosticOnly){
+  const gate=unexercisedGate(backendState,scenario,manifest.sourceCommit,inputHashes),
+   functional={status:gate.functionalStatus,scenario,backend:gate.backend,scenarios:gate.functionalScenarios,
+    bootstrap:gate.bootstrap,hardwarePerformance:gate.status,sourceCommit:manifest.sourceCommit,inputHashes};
+  fs.writeFileSync(path.join(out,'performance-gate.json'),JSON.stringify(gate,null,2));
+  fs.writeFileSync(path.join(out,'functional-gate.json'),JSON.stringify(functional,null,2));
+  fs.writeFileSync(path.join(out,'actual-game-result.json'),JSON.stringify({started,backendState,
+   performanceGate:gate,functionalGate:functional,exceptions,consoleMessages,requests,resourceFailures,inputHashes},null,2));
+  console.log('GPU_PERFORMANCE '+JSON.stringify({status:gate.status,backend:gate.backend,performanceExercised:false,
+   functionalStatus:gate.functionalStatus,bootstrap:gate.bootstrap,budgetMs:gate.budgetMs,cpuDrawMedianMs:null,
+   directPresentAccepted:null,zeroCanvasCopies:null,fullyGpuAccepted:null}));return;
+ }
  operation('gameplay: natural ready HUD handoff');
  await waitFor('window.isRunning&&!window.isPaused&&BARCODE.CacheRoadProof.active&&!BARCODE.CacheRoadProof.presentationPreparing&&BARCODE.CacheRoadProof.introMs===null&&BARCODE.CacheRoadProof.handoffMs===null',
   'completed presentation preparation and natural HUD handoff',60000);

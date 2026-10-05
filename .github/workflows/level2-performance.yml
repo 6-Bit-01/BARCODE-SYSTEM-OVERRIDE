@@ -41,6 +41,8 @@ on:
       - tools/check-cache-road-gpu-browser.cjs
       - tools/check-cache-road-gpu.cjs
       - tools/check-cache-road-gpu-path-cache.cjs
+      - tools/check-cache-road-gpu-backend.cjs
+      - tools/lib/cache-road-gpu-backend.cjs
       - tools/lib/cache-road-gpu-fixture.cjs
       - tools/check-cache-road-presentation-ready.cjs
       - tools/check-presentation-scene-lifecycle.cjs
@@ -68,6 +70,7 @@ jobs:
         run: |
           node tools/check-cache-road-gpu.cjs
           node tools/check-cache-road-gpu-path-cache.cjs
+          node tools/check-cache-road-gpu-backend.cjs
           node tools/check-cache-road-presentation-ready.cjs
           node tools/check-presentation-scene-lifecycle.cjs
           node tools/check-standalone-sprite-resources.cjs
@@ -114,7 +117,10 @@ jobs:
               for scenario in ['fresh', 'boss']:
                   receipt = Path(os.environ['GPU_EVIDENCE_ROOT']) / scenario / 'performance-gate.json'
                   gate = json.loads(receipt.read_text()) if receipt.exists() else {}
+                  functional_receipt = receipt.with_name('functional-gate.json')
+                  functional = json.loads(functional_receipt.read_text()) if functional_receipt.exists() else {}
                   summary.write(f"- Actual GPU {scenario}: {gate.get('status', 'not recorded')}; {gate.get('backend', 'see checker artifacts')}; budget {gate.get('budgetMs', 'not recorded')} ms.\n")
+                  summary.write(f"  Actual GPU gameplay functionality: {functional.get('status', 'not recorded')}; bootstrap: {gate.get('bootstrap', {}).get('status', 'see checker artifacts')} at {gate.get('bootstrap', {}).get('stage', 'see checker artifacts')}.\n")
                   summary.write(f"  Final direct present accepted: {gate.get('directPresentAccepted', 'not recorded')}; zero canvas copies: {gate.get('zeroCanvasCopies', 'not recorded')}; both views accepted: {gate.get('fullyGpuAccepted', 'not recorded')}.\n")
               for label, variable in [('Native chase/boss', 'NATIVE_TIMING_RECEIPT'), ('Native bitmap', 'BITMAP_TIMING_RECEIPT')]:
                   receipt = Path(os.environ[variable])

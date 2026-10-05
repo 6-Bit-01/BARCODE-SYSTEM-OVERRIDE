@@ -1,5 +1,13 @@
 # Repository Guidance
 
+## October 4, 2026 — current GPU compiler acceptance and CI environment
+
+The current Level 2 renderer uses retained ordered GPU scenery batches and immutable frame-local path/clip geometry, with the original native foreground, full-detail artwork, complete native recovery and shared gameplay/input/audio owners. Physical fresh/boss runs 23/24 at `a7b2ba5ed3115bcd24903a7729b5060efacadd92` passed the unchanged hardware gates, controls/audio and real graphics recovery. Read `docs/source-pack/LEVEL2_GPU_RENDERER.md` and `docs/source-pack/ACCEPTANCE.md` for exact counts and remaining tails. This current architecture supersedes conflicting historical implementation notes below; preserve their gameplay, artwork and ownership requirements.
+
+CI at `70378e8f531c405d200c766d12ea6447b45f5820` completed full `npm test`, all-file syntax and standalone-build checks. Its software GL warmed all 171 sources but timed out before the natural HUD; downstream browser/export checks were unexercised. The final checker/docs-only head preserves the physically tested runtime/assets and classifies the actual game context after real preparation. Software/unavailable/unidentified GL reports `performanceUnexercised`, with unrun gameplay/control/audio/pause/recovery/return scenarios `notExercised` and separate bootstrap/resource evidence. Keep required native browser jobs and every identified-hardware functional/1000/30-ms gate. Record initialization, preparation, resource or code failures as failures.
+
+Final-head CI, source/site packaging and authorized publication remain pending. PR183 remains draft; live source d41be793/site PR480 is unchanged. Record source merge, website delivery, deployment and live verification separately; finite hardware results do not certify every race frame or universal FPS.
+
 ## October 4, 2026 — accepted scenery preparation, release verification pending
 
 The minimal road cues, short gear-tap repair and mirror readback removal are already published through [site PR479](https://github.com/6-Bit-01/barcode-network-site/pull/479), merged and deployed at `c484c6e4f06078df756d712ef2e039b02fa19f74`. Its verified standalone bundle identifies source `9cdcaad82804472782a1f06b5cfa38fa88f6b45d`. The game uses its independent local adapter and BARCODE-hosted files at `/system-override`, with the tiny footer © shortcut and native document `/games/system-override/index.html`. Those release results belong to that published baseline.
