@@ -255,8 +255,8 @@
     },
     {
       "id": "scene03-kave-dead-air-v3",
-      "status": "private-preview-candidate-owner-likeness-review-pending",
-      "path": "assets/mac-street-review/scene03-kave-dead-air-v3.png",
+      "status": "owner-rejected-open-wall-room-and-scale",
+      "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v3.png",
       "acceptedForRuntime": false,
       "rawGenerationRecord": "docs/source-pack/review-mac-street-art/kave-nohat-v3-generation.json",
       "rawGenerationRecordSHA256": "ede916b6c03d9e4e70ee9b0b63eae9d403fb7e7504adb75ce8ee1e9a8f6343cd",
@@ -326,7 +326,8 @@
         "width": 1860,
         "height": 845,
         "format": "PNG"
-      }
+      },
+      "previousRuntimePath": "assets/mac-street-review/scene03-kave-dead-air-v3.png"
     }
   ],
   "runtimeFiles": [
@@ -334,12 +335,13 @@
     "mac-hero-v2.png",
     "mac-poses-v3-frames.json",
     "mac-poses-v3.png",
-    "scene03-kave-dead-air-v3.png",
+    "scene03-kave-dead-air-v5.png",
     "scene05-margin-note-v1.png",
     "scene06-record-straight-v1.png",
     "street-panorama-v1.png"
   ],
   "pixelChangesAfterGeneration": false,
   "originalsPreserved": true,
-  "referenceRule": "Exact historical tool arguments retained in unchanged generation records; current local reference paths/hashes in this addendum make the chain recoverable."
+  "referenceRule": "Exact historical tool arguments retained in unchanged generation records; current local reference paths/hashes in this addendum make the chain recoverable.",
+  "activeStudioCorrectionProvenance": "docs/source-pack/review-mac-street-art/studio-correction-provenance.json"
 }

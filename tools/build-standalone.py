@@ -57,8 +57,19 @@ OWNER_FILE = ".standalone-build.json"
 TOOL_ID = "barcode-system-override-standalone-v1"
 MAC_REVIEW_ASSETS = {"assets/mac-street-review/" + name for name in (
     "cache-walk-to-car-v6.png", "mac-hero-v2.png", "mac-poses-v3-frames.json", "mac-poses-v3.png",
-    "scene03-kave-dead-air-v3.png", "scene05-margin-note-v1.png", "scene06-record-straight-v1.png",
+    "scene03-kave-dead-air-v5.png", "scene05-margin-note-v1.png", "scene06-record-straight-v1.png",
     "street-panorama-v1.png")}
+MAC_CITY_ASSETS = {"assets/mac-city-review/" + name for name in (
+    "chitin_scuttler-v1.png", "chitin_scuttler-v1-frames.json",
+    "psion_lancer-v2.png", "psion_lancer-v2-frames.json",
+    "bile_spitter-v1.png", "bile_spitter-v1-frames.json",
+    "prism_guard-v1.png", "prism_guard-v1-frames.json",
+    "rift_stalker-v1.png", "rift_stalker-v1-frames.json",
+    "shock_mantid-v2.png", "shock_mantid-v2-frames.json",
+    "null_regent-v2.png", "null_regent-v2-frames.json",
+    "service-alley-v1.png", "night-market-v1.png", "transit-concourse-v1.png",
+    "relay-canal-v1.png", "rooftop-relay-v1.png", "broadcast-plaza-v1.png",
+    "mac-city-art-v1.json", "mac-attacks-v4.png", "mac-attacks-v4-frames.json")}
 VIEWPORT_STYLE = """<style id="standalone-viewport-style">
 /* Fit the complete native backing image; runtime owners still control display. */
 .game-container {
@@ -338,15 +349,19 @@ def verify_texture_bank(output, files):
             "Unowned texture derivative or private generation receipt entered the package")
     require({name for name in files if name.startswith("assets/mac-street-review/")} == MAC_REVIEW_ASSETS,
             "The private Mac review must include exactly its eight registered runtime assets")
+    require(len(MAC_CITY_ASSETS) == 23 and
+            {name for name in files if name.startswith("assets/mac-city-review/")} == MAC_CITY_ASSETS,
+            "The private Mac city must include exactly its 23 registered runtime assets")
     originals = sorted([name, record["bytes"], record["sha256"]]
                        for name, record in files.items() if name.startswith("assets/")
-                       and name not in derivatives and name not in MAC_REVIEW_ASSETS)
+                       and name not in derivatives and name not in MAC_REVIEW_ASSETS and name not in MAC_CITY_ASSETS)
     require(len(originals) == 624 and sha(json.dumps(originals, separators=(",", ":")).encode("utf-8")) ==
             "0b2ac58dc88ddb68b595fb8592d242d8478c426d78309fe4ff45b88c04027f56",
             "Original 624 artwork/audio identities or bytes changed")
     return {"sources": 171, "compressedSources": 149, "originalSvgSources": 22,
             "derivativeCount": len(derivatives), "unchangedOriginalCount": len(originals),
             "macReviewAssetCount": len(MAC_REVIEW_ASSETS),
+            "macCityAssetCount": len(MAC_CITY_ASSETS),
             "gpuMipBytes": bank.get("allGpuMipBytes"), "runtimeAcceptance": "not established by packaging"}
 
 

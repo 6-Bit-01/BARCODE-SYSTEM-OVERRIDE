@@ -32,9 +32,22 @@ const originalAssetInventorySHA256 = '0b2ac58dc88ddb68b595fb8592d242d8478c426d78
 const macReviewRoot = 'assets/mac-street-review/';
 const macReviewAssets = new Set([
   'cache-walk-to-car-v6.png', 'mac-hero-v2.png', 'mac-poses-v3-frames.json', 'mac-poses-v3.png',
-  'scene03-kave-dead-air-v3.png', 'scene05-margin-note-v1.png',
+  'scene03-kave-dead-air-v5.png', 'scene05-margin-note-v1.png',
   'scene06-record-straight-v1.png', 'street-panorama-v1.png'
 ].map(name => macReviewRoot + name));
+const macCityRoot = 'assets/mac-city-review/';
+const macCityAssets = new Set([
+  'chitin_scuttler-v1.png', 'chitin_scuttler-v1-frames.json',
+  'psion_lancer-v2.png', 'psion_lancer-v2-frames.json',
+  'bile_spitter-v1.png', 'bile_spitter-v1-frames.json',
+  'prism_guard-v1.png', 'prism_guard-v1-frames.json',
+  'rift_stalker-v1.png', 'rift_stalker-v1-frames.json',
+  'shock_mantid-v2.png', 'shock_mantid-v2-frames.json',
+  'null_regent-v2.png', 'null_regent-v2-frames.json',
+  'service-alley-v1.png', 'night-market-v1.png', 'transit-concourse-v1.png',
+  'relay-canal-v1.png', 'rooftop-relay-v1.png', 'broadcast-plaza-v1.png',
+  'mac-city-art-v1.json', 'mac-attacks-v4.png', 'mac-attacks-v4-frames.json'
+].map(name => macCityRoot + name));
 const encoderCommit = '4d6fc70eaf62ad0558e63e8d97eb9766118327a6';
 const transcoderCommit = '9bebe16726b3a61c8c213eeee3b7cffb462ef34e';
 function textureManifest() {
@@ -138,7 +151,10 @@ function safeUInt64(data, offset) {
 function checkMacReviewAssets(scripts, index) {
   const files = owner.files;
   assert.deepEqual(Object.keys(files).filter(name => name.startsWith(macReviewRoot)).sort(), [...macReviewAssets].sort(),
-    'Mac review must contain the exact eight approved siblings, with no extra photos or review files');
+    'Mac review must contain the exact eight registered siblings, with no extra photos or review files');
+  assert.equal(macCityAssets.size, 23);
+  assert.deepEqual(Object.keys(files).filter(name => name.startsWith(macCityRoot)).sort(), [...macCityAssets].sort(),
+    'Mac city must contain exactly its 23 registered siblings, with no extra photos or generation receipts');
   const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const dimensions = {};
   for (const name of macReviewAssets) {
@@ -147,6 +163,14 @@ function checkMacReviewAssets(scripts, index) {
     assert(header(file, 8).equals(pngSignature), 'Mac art must retain native PNG bytes: ' + name);
     dimensions[name] = originalDimensions(file);
     assert(dimensions[name].every(value => Number.isSafeInteger(value) && value > 0), 'Invalid native Mac image dimensions');
+  }
+  for (const name of macCityAssets) {
+    const file = localFile(name);
+    if (name.endsWith('.png')) {
+      assert(header(file, 8).equals(pngSignature), 'Mac city art must retain native PNG bytes: ' + name);
+      dimensions[name] = originalDimensions(file);
+      assert(dimensions[name].every(value => Number.isSafeInteger(value) && value > 0), 'Invalid native city image dimensions');
+    } else JSON.parse(fs.readFileSync(file, 'utf8'));
   }
   const imageName = macReviewRoot + 'mac-poses-v3.png', sheet = JSON.parse(read(macReviewRoot + 'mac-poses-v3-frames.json'));
   assert.equal(sheet.schemaVersion, 1); assert.equal(sheet.sourceImage, imageName); assert.equal(sheet.facing, 'right');
@@ -187,7 +211,7 @@ function checkMacReviewAssets(scripts, index) {
   }
   assert.match(index, /MacCombatPreview\?\.requested\?\.\(\)/, 'The real title must read the private query gate');
   assert.match(index, /privatePreview:\s*['"]mac-firstslice['"]/, 'The private title route must enter through RuntimeLifecycle');
-  return {approvedSiblingAssets: macReviewAssets.size, nativePngDimensions: dimensions, registeredPoseCrops: 6, privateQueryGate: true, noCampaignRegistration: true};
+  return {registeredSiblingAssets: macReviewAssets.size, macCityAssetCount: macCityAssets.size, nativePngDimensions: dimensions, registeredPoseCrops: 6, privateQueryGate: true, noCampaignRegistration: true};
 }
 
 function rgbaMipBytes(width, height) {
@@ -278,10 +302,11 @@ async function checkRoadTextureBank() {
   assert.equal(bank.allGpuMipBytes, residentMipBytes + svgMipBytes);
   const assets = Object.keys(files).filter(name => name.startsWith('assets/')).sort();
   assert.deepEqual(assets.filter(name => name.startsWith(textureRoot)), [...derivatives].sort(), 'Only declared texture derivatives may be added');
-  assert.deepEqual(assets.filter(name => name.startsWith(macReviewRoot)), [...macReviewAssets].sort(), 'Only the exact approved Mac siblings may extend originals');
-  const originals = assets.filter(name => !derivatives.has(name) && !macReviewAssets.has(name));
+  assert.deepEqual(assets.filter(name => name.startsWith(macReviewRoot)), [...macReviewAssets].sort(), 'Only the exact registered Mac siblings may extend originals');
+  assert.deepEqual(assets.filter(name => name.startsWith(macCityRoot)), [...macCityAssets].sort(), 'Only the exact 23 Mac city siblings may extend originals');
+  const originals = assets.filter(name => !derivatives.has(name) && !macReviewAssets.has(name) && !macCityAssets.has(name));
   assert.equal(originals.length, originalAssetCount, 'All 624 original assets must remain present');
-  assert.equal(owner.canonicalAssetCount - derivatives.size - macReviewAssets.size, originalAssetCount);
+  assert.equal(owner.canonicalAssetCount - derivatives.size - macReviewAssets.size - macCityAssets.size, originalAssetCount);
   const originalRows = originals.map(name => [name, files[name].bytes, files[name].sha256]);
   assert.equal(crypto.createHash('sha256').update(JSON.stringify(originalRows)).digest('hex'), originalAssetInventorySHA256,
     'Original artwork, music, sprites or asset metadata changed');
@@ -318,7 +343,8 @@ async function checkRoadTextureBank() {
     assert.equal(entry.originalPath, catalog[key]?.path, 'Texture bank targets different production art: ' + key);
   }
   return { sources: 171, compressed: 149, originalSVG: 22, unchangedOriginalAssets: originals.length,
-    derivativeFiles: derivatives.size, compressedBytes, compressedMipBytes: residentMipBytes, svgMipBytes,
+    derivativeFiles: derivatives.size, macReviewAssetCount: macReviewAssets.size, macCityAssetCount: macCityAssets.size,
+    compressedBytes, compressedMipBytes: residentMipBytes, svgMipBytes,
     originalMipBytes, gpuMipBytes: residentMipBytes + svgMipBytes, originalAssetInventorySHA256,
     fullResolution: true, premultipliedUNORM: true, productionKeyAndPathCoverage: true, actualAssetHashes: true };
 }

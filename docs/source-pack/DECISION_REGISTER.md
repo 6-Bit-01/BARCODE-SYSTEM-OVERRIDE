@@ -1,10 +1,18 @@
 # Decision Register
 
-## October 5, 2026 — owner likeness and whole-pose corrections
+## October 5, 2026 — current owner correction: full Mac city and two Kave conversations
+
+The private chapter now targets six city districts, 12 waves and 29 alien humanoid foes plus a distinct final boss, with seven dedicated enemy art/animation kinds and green/purple blood. The eight intro scene IDs remain stable. **Two optional choices remain:** Kave's main opening question and the in-person studio conversation earned after the final city encounter. Only the extra 9 Bit reply menu is removed; Continue keeps both opening core facts without inventing an answer.
+
+The owner rejected Kave v3's open wall/room scale. Active v5 is a fully enclosed studio candidate with solid walls, visible ceiling, a closed door, small glazed window and ordinary person/desk/mic scale. Rejected v3 and the v4 framing pass, original artist references and exact generation provenance remain preserved. Kave v5 and Cache v6 await owner art review; Mac v2 remains approved. The final Cache car shot, protected original, scene indices and existing campaign/save/input/frame/audio owners are retained.
+
+The pure story reader's focused checks pass for both Kave conversations, all 19 intro core lines, reveal/advance, reconvergence, skip/reset and no host or campaign side effects. Full assembled-city integration, browser gameplay and physical-handset acceptance remain separate checks owned by the release task. This private preview grants no canonical Drums reward or campaign clear and is not published to production. See [the production guide](BROADCAST_SLUM_STORY_PRODUCTION.md), [story review](STORY_PRODUCTION_REVIEW.html) and [asset manifest](STORY_PRODUCTION_ASSETS.json). Earlier slice and artwork entries below are historical checkpoints.
+
+## Historical checkpoint — October 5, 2026: owner likeness and whole-pose corrections
 
 Latest owner corrections supersede the earlier selected artwork: no cowboy look for Kave; use his selected everyday artist/music-review reference and fuller rounded beard. Cache must carry the recording in front with both hands visible and walk coherently toward the car with head, shoulders, hips, knees and shoe toes following the same direction; replace the whole pose when direction differs. Cache v6 and Kave v3 are new private-review candidates, not owner-approved art. Keep the approved script and Mac hero v2, final car shot, scene indices and existing gameplay/save/audio owners. Preserve all rejected candidates and source references; committing and publication remain separate from this uncommitted correction.
 
-## October 5 — current owner direction: story approval and continuity
+## Historical checkpoint — October 5: initial street-slice direction
 
 - Approve the eight-scene Level 2-to-3 script and Mac v2 hero; continue the first street-brawler slice as a private playable review.
 - Use better Kave photographs from his own artist profile and performance video to guide his face and public clothing. New illustrated likeness remains subject to visual review.

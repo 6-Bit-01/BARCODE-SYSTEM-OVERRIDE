@@ -1,9 +1,10 @@
 # Broadcast Slum: story, scenes and production guide
 
-October 5, 2026. **Eight-scene transition script and Mac hero v2 approved by the owner.**
+October 5, 2026. **Owner-directed expansion: eight intro scenes, Kave's main opening choice, one optional earned studio conversation, and a full city chapter.**
 The published campaign still has its four-scene Level 2 ending and eight-scene Level 1-to-2 bridge; a separate private Mac preview is in development.
-The owner approves the eight-scene Level 2-to-3 script, including its two choices, and Mac's corrected v2 hero artwork. This does not establish gameplay acceptance, full Level 3 completion or publication of the new preview.
-Kave's likeness needs better references. Cache's cockpit v2 is not selected: the owner now requests a new walking-with-keys hero candidate immediately before the existing final car shot. Replace the current penultimate ignition illustration, retaining the bridge's eight panels and final page index. That v3 candidate awaits art review. Rejected v1 concepts remain historical records.
+The owner previously approved the eight-scene script with two opening choices and Mac's corrected v2 hero artwork. Their latest correction retains Kave's main opening question and removes only the extra fourth-wall reply menu; it does not remove dialogue choices altogether. Keep all eight stable scenes and core facts, plus the optional in-person studio conversation after the city endpoint is earned. The brief zero-opening-choice interpretation is superseded. Earlier approvals and retired 9 Bit replies remain recorded in the asset manifest and Git history.
+Kave's cowboy treatment and later v3 open street wall/room scale are rejected. His verified real-photo references are found; the new enclosed studio v5 remains an unapproved likeness/room candidate. Cache's cockpit v2 is not selected; rejected walking v3/v4/v5 candidates remain preserved and the v6 whole-pose candidate awaits art review. The penultimate hero replaces the old ignition image, retaining eight bridge panels and the existing final car shot.
+The expanded Level 3 requires at least six playable city zones, at least six new alien humanoid enemy types plus a distinct boss, new enemy artwork/animations, and green/purple blood. Runtime/enemy-art integration belongs to the parent task; this document does not establish gameplay acceptance, campaign completion or publication.
 The shipped Level 2 clear, Bass key and saves retain their existing behavior.
 
 ## Direction and authority
@@ -48,7 +49,7 @@ Scene 7 remains the existing Mac street-gate access setup, with Kave heard over 
 
 Each scene has a stable identity separate from its displayed position.
 The artwork contains no baked dialogue or critical UI labels; runtime layers supply readable text.
-The owner has approved the exact eight-scene transition writing below, including both choices. Retained dialogue is identified for continuity.
+The eight stable scenes retain the previously approved core writing. Kave's optional opening question remains; the fourth-wall address flows directly into the crew's response. Revised placement is reviewable writing, not new lore or gameplay acceptance.
 
 ### 1. ORIGINAL DELIVERED — `delivered`
 
@@ -73,7 +74,8 @@ Both lines are retained. The hold concerns distribution, not a rewritten clear o
 
 ### 3. KAVE'S DEAD AIR — `kave-dead-air`
 
-**Image/action:** Kave works at a Kaveman Radio music-review desk in the venue neighborhood.
+**Image/action:** Kave works at a Kaveman Radio music-review desk inside an enclosed broadcast studio in the neighborhood.
+Solid walls and visible intact ceiling, a full-height closed door and a small closed glazed window establish believable room scale. Desk, monitors, microphone and seated person have ordinary proportions. The wet street is visible only through the glass; there is no open storefront/serving hatch.
 The submission queue is full; local monitoring works while the outbound feed is held.
 This adapts his public artist/reviewer role into fiction, without asserting real venue ownership.
 Kave is artist/reviewer support, never an enforcement enemy or required access credential.
@@ -81,13 +83,11 @@ Kave is artist/reviewer support, never an enforcement enemy or required access c
 - **KAVE:** "The review queue's full. Nothing's reaching the listeners."
 - **CACHE BACK / COMMS:** "It got here whole. Somebody's keeping it here."
 
-**Choice `delivery-question`:** the player selects Cache's follow-up.
+- **KAVE:** "Artists waiting for a play. Listeners waiting for a voice."
+- **KAVE:** "The outbound feed. Local monitoring works; distribution doesn't."
+- **MAC MODEM / COMMS:** "Then we open it back up, piece by piece."
 
-- **"Who's waiting?"** → **KAVE:** "Artists waiting for a play. Listeners waiting for a voice."
-- **"What got blocked?"** → **KAVE:** "The outbound feed. Local monitoring works; distribution doesn't."
-
-**Common reconvergence — MAC MODEM / COMMS:** "Then we open it back up, piece by piece."
-Both answers express Cache's priorities; neither withholds the route or changes the chapter's result.
+**Optional opening choice — `delivery-question`:** "Who's waiting?" starts with the artists/listeners reply; "What got blocked?" starts with the local/outbound reply. Each answer then supplies the other core fact before Mac's same rejoin. Explicit Continue supplies both facts in the order above without inventing a selection. The original runtime option IDs `who-is-waiting` and `what-got-blocked` remain stable. This question sets the crew's focus without granting access, changing evidence or awarding progress.
 
 ### 4. THE HOLD IS LOCAL — `held`
 
@@ -112,12 +112,8 @@ This is a visible presentation prank; real speaker labels, controls, scores and 
 - **9 BIT:** "You. Outside the panel. Still think 'delivered' means 'heard'?"
 
 9 Bit addresses the player. His known identity is not treated as a new secret reveal.
-**Choice `frame-reply`:** the player may answer him directly.
-
-- **"I'm listening."** → **9 BIT:** "Then listen to what isn't there."
-- **"Let the crew work."** → **9 BIT:** "Fair. They know the streets. You know the frame."
-
-Both answers return to Scene 6. No trust meter, punitive branch or new completion requirement is proposed.
+There is no reply menu: the scene flows directly into the crew's evidence distinction in Scene 6.
+`frame-reply` and its two replies remain retired history; no random or hidden default is selected.
 
 ### 6. KEEP THE RECORD STRAIGHT — `record-straight`
 
@@ -155,11 +151,11 @@ Preserve his ginger beard, two side braids, MODEM cap, face markings and burgund
 
 6 Bit's sendoff is retained from the old fourth scene. Mac's reply and the v2 hero illustration are owner-approved.
 The image is a distinct physical commitment pose, not a copy of 6 Bit's posture with a different head.
-The private `index.html?preview=mac-firstslice` entry now uses this transition before Mac’s first street encounter. The published ending/results and full campaign Level 3 entry remain unchanged.
+The private `index.html?preview=mac-firstslice` entry uses this transition; the parent task is expanding its short encounter into the city chapter. The published ending/results and campaign entry are separate. The story reader awards no Drums, lore or full campaign clear.
 
 ## Cache Back's penultimate hero scene and preserved finale
 
-The owner supersedes the cockpit-final proposal with a new hero panel: Cache walks toward the current yellow car with his keys, looking ready for the mission. Use his supplied model and established dress, with a distinct confident walking pose. The new v4 walking candidate is installed in the private preview for visual review; its superseded v3 remains preserved.
+The owner supersedes the cockpit-final proposal with a new hero panel: Cache walks toward the current yellow car with his keys, looking ready for the mission. Use his supplied model and established dress, with a distinct confident walking pose. The v6 whole-pose candidate is installed for private art review; rejected v3/v4/v5 and cockpit candidates remain preserved.
 
 Keep eight panels: revise zero-based page 6, retaining the legacy `ignition` identity for resume compatibility, to display **KEYS TO THE LINE** and Cache walking toward the car. Its planned lines are:
 
@@ -180,7 +176,8 @@ Keep the keys in a physically plausible hand, track the original cassette's cust
 - Check each character against supplied identity references: face, build, markings, cap/insignia, beard/braids, glasses/mask, collar and costume stay consistent across camera changes. Mac uses the approved v2 model; Kave's final likeness remains open.
 - Keep the yellow car's front/rear orientation, door and driver side, wheels, reels, emblem and street direction consistent. Never mirror an illustration simply to solve a composition.
 - Track the original cassette, cleaned copy, keys, radio, cables and gate connector from one panel to the next. Record who holds each prop and where it rests; props cannot teleport between hands, vehicle, studio and receiver.
-- Maintain scene geography: Cache at the receiver, DJ/studio crew connected over comms, Mac at street access and Kave at the neighborhood review desk. A cut or inset must explain a new viewpoint without moving a remote speaker into the scene.
+- Maintain scene geography: Cache at the receiver, DJ/studio crew connected over comms, Mac at street access and Kave inside his enclosed broadcast studio. The endpoint conversation places Mac in that studio only after the city route is earned. A cut or inset must explain a new viewpoint without moving a remote speaker into the scene.
+- Kave's room has continuous solid walls/ceiling, a normal closed full-height door and small closed glass window; the seated human, desk, chair, monitors and mic remain proportionate. Keep ordinary perspective and physical support/contact for every prop.
 - Match practical lights, screen glow, time of day, shadows and camera eyelines. New angles must preserve character scale, physical anatomy, equipment contacts and the direction of travel.
 - Review every panel beside its predecessor and successor, including portrait crops. Confirm that added labels are authored overlays and that loading, ignition, approach and departure follow a deliberate timeline.
 
@@ -188,15 +185,20 @@ Keep the keys in a physically plausible hand, track the original cassette's cust
 
 Only Mac is playable in this solo chapter; the other three original crew members remain connected support voices.
 The accepted genre is the redesigned street brawler, not the rejected run-and-gun technical preview.
-The encounters, section titles and exact dialogue below are proposals for a new design.
+The owner now requires at least six city zones and six new alien humanoid enemy types plus a distinct boss.
+The section titles below are production proposals; the parent runtime/art task owns the final route, enemy designs and animation implementation.
 
 | Section | Playable action | Story evidence and consequence |
 | --- | --- | --- |
 | Access frontage | Mac breaks the first enforcement formation and physically opens the approach. | Cache's delivery is valid; local enforcement is preventing it from being heard. |
-| Venue neighborhood / review desk | Mac protects the distribution equipment and restores the desk's outbound feed. | Submissions finally reach listeners; this normal authored route gate follows Mac's physical work, not Kave's approval or a guest credential. |
 | Relay market | Work through varied street groups and access countermeasures between fights. | Obtain the enforcement order; optionally inspect service/testimony details without requiring a cameo task. |
-| Distribution checkpoint | Defeat an original fictional enforcement encounter and dismantle its control apparatus. | The street channel opens. Boss identity, moves and phases need their own authored gameplay design. |
-| Distribution log | Mac opens and preserves the actual recovered log. | Partition 09 and a damaged separation record routed to an arena feed lead to DJ's Level 4. |
+| Distribution lanes | Break a new alien enforcement group controlling the local route. | The hold is distributed across the city; two early fights do not reopen the entire feed. |
+| Transfer yard | Reach and preserve the relay equipment after a distinct enemy encounter. | Maintain the original recording and compare the operational hold with local monitoring. |
+| Enforcement checkpoint | Clear a later formation and dismantle its route control. | Establish physical access to the final outbound blockade without guest approval or credentials. |
+| Outbound blockade | Fight the distinct alien humanoid boss and release the last city hold. | Only this earned endpoint permits Mac's in-person return to the enclosed Kave studio. |
+
+Use new enemy silhouettes and alien anatomy, not recycled ordinary human guards or community cameos as enemies. At least six types plus the boss need authored movement/attack/hit/death animations and readable attack tells. Their blood is green or purple; Kave and the community remain support characters. The asset agent supplies new enemy art; none of these production requirements is proof that the art or encounters are complete.
+After the city endpoint, Kave's studio conversation confirms that the outbound play reaches listeners. The eventual earned distribution log must show Partition 09 and the damaged arena destination in a linear inspection; it does not introduce another question menu.
 
 Drums follows the actual authored Level 3 clear under the campaign owner, never reading a panel or picking an answer.
 No art card, prototype enemy or visible log alone can stand in for completion of the new stage.
@@ -208,7 +210,7 @@ Supporting characters get individual scene purposes, references and credits befo
 
 | Presence | Level 3 placement | Level 5 return / Level 6 payoff |
 | --- | --- | --- |
-| Kave | Bridge music-review/radio desk; outbound-feed restoration and safe post-fight conversation. | Artist/reviewer community presence in the recovered competition; queue and feed testimony can corroborate the distribution hold. |
+| Kave | Enclosed broadcast-studio bridge cameo; outbound-feed restoration and optional in-person conversation only after the earned six-zone/boss city endpoint. | Artist/reviewer community presence in the recovered competition; queue and feed testimony can corroborate the distribution hold. |
 | Dr3wBaby | Optional service/workshop callback to Cache's route, using an authored repair item or delivery-case marker. | Recovery/venue role; later service records can corroborate the authentic recording's physical journey. |
 | WittyF0x | Optional quiet routing observation after a fight; no timed call or route dependency. | A specific competition discrepancy; present testimony compared with other records rather than accepted alone. |
 | Cliff | Reuse a maintenance note/marked device where useful, without forcing another identifiable portrait. | His established maintenance detail becomes independently checkable in the control-system investigation. |
@@ -222,15 +224,18 @@ Excluded Mind Fanatic, Emerald, Crowline, W3T TDDY, Brownout, real-name substitu
 Guests are not villains, kill targets, humiliating jokes, Corporate Satan captives or collectible creatures.
 Sheila remains silhouette-only; her use of the four as mindless husks is not a friendly trainer choice.
 
+Current authored district IDs are `service-alley`, `night-market`, `transit-concourse`, `relay-canal`, `rooftop-relay` and `broadcast-plaza`: **12 waves, 29 alien foes plus a distinct final boss**. Seven new enemy kinds have dedicated art/animation registrations; backgrounds and Mac attack art are assembled separately. These are private chapter implementation targets, not completed owner playtest or a canonical Drums award.
+
 ## Dialogue agency that earns its space
 
-The two bridge choices change what the player asks and how characters respond, then reconverge.
-During Level 3, put conversations in safe areas after the fight, with explicit conversation entry/exit.
-At Kave's review desk, propose **"Ask about the people"** versus **"Ask about the order"**:
+There are **two optional choices total**: Kave's main opening `delivery-question` and `desk-question` inside his studio after the full city endpoint is earned. The 9 Bit moment has no extra reply menu.
+Offer **"Ask about the people"** versus **"Ask about the order"**:
 one reveals local impact, the other provides extra enforcement testimony; both preserve the common objective.
 Mac's responses should show his concern or practical focus, not a cosmetic yes/no prompt with identical replies.
-At the log, propose **"Compare the original"** versus **"Trace the arena route"** as inspection order,
-then show both mandatory findings before the handoff. Neither route chooses to delete evidence.
+Explicit Continue bypasses the optional question and shows the same local-monitoring/outbound-feed confirmation, without inventing a selection.
+The common final line is **MAC MODEM:** "The street hold's broken. Keep both records safe."
+The story reader exposes `entryRequirement: city-chapter-endpoint`; the parent gameplay owner must gate its creation. Reading or skipping it cannot satisfy that requirement.
+The log presents both mandatory findings linearly; there is no second inspection choice or option to delete evidence.
 Do not force a menu mid-combat, add a moral score, or turn guest approval into an access gate.
 Later consequential campaign choices remain open for separate authored review; these local choices do not settle them.
 
@@ -246,7 +251,7 @@ Later consequential campaign choices remain open for separate authored review; t
 | Level 6/7 | Familiar frame-peel gesture becomes legible alongside independently checked records. | His claims, concrete harms and eventual motive are tested; exact confrontation and resolution stay open. |
 
 Keep authored occurrences sparse and state-specific, with a static reduced-effects alternative.
-No fake crash, OS/account access, corrupted-save scare, hidden binding change or suppressed real danger cue.
+No fake crash, OS/account access, corrupted-save scare, hidden binding change or suppressed real danger cue. Intro Scene 5 retains the player address without demanding a reply.
 Any future saved-title dodge follows the active one-dodge input contract; it is not implemented by this document.
 
 ## Mandatory understanding and optional records
@@ -292,7 +297,7 @@ Map title/line cues by meaning: the old fourth-scene Mac line remains in `street
 its old 6 Bit second line moves to `get-it-heard`. Do not resume that cue as Kave's new line.
 Preserve completed `done` state and all delivery/key/clear facts; no forced re-clear or replay of unchosen branches.
 The eight-panel Cache bridge keeps page 6's `ignition` compatibility identity while changing its display title, illustration and authored Cache line. The `cache-line` bridge ID, page index 7, existing final image and final cues remain stable; no final-page renumbering is needed.
-New optional choice IDs are `delivery-question` and `frame-reply`; missing old-save fields mean no answer yet.
+Current optional choice IDs are `delivery-question` and `desk-question`. Only `frame-reply` is retired presentation state; missing fields never force a new answer or retroactive scene. Continue preserves the common route without recording an invented choice.
 Validate migration/resume, explicit skip, both replies and replay separately when implementation begins.
 
 ## Production handoff
@@ -302,12 +307,11 @@ Use the linked asset manifest to verify available model references before reques
 inspected public images and artist/music-review basis: [official reference hub](https://linktr.ee/kavemanbrown),
 [own YouTube channel](https://www.youtube.com/@KaveManBrown) and
 [Kaveman Radio playlist](https://open.spotify.com/playlist/6fGMpNWTr1oGVt6DHh8viH).
-The owner-requested clearer references are found: a 600-pixel Slaps face and actual own-video frame at 00:30, with the 900-pixel channel profile as a third angle.
-The wide-brim performance costume and resulting illustrated likeness still need art review before accepting the desk illustration;
-the fictional review desk, submission queue and neighborhood setting do not imply real venue ownership.
+The owner-requested clearer references are found: sharp 990-pixel Linktree selfie, current frontal TikTok and supplementary angles, exact own Instagram no-hat poster/clothing frame and a 1080-pixel duplicate-angle SoundCloud portrait. Ten unchanged reference files retain provenance; caps and duet/background people do not define the cameo.
+The cowboy treatment and later v3 open-wall/scale are rejected. New enclosed studio v5 keeps no hat, cropped fade, full rounded beard, casual black hood-down top and geometric pendant; its face and room remain pending owner review. The first enclosed-room v4 is preserved as a framing pass. The fictional studio does not imply real venue ownership.
 Mac and Cache use their established supplied models; obtain extra pose angles only if current references cannot support the shot.
 Record each art card's scene/asset ID, source references, size, safe text space, crop, status and credit.
 Keep new hero images as versioned siblings; preserve original illustration bytes until a reviewed integration selects replacements.
 Compare Cache's new approach candidate and the approved Mac v2 with 6 Bit's existing image; review each full transition as a sequence.
 Script review, reference collection, image generation, runtime integration and publication are distinct production states.
-The rejected v1 concepts and all v2 prompts, reference orders and hashes remain documented in review-level3-story/generation-provenance.json. Mac v2 is approved artwork; Cache cockpit v2 is preserved but not selected. Cache's walking-with-keys v3 artwork and the improved-reference Kave likeness remain pending owner review. The eight-scene script and two bridge choices are approved; the separate private reader is implemented, while gameplay acceptance, full chapter integration and publication are distinct work.
+The rejected v1 concepts and v2 prompts/reference orders/hashes remain in review-level3-story/generation-provenance.json. Mac v2 is approved artwork; Cache cockpit v2 and rejected walking candidates remain historical. Cache v6 and enclosed Kave studio v5 remain unaccepted art candidates. Exact studio v4/v5 prompts, sources and hashes are in review-mac-street-art/studio-correction-provenance.json. The private reader implements the restored Kave opening choice and earned studio choice; expanded gameplay, owner playtest, full campaign integration and publication remain separate states.

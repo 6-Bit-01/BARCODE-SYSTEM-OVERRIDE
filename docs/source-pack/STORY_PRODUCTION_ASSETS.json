@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "auditBase": "d2e3776d6aebbf911b41b9e86b56b769e970e8d1",
-  "status": "owner-approved-script-private-first-slice-implemented-review-pending",
+  "status": "owner-directed-city-chapter-and-two-optional-kave-conversations-in-progress",
   "acceptedForRuntime": false,
-  "scope": "Approved Level 2-to-3 eight-scene script and Mac v2 hero artwork; owner-directed replacement of the penultimate Cache bridge panel with a walking-with-keys hero, retaining eight panels and the final car shot; private preview production dependencies.",
+  "scope": "Eight stable Level 2-to-3 intro scenes with Kave main opening question; one optional earned endpoint studio conversation. No 9 Bit reply menu. Enclosed studio v5 candidate pending owner review; six-zone city chapter/new alien enemies and animations await root integration validation.",
   "auditScope": [
     "Current source repository assets and documentation",
     "Project-root media/reference working directories searched for named supplied models",
@@ -56,7 +56,7 @@
       "dependencyIds": [],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "owner-approved-eight-scene-script",
+      "dialogueStatus": "owner-corrected-two-kave-choices-core-lines-retained-private-review",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -91,13 +91,10 @@
         "bytes": 508898,
         "integrationStatus": "private-preview-implemented"
       },
-      "dependencyIds": [
-        "dialogue-choice-presentation",
-        "choice-response-callback"
-      ],
+      "dependencyIds": [],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "owner-approved-eight-scene-script",
+      "dialogueStatus": "owner-corrected-two-kave-choices-core-lines-retained-private-review",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -107,7 +104,7 @@
       "id": "cutscene.cache-ending.kave-dead-air",
       "order": 3,
       "title": "KAVE'S DEAD AIR",
-      "purpose": "Kaveman Radio review desk has a waiting submission queue and held outbound feed.",
+      "purpose": "Kave is inside an enclosed ordinary-scale broadcast studio; the main opening question prioritizes artists/listeners or the local/outbound distinction, then both core facts rejoin Mac.",
       "mandatoryFact": "The distribution hold prevents original artists from reaching listeners; local monitoring still works.",
       "cast": [
         "Kave",
@@ -119,19 +116,19 @@
       ],
       "existingPainting": null,
       "productionArt": {
-        "status": "corrected-no-hat-v3-installed-private-art-review",
-        "path": "assets/mac-street-review/scene03-kave-dead-air-v3.png",
-        "sha256": "babff824674c90b76fb08a0bfe3cfb5720bc314d1dd391fbc4e5ba84dea7b738",
-        "runtimePath": "assets/mac-street-review/scene03-kave-dead-air-v3.png",
-        "acceptedForRuntime": false,
-        "bytes": 2516405,
+        "status": "enclosed-studio-v5-private-candidate-owner-review-pending",
+        "path": "assets/mac-street-review/scene03-kave-dead-air-v5.png",
+        "runtimePath": "assets/mac-street-review/scene03-kave-dead-air-v5.png",
+        "sha256": "df4423bee517088f6f8f17f9bebf4db812d970aaff99e89c8c1799a97b5633f7",
+        "bytes": 2246609,
         "dimensions": {
           "width": 1860,
           "height": 845,
           "format": "PNG"
         },
-        "integrationStatus": "private-preview-implemented",
-        "generationProvenance": "docs/source-pack/review-mac-street-art/owner-corrections-provenance.json"
+        "acceptedForRuntime": false,
+        "integrationStatus": "pure-reader-path-ready-root-wrapper-build-integration-pending",
+        "generationProvenance": "docs/source-pack/review-mac-street-art/studio-correction-provenance.json"
       },
       "dependencyIds": [
         "kave-venue-scene",
@@ -139,7 +136,7 @@
       ],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "owner-approved-eight-scene-script",
+      "dialogueStatus": "owner-corrected-two-kave-choices-core-lines-retained-private-review",
       "choiceIds": [
         "delivery-question"
       ],
@@ -154,8 +151,42 @@
         {
           "speaker": "CACHE BACK / COMMS",
           "text": "It got here whole. Somebody's keeping it here."
+        },
+        {
+          "speaker": "KAVE",
+          "text": "Artists waiting for a play. Listeners waiting for a voice."
+        },
+        {
+          "speaker": "KAVE",
+          "text": "The outbound feed. Local monitoring works; distribution doesn't."
+        },
+        {
+          "speaker": "MAC MODEM / COMMS",
+          "text": "Then we open it back up, piece by piece."
         }
-      ]
+      ],
+      "historicalProductionArt": [
+        {
+          "status": "owner-rejected-open-wall-room-and-scale",
+          "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v3.png",
+          "sha256": "babff824674c90b76fb08a0bfe3cfb5720bc314d1dd391fbc4e5ba84dea7b738",
+          "acceptedForRuntime": false,
+          "bytes": 2516405,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG"
+          },
+          "integrationStatus": "private-preview-implemented",
+          "generationProvenance": "docs/source-pack/review-mac-street-art/owner-corrections-provenance.json",
+          "retiredReason": "Owner rejected open wall/room scale; previous likeness remained unaccepted.",
+          "previousRuntimePath": "assets/mac-street-review/scene03-kave-dead-air-v3.png",
+          "runtimeInstalled": false
+        }
+      ],
+      "artLocation": "enclosed-broadcast-studio",
+      "artTime": "present",
+      "dialogueContext": "studio-and-live-comms"
     },
     {
       "id": "cutscene.cache-ending.held",
@@ -190,7 +221,7 @@
       "dependencyIds": [],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "owner-approved-eight-scene-script",
+      "dialogueStatus": "owner-corrected-two-kave-choices-core-lines-retained-private-review",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -232,16 +263,12 @@
       },
       "dependencyIds": [
         "nine-panel-hand",
-        "nine-annotation-cue",
-        "dialogue-choice-presentation",
-        "choice-response-callback"
+        "nine-annotation-cue"
       ],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "owner-approved-eight-scene-script",
-      "choiceIds": [
-        "frame-reply"
-      ],
+      "dialogueStatus": "owner-corrected-two-kave-choices-core-lines-retained-private-review",
+      "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
       "slug": "margin-note"
@@ -279,7 +306,7 @@
       "dependencyIds": [],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "owner-approved-eight-scene-script",
+      "dialogueStatus": "owner-corrected-two-kave-choices-core-lines-retained-private-review",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -316,7 +343,7 @@
       "dependencyIds": [],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "owner-approved-eight-scene-script",
+      "dialogueStatus": "owner-corrected-two-kave-choices-core-lines-retained-private-review",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -368,7 +395,7 @@
       ],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "owner-approved-eight-scene-script",
+      "dialogueStatus": "owner-corrected-two-kave-choices-core-lines-retained-private-review",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -801,17 +828,14 @@
     {
       "name": "Kave",
       "inclusionStatus": "included",
-      "chapterRole": "Level 3 Kaveman Radio music-review desk in the venue neighborhood, with planned Level 5 artist/reviewer return and optional Level 6 queue/feed testimony",
+      "chapterRole": "Level 3 Kaveman Radio music-review desk inside an enclosed broadcast studio; one optional in-person conversation after the six-zone city endpoint, with planned Level 5 artist/reviewer return and optional Level 6 queue/feed testimony",
       "sceneIds": [
         "cutscene.cache-ending.kave-dead-air",
         "cutscene.cache-ending.street-access"
       ],
-      "referenceIds": [
-        "kave-slaps-frontal-600",
-        "kave-succubus-30s-frame"
-      ],
-      "likenessReferencePath": "docs/source-pack/review-level3-story/references/kave-slaps-frontal-600.jpg",
-      "referenceStatus": "verified-first-party-chain-improved-frontal-and-performance-inputs-preserved; final-illustrated-likeness-not-selected",
+      "referenceIds": [],
+      "likenessReferencePath": "docs/source-pack/review-kave-likeness/references/kave-linktree-selfie-990.jpg",
+      "referenceStatus": "verified-first-party-no-hat-face-inputs-and-ten-native-or-decoded-files-preserved; enclosed-studio-v5-likeness-pending-owner-review",
       "photoGap": [
         "Approve the improved-reference illustrated likeness and final costume",
         "Final review-desk/sign/props and contribution credit",
@@ -830,7 +854,20 @@
         "https://www.youtube.com/watch?v=ibt4QBgZyoU",
         "https://www.youtube.com/watch?v=NbZXzh3Ex4U",
         "https://slaps.com/user/KaveManBrown"
-      ]
+      ],
+      "historicalReferenceIds": [
+        "kave-slaps-frontal-600",
+        "kave-succubus-30s-frame"
+      ],
+      "historicalLikenessReferencePath": "docs/source-pack/review-level3-story/references/kave-slaps-frontal-600.jpg",
+      "currentReferenceManifest": "docs/source-pack/review-kave-likeness/references/reference-provenance.json",
+      "currentReferencePaths": [
+        "docs/source-pack/review-kave-likeness/references/kave-linktree-selfie-990.jpg",
+        "docs/source-pack/review-kave-likeness/references/kave-instagram-nohat-two-panel-361.jpg",
+        "docs/source-pack/review-kave-likeness/references/kave-7688807440946580749-decoded.png",
+        "docs/source-pack/review-kave-likeness/references/kave-soundcloud-face-1080.jpg"
+      ],
+      "referenceExclusions": "No cowboy hat. Caps or raised hoods in real photos are excluded from the illustrated costume; duet/background people are not Kave references."
     },
     {
       "name": "Studio Cats",
@@ -950,30 +987,15 @@
       "id": "dialogue-choice-presentation",
       "sceneIds": [
         "cutscene.cache-ending.kave-dead-air",
-        "cutscene.cache-ending.margin-note"
+        "review-desk"
       ],
-      "status": "private-reader-and-reconverging-responses-implemented",
-      "purpose": "A direct readable between-action choice, followed by a concrete crew reply.",
-      "runtimeRule": "Choice changes response/acknowledgment and a planned later callback; either response preserves the mandatory blockade objective. No combat menu or input automation.",
       "choiceIds": [
         "delivery-question",
-        "frame-reply"
+        "desk-question"
       ],
-      "futureCampaignCallback": "not-implemented-in-temporary-preview"
-    },
-    {
-      "id": "choice-response-callback",
-      "sceneIds": [
-        "cutscene.cache-ending.kave-dead-air",
-        "cutscene.cache-ending.margin-note"
-      ],
-      "status": "private-reader-and-reconverging-responses-implemented",
-      "purpose": "Track setup, chosen reply and later return/payoff for stable choices delivery-question and frame-reply; define truthful resume/replay behavior.",
-      "choiceIds": [
-        "delivery-question",
-        "frame-reply"
-      ],
-      "futureCampaignCallback": "not-implemented-in-temporary-preview"
+      "status": "pure-reader-implemented-root-endpoint-gating-integration-pending",
+      "purpose": "One main optional Kave opening choice and one optional conversation after the earned six-zone city endpoint; no fourth-wall reply menu.",
+      "runtimeRule": "Explicit Continue bypass; selecting press consumed; no deadline, save write, completion or Drums award."
     }
   ],
   "deliveryRules": [
@@ -1007,7 +1029,7 @@
     {
       "id": "delivery-question",
       "sceneId": "cutscene.cache-ending.kave-dead-air",
-      "status": "owner-approved-eight-scene-script",
+      "status": "restored-by-owner-main-opening-choice-retained",
       "choiceType": "crew-question",
       "optionIds": [
         "people",
@@ -1028,45 +1050,68 @@
         }
       ],
       "reconverge": {
-        "speaker": "MAC MODEM",
+        "speaker": "MAC MODEM / COMMS",
         "line": "Then we open it back up, piece by piece.",
         "nextSceneId": "cutscene.cache-ending.held"
       },
       "progressionEffect": "none",
       "contributor": null,
-      "credit": null
+      "credit": null,
+      "optional": true,
+      "runtimeOptionIds": [
+        "who-is-waiting",
+        "what-got-blocked"
+      ],
+      "routeRule": "Question focus determines which Kave core fact comes first; both artist/listener and local/outbound facts precede the same Mac rejoin. Continue delivers both facts without recording an answer."
     },
     {
-      "id": "frame-reply",
-      "sceneId": "cutscene.cache-ending.margin-note",
-      "status": "owner-approved-eight-scene-script",
-      "choiceType": "player-addresses-nine-bit",
-      "optionIds": [
-        "listening",
-        "crew"
-      ],
+      "id": "desk-question",
+      "sceneId": "review-desk",
+      "status": "owner-directed-single-optional-endpoint-choice",
+      "optional": true,
+      "entryRequirement": "city-chapter-endpoint",
+      "choiceType": "safe-in-person-studio-question",
       "exactOptions": [
         {
-          "id": "listening",
-          "label": "I'm listening.",
-          "speaker": "9 BIT",
-          "reply": "Then listen to what isn't there."
+          "id": "ask-people",
+          "label": "Ask about the people",
+          "lines": [
+            {
+              "speaker": "KAVE",
+              "text": "Artists could hear their own work in here. They were waiting for everyone else to hear it."
+            },
+            {
+              "speaker": "MAC MODEM",
+              "text": "Then keep them moving. Nobody gets buried in the queue."
+            }
+          ]
         },
         {
-          "id": "crew",
-          "label": "Let the crew work.",
-          "speaker": "9 BIT",
-          "reply": "Fair. They know the streets. You know the frame."
+          "id": "ask-order",
+          "label": "Ask about the order",
+          "lines": [
+            {
+              "speaker": "KAVE",
+              "text": "The receiver accepted it. The hold was on the line out. That tells us where it happened, not who ordered it."
+            },
+            {
+              "speaker": "MAC MODEM",
+              "text": "Good. Keep the local record. We'll compare what survived."
+            }
+          ]
         }
       ],
-      "reconverge": {
-        "speaker": "CACHE BACK",
-        "line": "That wasn't on the tape.",
-        "nextSceneId": "cutscene.cache-ending.record-straight"
-      },
-      "progressionEffect": "none",
-      "contributor": null,
-      "credit": null
+      "reconverge": [
+        {
+          "speaker": "KAVE",
+          "text": "Local monitoring stayed live. Now the outbound feed's open too."
+        },
+        {
+          "speaker": "MAC MODEM",
+          "text": "The street hold's broken. Keep both records safe."
+        }
+      ],
+      "progressionEffect": "none; Continue bypasses without selecting; campaign owner gates entry and awards separately"
     }
   ],
   "legacyCueMigration": [
@@ -1093,7 +1138,7 @@
     "officialHub": "https://linktr.ee/kavemanbrown",
     "officialChannel": "https://www.youtube.com/@KaveManBrown",
     "performanceVideo": "https://www.youtube.com/watch?v=ibt4QBgZyoU",
-    "recommendedLook": "Owner-directed everyday artist/music-review look: no hat, cropped fade, fuller rounded lower beard, black casual short-sleeved hoodie with hood down and geometric pendant. Selected current references are preserved locally; likeness approval remains pending.",
+    "recommendedLook": "Owner-directed everyday artist/music-review look: no hat, cropped fade, fuller rounded lower beard, black casual short-sleeved hoodie with hood down and geometric pendant. Selected current references are preserved locally; likeness approval remains pending. Enclosed ordinary-scale indoor studio with solid walls, intact ceiling, full-height closed door and small closed glazed window; desk and microphone proportional to the seated person.",
     "cameoProposal": "Kaveman Radio music-review host with a held outbound feed",
     "finalIllustratedModelSelected": false,
     "productionInputs": [
@@ -1183,22 +1228,26 @@
         "captureMethod": "Unresized cropped browser screenshot of the paused visible player",
         "use": "Performance hat, dark costume, jewellery and natural hands"
       }
-    ]
+    ],
+    "currentStudioGenerationProvenance": "docs/source-pack/review-mac-street-art/studio-correction-provenance.json"
   },
   "ownerAcceptance": {
     "date": "2026-10-05",
-    "eightSceneTransitionScript": "approved-including-two-reconverging-choices",
+    "eightSceneTransitionScript": "eight stable scenes/core lines retained; latest owner correction restores main Kave opening choice and retains optional earned studio choice, removing only extra fourth-wall reply menu",
     "macHeroV2": "owner-approved-artwork",
     "cacheHeroV2": "not-selected-preserved-historical-candidate",
     "cacheWalkingHeroV3": "superseded-stride-candidate-preserved-in-provenance",
-    "kaveLikeness": "no-hat-casual-v3-with-rounded-beard-pending-owner-likeness-review",
+    "kaveLikeness": "enclosed-no-hat-studio-v5-pending-owner-likeness-and-room-review",
     "privatePreviewImplementation": "implemented-validation-and-owner-playtest-pending",
-    "gameplayAcceptance": "pending-owner-playtest",
-    "fullLevel3CampaignIntegration": "future-work",
+    "gameplayAcceptance": "pending-owner-playtest-expanded-city-chapter",
+    "fullLevel3CampaignIntegration": "city-chapter-private-preview-expansion-in-progress; campaign awards remain root-owned",
     "newPreviewPublished": false,
     "cacheWalkingHeroV4": "owner-rejected-arm-placement-preserved-as-history",
     "cacheWalkingHeroV5": "owner-rejected-body-foot-direction-preserved-as-history",
-    "cacheWalkingHeroV6": "whole-pose-candidate-pending-owner-art-review"
+    "cacheWalkingHeroV6": "whole-pose-candidate-pending-owner-art-review",
+    "previousEightSceneScriptApproval": "approved-including-two-reconverging-choices",
+    "kaveStudioV3": "owner-rejected-open-wall-and-size-preserved-as-history",
+    "supersededZeroOpeningChoiceInterpretation": "not owner-approved; corrected to two total Kave choices"
   },
   "cacheBridgePlan": {
     "currentPublishedSceneCount": 8,
@@ -1235,15 +1284,16 @@
     "Track cassette original, cleaned copy, keys, radio, cables and connector by owner and location; scene props cannot teleport.",
     "Keep receiver, studio, street gate and review desk geography distinct; comms do not relocate characters.",
     "Preserve practical lighting, time of day, eyelines, anatomy and contact geometry across new angles and portrait crops.",
-    "Replace the existing ignition beat with Cache walking toward the car; retain eight bridge panels, page-6 compatibility identity and the current final art/cues at page index 7."
+    "Replace the existing ignition beat with Cache walking toward the car; retain eight bridge panels, page-6 compatibility identity and the current final art/cues at page index 7.",
+    "Kave studio has continuous enclosed walls/ceiling, normal full-height door, small closed glass window, human-scale desk/monitors/mic; scene architecture and prop contacts remain consistent."
   ],
   "runtimeInstalledPrivatePreview": true,
   "productionPublished": false,
   "privatePreview": {
     "entry": "index.html?preview=mac-firstslice",
-    "phase": "first-street-slice",
-    "story": "eight approved scenes; two reconverging choices; optional safe post-fight desk conversation",
-    "combat": "two arenas; three enemies; combos, fresh guard/counter, contextual nearby throw, two-axis walk and jump",
+    "phase": "expanded-city-chapter-in-development",
+    "story": "eight stable intro scenes with optional delivery-question; one optional in-person desk-question after earned full city endpoint; no frame-reply",
+    "combat": "Current authored target: six playable city districts, 12 waves, 29 alien humanoid foes plus distinct final boss, seven new enemy art/animation kinds and green/purple blood. Root assembled runtime/browser validation pending.",
     "saveWrites": 0,
     "awardDrums": false,
     "unlocksFullLevel3": false,
@@ -1255,6 +1305,83 @@
     ],
     "provenance": "docs/source-pack/review-mac-street-art/generation-provenance.json",
     "poseRegistration": "assets/mac-street-review/mac-poses-v3-frames.json",
-    "artCorrectionProvenance": "docs/source-pack/review-mac-street-art/owner-corrections-provenance.json"
+    "artCorrectionProvenance": "docs/source-pack/review-mac-street-art/owner-corrections-provenance.json",
+    "previousFirstSliceCombat": "two arenas; three enemies; combos, fresh guard/counter, contextual nearby throw, two-axis walk and jump",
+    "studioCorrectionProvenance": "docs/source-pack/review-mac-street-art/studio-correction-provenance.json"
+  },
+  "retiredTransitionChoices": [
+    {
+      "id": "frame-reply",
+      "sceneId": "cutscene.cache-ending.margin-note",
+      "status": "previously-approved-retired-by-owner-too-many-choices-correction",
+      "choiceType": "player-addresses-nine-bit",
+      "optionIds": [
+        "listening",
+        "crew"
+      ],
+      "exactOptions": [
+        {
+          "id": "listening",
+          "label": "I'm listening.",
+          "speaker": "9 BIT",
+          "reply": "Then listen to what isn't there."
+        },
+        {
+          "id": "crew",
+          "label": "Let the crew work.",
+          "speaker": "9 BIT",
+          "reply": "Fair. They know the streets. You know the frame."
+        }
+      ],
+      "reconverge": {
+        "speaker": "CACHE BACK",
+        "line": "That wasn't on the tape.",
+        "nextSceneId": "cutscene.cache-ending.record-straight"
+      },
+      "progressionEffect": "none",
+      "contributor": null,
+      "credit": null
+    }
+  ],
+  "chapterProductionRequirements": {
+    "minimumPlayableZones": 6,
+    "minimumNewAlienHumanoidEnemies": 6,
+    "distinctBossRequired": true,
+    "bloodColors": [
+      "green",
+      "purple"
+    ],
+    "newEnemyArtRequired": true,
+    "enemyAnimationRequired": true,
+    "completionEndpoint": "Studio conversation is earned after all city zones and boss, not after the first two fights.",
+    "owners": {
+      "runtime": "root/combat integration",
+      "enemyArt": "root asset agent",
+      "story": "pure MacStreetStory reader"
+    },
+    "previewAwardDrums": false,
+    "previewCampaignSaveWrites": 0,
+    "implementationStatus": "root implementation/validation pending",
+    "playableZoneIds": [
+      "service-alley",
+      "night-market",
+      "transit-concourse",
+      "relay-canal",
+      "rooftop-relay",
+      "broadcast-plaza"
+    ],
+    "authoredWaveCount": 12,
+    "authoredRegularAlienCount": 29,
+    "distinctFinalBossCount": 1,
+    "enemyKindIds": [
+      "chitin_scuttler",
+      "psion_lancer",
+      "bile_spitter",
+      "prism_guard",
+      "rift_stalker",
+      "shock_mantid",
+      "null_regent"
+    ],
+    "runtimeAssetManifest": "assets/mac-city-review/mac-city-art-v1.json"
   }
 }

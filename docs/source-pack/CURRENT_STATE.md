@@ -1,10 +1,18 @@
 # Current State
 
-## October 5, 2026 — owner likeness and whole-pose corrections
+## October 5, 2026 — current owner correction: full Mac city and two Kave conversations
+
+The private chapter now targets six city districts, 12 waves and 29 alien humanoid foes plus a distinct final boss, with seven dedicated enemy art/animation kinds and green/purple blood. The eight intro scene IDs remain stable. **Two optional choices remain:** Kave's main opening question and the in-person studio conversation earned after the final city encounter. Only the extra 9 Bit reply menu is removed; Continue keeps both opening core facts without inventing an answer.
+
+The owner rejected Kave v3's open wall/room scale. Active v5 is a fully enclosed studio candidate with solid walls, visible ceiling, a closed door, small glazed window and ordinary person/desk/mic scale. Rejected v3 and the v4 framing pass, original artist references and exact generation provenance remain preserved. Kave v5 and Cache v6 await owner art review; Mac v2 remains approved. The final Cache car shot, protected original, scene indices and existing campaign/save/input/frame/audio owners are retained.
+
+The pure story reader's focused checks pass for both Kave conversations, all 19 intro core lines, reveal/advance, reconvergence, skip/reset and no host or campaign side effects. Combat passes 19 focused groups, including an earned six-area / 12-wave / 30-defeat route and all three boss phases. The connected input/lifecycle route passes 11 groups, including joystick, keyboard/controller, pause, current-fight retry and no campaign writes. Browser gameplay and physical-handset acceptance remain separate checks; exact final package and hosted results belong in this revision's delivery receipts and draft PRs. This private preview grants no canonical Drums reward or campaign clear and is not published to production. See [the production guide](BROADCAST_SLUM_STORY_PRODUCTION.md), [story review](STORY_PRODUCTION_REVIEW.html) and [asset manifest](STORY_PRODUCTION_ASSETS.json). Earlier slice and artwork entries below are historical checkpoints.
+
+## Historical checkpoint — October 5, 2026: owner likeness and whole-pose corrections
 
 The owner rejected the earlier Kave likeness/cowboy styling, Cache v4 arm placement, and Cache v5 body/foot direction mismatch. The private branch now selects hat-free Kave v3 with the fuller rounded beard and whole-pose Cache v6, whose head, torso, pelvis, knees and shoe toes share a rightward walk. Both hands are visible. New paintings remain review candidates; the eight-scene script and Mac hero v2 remain approved. Gameplay, dialogue, saves, final Cache car shot, original bank and derivative bank are unchanged. Owner acceptance of these two paintings remains pending. The exact source export, private hosted revision and focused checks are recorded in the external correction receipts and source PR189 / website PR485.
 
-## October 5, 2026 — approved story and private Mac street slice
+## Historical checkpoint — October 5, 2026: approved story and private Mac street slice
 
 The owner approved the eight-scene Level 2-to-3 script and Mac's recovered-model v2 hero. The owner requested clearer Kave photographs and replaced Cache's cockpit proposal with a confident walk toward the yellow car, keys in hand, immediately before the preserved final car shot. New reference photos come from Kave's artist-managed profile and his own official performance video; the sources and unmodified images are in the reference gallery.
 

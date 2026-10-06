@@ -34,7 +34,7 @@ Working receipts, preserved in the project root: `verification/kave-likeness-202
 
 Kave remains the helpful Kaveman Radio music-review desk cameo in the approved transition writing: the submission queue is full, local monitoring works, and the outbound feed is blocked. Mac restores that street distribution route. This is a fictional adaptation of Kave's public music-review role, not a claim of real venue ownership. See [BROADCAST_SLUM_STORY_PRODUCTION.md](BROADCAST_SLUM_STORY_PRODUCTION.md).
 
-`assets/mac-street-review/scene03-kave-dead-air-v3.png` is the proposed no-hat replacement being integrated by the parent task. Its final face, beard, desk staging and props require owner review. Reference discovery, approved writing, private gameplay implementation and illustrated likeness acceptance are separate states.
+`docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v3.png` remains preserved outside the active runtime bank, but the owner rejected its open street wall and room/person scale. The new `scene03-kave-dead-air-v5.png` candidate moves Kave into a fully enclosed studio with solid walls, visible intact ceiling, closed full-height door, a small glazed window and ordinary desk/microphone proportions. Its final face, beard, room and props require owner review. [Exact v4/v5 prompts, ordered references and hashes](review-mac-street-art/studio-correction-provenance.json) preserve the first enclosed-room framing pass as well as the corrected candidate. Reference discovery, approved writing, private gameplay implementation and illustrated likeness acceptance are separate states.
 
 ## Retired research history — superseded direction
 

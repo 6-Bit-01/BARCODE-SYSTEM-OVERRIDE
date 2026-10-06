@@ -81,7 +81,21 @@ function rig({touch = false, initAudio} = {}) {
     cancelAnimationFrame(handle) { scheduled.delete(handle); },
     setTimeout() { work.timers++; throw Error('Unexpected timer owner in preview integration'); }, clearTimeout() {},
     setInterval() { work.intervals++; throw Error('Unexpected interval owner in preview integration'); }, clearInterval() {},
-    Image: class {constructor() { this.width = 3072; this.height = 1024; } async decode() {}},
+    Image: class {async decode() {
+      const data = fs.readFileSync(path.join(root, this.src));
+      if (data.subarray(1, 4).toString() === 'PNG') {
+        this.width = data.readUInt32BE(16); this.height = data.readUInt32BE(20); return;
+      }
+      assert.equal(data.toString('ascii',8,12),'WEBP');
+      for (let offset=12; offset+8<=data.length;) {
+        const kind=data.toString('ascii',offset,offset+4),size=data.readUInt32LE(offset+4),start=offset+8;
+        if(kind==='VP8X'){this.width=1+data.readUIntLE(start+4,3);this.height=1+data.readUIntLE(start+7,3);return;}
+        if(kind==='VP8L'){const bits=data.readUInt32LE(start+1);this.width=1+(bits&0x3fff);this.height=1+((bits>>>14)&0x3fff);return;}
+        if(kind==='VP8 '){this.width=data.readUInt16LE(start+6)&0x3fff;this.height=data.readUInt16LE(start+8)&0x3fff;return;}
+        offset=start+size+(size&1);
+      }
+      assert.fail('Native image dimensions unavailable: '+this.src);
+    }},
     fetch: async url => ({ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(root, url), 'utf8').replace(/^\uFEFF/, ''))}),
     titleScreen: {hide() {}, show() {}},
     initAudio: initAudio || (async () => { work.audio.push('init'); }),
@@ -125,26 +139,47 @@ function rig({touch = false, initAudio} = {}) {
 }
 const settle = async () => { for (let n = 0; n < 12; n++) await Promise.resolve(); };
 const pressKey = (r, key) => { r.key('keydown', key); r.frame(); r.key('keyup', key); };
-function fightRoute(r) {
+async function fightRoute(r) {
   const actionInput = r.manager.actionInput;
   let strikeHeld = false, throwHeld = false;
-  return r.until(s => s.combat.desk.unlocked || s.status === 'failed', s => {
+  const areas = new Set(), waves = new Set(), bossPhases = new Set();
+  for (let frame = 0; frame < 30000; frame++) {
+    const s = r.B.MacCombatPreview.getSnapshot();
+    if (s.combat.desk.unlocked || s.status === 'failed') {
+      assert.deepEqual([...areas], [1, 2, 3, 4, 5, 6]);
+      assert.equal(waves.size, 12); assert(bossPhases.has(2) && bossPhases.has(3));
+      return s;
+    }
     const state = s.combat, p = state.player, c = r.B.MacCombatPreview.getControlState();
+    areas.add(state.zone.index); waves.add(`${state.zone.index}:${state.wave.index}`);
+    if (state.boss) bossPhases.add(state.boss.phase);
     const foe = state.enemies.filter(e => e.hp > 0 && e.phase !== 'dormant')
       .sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x))[0];
     actionInput.releaseVirtualOwner('route');
     const hold = name => actionInput.setVirtualAction(name, 'route', true, {timeStamp: r.w.performance.now()});
     if (!foe) hold('move_right');
     else {
-      if (Math.abs(foe.x - p.x) > 64) hold(foe.x > p.x ? 'move_right' : 'move_left');
+      const direction = Math.sign(foe.x - p.x) || p.facing;
+      if (Math.abs(foe.x - p.x) > 58 || p.facing !== direction) hold(direction > 0 ? 'move_right' : 'move_left');
       if (Math.abs(foe.laneY - p.laneY) > 8) hold(foe.laneY > p.laneY ? 'move_down' : 'move_up');
       let strike = false, throwing = false;
-      if (c.throw.ready && !throwHeld) { hold('road_disrupt'); throwing = true; }
+      const incoming = state.projectiles.find(item => (item.x-p.x)*item.facing < 0 && Math.abs(item.x-p.x)<145 && Math.abs(item.laneY-p.laneY)<=item.laneReach+10);
+      const warning = state.enemies.filter(e => e.hp > 0 && e.phase === 'windup' && Math.abs(e.attackLaneY-p.laneY)<45 && Math.abs(e.x-p.x)<330)
+        .sort((a,b)=>(a.tellMs-a.phaseMs)-(b.tellMs-b.phaseMs))[0];
+      const remaining = warning ? warning.tellMs-warning.phaseMs : Infinity;
+      if (incoming && c.jump.ready) hold('jump');
+      else if (warning && remaining < 310 && !p.attack && !p.throwMs) {
+        actionInput.releaseVirtualOwner('route');
+        if (warning.attackTell.guardable === false && remaining < 250 && c.jump.ready) hold('jump');
+        else if (warning.attackTell.guardable !== false && remaining < 105) hold('road_defend');
+        else if (warning.attackTell.guardable === false && p.elevation === 0) hold(p.laneY > 875 ? 'move_up' : 'move_down');
+      } else if (c.throw.ready && !throwHeld) { hold('road_disrupt'); throwing = true; }
       else if (c.strike.ready && !strikeHeld && Math.abs(foe.x - p.x) <= 100 && Math.abs(foe.laneY - p.laneY) <= 35) { hold('road_attack'); strike = true; }
-      if (foe.phase === 'windup' && foe.tellMs - foe.phaseMs < 105 && !p.attack) hold('road_defend');
       strikeHeld = strike; throwHeld = throwing;
     }
-  });
+    r.frame(); if (frame % 90 === 0) await settle();
+  }
+  assert.fail('City route timed out: ' + JSON.stringify(r.B.MacCombatPreview.getSnapshot()));
 }
 let groups = 0;
 async function check(name, body) { await body(); groups++; console.log('PASS Mac integration ' + name); }
@@ -160,16 +195,23 @@ async function run() {
     assert.equal(r.B.MacCombatPreview.active, false); assert.deepEqual(plain(input.keyboardBindings), original);
     assert.deepEqual(r.work.writes, []); assert.equal(r.doc.getElementById('startOverlay').classList.contains('hidden'), false);
   });
-  await check('keyboard story press is consumed, repeated press cannot leak into Jump and choices reconverge', async () => {
+  await check('eight-scene intro retains its Kave choice and reader presses cannot leak into Jump', async () => {
     const r = rig(); await r.start(); const mac = r.B.MacCombatPreview, initial = mac.story.snapshot();
     pressKey(r, ' '); assert.equal(mac.story.snapshot().sceneId, initial.sceneId); assert(mac.story.snapshot().revealed);
     r.key('keydown', ' ', true); r.frame(); r.key('keyup', ' '); assert.equal(mac.story.snapshot().lineIndex, initial.lineIndex);
     pressKey(r, ' '); assert.equal(mac.story.snapshot().lineIndex, 1); assert.equal(mac.combat.getSnapshot().player.elevation, 0);
-    for (let n = 0; n < 20 && !mac.story.snapshot().choice; n++) pressKey(r, ' ');
-    assert.equal(mac.story.snapshot().choice.id, 'delivery-question'); pressKey(r, '2');
-    assert.equal(mac.story.snapshot().selections['delivery-question'], 'what-got-blocked');
-    assert.equal(mac.combat.getSnapshot().player.elevation, 0);
-    assert(r.manager.touchCommand('mac:skip', true)); assert.equal(mac.phase, 'street'); assert.equal(mac.story, null);
+    const scenes = new Set([initial.sceneId]), choices = new Set();
+    for (let n = 0; n < 65 && mac.phase === 'intro'; n++) {
+      const s = mac.story.snapshot(); scenes.add(s.sceneId);
+      if (s.choice) {
+        choices.add(s.choice.id); assert.equal(s.choice.id, 'delivery-question');
+        pressKey(r, '2'); assert.equal(mac.story.snapshot().selections['delivery-question'], 'what-got-blocked');
+        continue;
+      }
+      pressKey(r, ' '); assert.equal(mac.combat.getSnapshot().player.elevation, 0);
+    }
+    assert.equal(scenes.size, 8); assert.deepEqual([...choices], ['delivery-question']);
+    assert.equal(mac.phase, 'street'); assert.equal(mac.story, null);
     r.frame(); assert.equal(mac.combat.getSnapshot().player.elevation, 0); assert.equal(r.work.audio.filter(x => x === 'start').length, 1);
     await mac.exit();
   });
@@ -180,6 +222,19 @@ async function run() {
     r.key('keydown', 'ArrowUp'); r.run(150); r.key('keyup', 'ArrowUp'); assert(p().laneY < lane); assert.equal(p().elevation, 0);
     pressKey(r, ' '); assert(p().elevation > 0); r.run(800); pressKey(r, 'j'); assert.equal(p().attack.step, 1);
     await r.B.MacCombatPreview.exit(); assert(r.manager.actionInput.keyboardBindings.jump.includes('w'));
+  });
+  await check('optional opening choice has explicit keyboard and remapped controller Continue without selecting an answer', async () => {
+    const r = rig(); await r.start(); const mac = r.B.MacCombatPreview;
+    for (let n=0;n<30&&!mac.story.snapshot().choice;n++) pressKey(r,' ');
+    assert.equal(mac.story.snapshot().choice.id,'delivery-question'); pressKey(r,' ');
+    assert.equal(mac.story.snapshot().choice,null); assert.deepEqual(plain(mac.story.snapshot().selections),{});
+    assert.equal(mac.combat.getSnapshot().player.elevation,0); await mac.exit();
+    await r.start();
+    for (let n=0;n<30&&!mac.story.snapshot().choice;n++) pressKey(r,' ');
+    const settings=r.B.ControllerSettings,pad=r.pad(); settings.bind('inspect',3);
+    pad.buttons[3].pressed=true; r.frame(); pad.buttons[3].pressed=false; r.frame();
+    assert.equal(mac.story.snapshot().choice,null); assert.deepEqual(plain(mac.story.snapshot().selections),{});
+    assert.equal(mac.combat.getSnapshot().player.elevation,0); await mac.exit();
   });
   await check('Mac controller diagonals work while the original deliberate drop filter remains', async () => {
     const r = rig(); await r.start(); r.manager.touchCommand('mac:skip'); const pad = r.pad();
@@ -245,8 +300,9 @@ async function run() {
     await r.B.MacCombatPreview.exit();
   });
   await check('real route desk/choice/clear/retry never awards or persists campaign completion', async () => {
-    const r = rig({touch: true}); await r.start(); r.manager.touchCommand('mac:skip'); const end = fightRoute(r);
-    assert.equal(end.combat.kills, 3); assert.equal(end.combat.status, 'desk-ready'); assert.equal(end.status, 'playing');
+    const r = rig({touch: true}); await r.start(); r.manager.touchCommand('mac:skip'); const end = await fightRoute(r);
+    assert.equal(end.combat.kills, 30); assert.equal(end.combat.city.completedWaves, 12);
+    assert.equal(end.combat.city.clearedZones.length, 6); assert.equal(end.combat.status, 'desk-ready'); assert.equal(end.status, 'playing');
     r.manager.actionInput.releaseVirtualOwner('route');
     r.key('keydown', 'd'); r.until(s => Math.abs(s.combat.player.x - s.combat.desk.x) < 170); r.key('keyup', 'd'); r.frame();
     const talk = r.button('inspect'); r.pointer(talk, 'pointerdown', 7); r.pointer(talk, 'pointerup', 7); r.frame();
@@ -257,6 +313,9 @@ async function run() {
     r.manager.touchCommand('mac:skip'); r.frame(); assert.equal(r.B.MacCombatPreview.status, 'clear');
     assert.equal(r.w.gameState.victory, false); assert.equal(r.w.gameState.gameOver, false); assert.deepEqual(r.work.writes, []);
     assert(r.manager.touchCommand('mac:retry')); r.frame(); assert.equal(r.B.MacCombatPreview.status, 'playing');
+    await settle(); r.frame(); await settle(); r.frame();
+    const loadedZones = r.B.MacCombatPreview.cityArt.zones.filter(zone => r.B.MacCombatPreview.assets.has(zone.background));
+    assert.deepEqual(loadedZones.map(zone => zone.id), ['service-alley','night-market']);
     assert.equal(r.B.MacCombatPreview.combat.getSnapshot().kills, 0); assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.x, 200);
     assert.equal(r.B.MacCombatPreview.phase, 'street'); assert.equal(r.B.MacCombatPreview.story, null); assert.deepEqual(r.work.writes, []);
     await r.manager.touchCommand('mac:exit'); assert.equal(r.scheduled.size, 0);

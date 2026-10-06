@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "scene03-kave-dead-air-v5",
+  "status": "candidate-owner-likeness-and-studio-review-pending",
+  "tool": "image_gen.imagegen",
+  "toolArguments": {
+    "prompt": "Use case: identity-preserve.\nAsset type: final framing refinement of the enclosed Kave broadcast studio game-panel candidate, wide 1860x845.\nEdit IMAGE 1. Preserve its actual Kave face exactly: cropped fade, no hat, full broad rounded black beard, brows/eyes/nose/mouth/skin, small ear stud, black short-sleeved hood-down top, triangular pendant, chair, ordinary desk/mic/monitor scale, gesture and natural hands. Preserve the enclosed room's continuous solid walls, full-height CLOSED door, closed framed glazed small window and indoor dry floor. It is already an enclosed interior; do not reopen the facade.\nMake one composition/architecture correction: pull the camera back slightly and frame slightly higher so a CONTINUOUS CLEAR STRIP OF THE INTACT CEILING is visibly included across the entire top 12-15 percent of the picture. The ceiling physically joins both solid walls at clean perspective corners; show a modest recessed ceiling light and no exposed sky or structural break. A complete ordinary studio room, not a facade/open booth/cutaway. Human and desk become slightly smaller in the wider interior view while remaining readable. Show the complete closed normal door from top header to threshold as a reliable scale cue. The window remains small, closed glass with a real frame/sill/reflections; rainy neighborhood only outside that glass.\nRemove the invented gold-record award plaques and the small humanoid/gorilla figurine above the shelves. Replace those exact wall spaces with plain acoustic panels/neutral studio storage, without invented honors or new characters. Maintain the existing practical amber indoor light and restrained cyan/purple monitor/window light, detailed inked BARCODE comic texture and believable adult/building/equipment proportions.\nAvoid any other identity/costume changes, narrowing the rounded beard to a point, cap/hat, hood up, additional people, large window opening, street-facing serving hatch, absent wall/ceiling, giant human/mic/desk, dollhouse camera, fisheye, floating gear, duplicated hands, text, labels, signatures or watermark. Upper/right interior wall provides quiet authored-dialogue space. This is an unapproved candidate, not a likeness acceptance.",
+    "referenced_image_paths": [
+      "C:/Users/jondh/.codex/generated_images/01a10de1-8835-7200-8970-75f79ec67e48/exec-ebc811f6-955e-4d95-be9e-a9c0bb3535cb.png"
+    ],
+    "transparent_background": false
+  },
+  "toolOutputHint": "Generated images are saved to C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-8835-7200-8970-75f79ec67e48 as C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-8835-7200-8970-75f79ec67e48\\exec-0b67f319-dbb3-4505-8e88-ae933661321b.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+  "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-8835-7200-8970-75f79ec67e48/exec-0b67f319-dbb3-4505-8e88-ae933661321b.png",
+  "path": "assets/mac-street-review/scene03-kave-dead-air-v5.png",
+  "sha256": "df4423bee517088f6f8f17f9bebf4db812d970aaff99e89c8c1799a97b5633f7",
+  "bytes": 2246609,
+  "dimensions": {
+    "width": 1860,
+    "height": 845,
+    "format": "PNG"
+  },
+  "references": [
+    {
+      "index": 1,
+      "originalPathAtGeneration": "C:/Users/jondh/.codex/generated_images/01a10de1-8835-7200-8970-75f79ec67e48/exec-ebc811f6-955e-4d95-be9e-a9c0bb3535cb.png",
+      "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v4.png",
+      "sha256": "d8c6939879bb27209f95138b87fce50692ef7bc17fab961cf89b68a608c60355",
+      "bytes": 2254841,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG"
+      }
+    }
+  ],
+  "ownerAccepted": false,
+  "acceptedForCampaign": false,
+  "pixelDerivation": "Original built-in generated PNG copied unchanged; no crop, resize, re-encoding or pixel edits.",
+  "ownerCorrection": "Replace rejected open-wall storefront and oversized equipment/person staging with a believable fully enclosed broadcast studio.",
+  "visualInspection": {
+    "method": "Direct original-resolution inspection of actual generated output",
+    "solidWalls": true,
+    "closedFullHeightDoor": true,
+    "smallClosedGlazedWindow": true,
+    "normalHumanDeskMicrophoneScale": true,
+    "noHat": true,
+    "croppedFade": true,
+    "fullRoundedBeard": true,
+    "hoodDown": true,
+    "intactCeilingVisible": true,
+    "framingNotes": "v5 visibly shows ceiling/wall joins and ordinary door/desk scale; v4 retained as first enclosed-room candidate whose ceiling was outside the crop.",
+    "limitations": "Visual production inspection is not owner likeness acceptance or runtime/device validation."
+  }
+}
