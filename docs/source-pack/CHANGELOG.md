@@ -1,5 +1,20 @@
 # Changelog
 
+## October 5 — owner art correction and recovered references
+
+The owner rejected the first Cache hero for impossible car geometry and the first Mac hero for an inaccurate model. Those candidates are preserved as rejected history. Original Mac face/brown-body/red-body and Cache model source files were recovered from the owner's BARCODE character-reference folder and copied unchanged into review-level3-story/references. Revised hero concepts are under review; no acceptance or runtime installation is claimed. Kave's official public accounts and four inspected images are now collected in [KAVE_REFERENCE_RESEARCH.md](KAVE_REFERENCE_RESEARCH.md) and [KAVE_REFERENCE_REVIEW.html](KAVE_REFERENCE_REVIEW.html). His draft cameo uses a Kaveman Radio review desk and held feed. Scene 3/5/6 paintings and runtime integration still remain. Earlier 'models missing' and 'concepts pending review' checkpoint wording below is historical.
+
+## October 5, 2026 — Level 3 story production review draft, unmerged
+
+- Record owner requirements: at least seven Level 2-to-3 scenes and distinct visible Cache/Mac hero finales heading into their chapters. Develop the proposed eight-scene script, two reconverging choices, useful cameos, 9 Bit intrusions and later story payoffs in [BROADCAST_SLUM_STORY_PRODUCTION.md](BROADCAST_SLUM_STORY_PRODUCTION.md).
+- Audit references and scene assets in [STORY_PRODUCTION_ASSETS.json](STORY_PRODUCTION_ASSETS.json); assemble [STORY_PRODUCTION_REVIEW.html](STORY_PRODUCTION_REVIEW.html). Two generated hero PNG concepts await owner art review. Kave public references are found; final likeness and scene 3/5/6 illustrations are still needed. The standalone review passed desktop and mobile browser checks: all eight scenes, four choice replies and both generated hero images, with no observed script errors or failed resources. Evidence is review-level3-story/review-receipt.json.
+- Preserve the current four-scene Level 2 ending, eight-scene Cache bridge and all runtime/assets/earned facts/saves. No new Level 3 gameplay, Drums award, story-draft merge/deployment or refreshed v5 export is claimed.
+
+## October 5, 2026 — direct mobile actions merged and published
+
+- Source [PR186](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/186) merged as `d2e3776d6aebbf911b41b9e86b56b769e970e8d1`; site [PR483](https://github.com/6-Bit-01/barcode-network-site/pull/483) merged as `5856516233e5009fea15f60870c889fbdbed9a98`. Published at [System Override](https://www.barcode-network.com/system-override), with owner acknowledgement and Level 2 playtesting next.
+- Final exact-head checks, strict built touch review, live smoke and critical HTTPS hashes passed. Evidence: `project-root/verification/direct-mobile-actions-20261005/COMPLETE.md` and final receipts. Physical-handset FPS remains unexercised; loading is unchanged. The validated d2e3776d v5 archive belongs to that release, not this new story draft. Earlier unpublished/pending mobile sections are historical.
+
 ## October 5, 2026 — whole-game mobile controls implemented, unpublished
 
 - Continue from merged performance PR183 / `42b2a3157638a8742717095fbdea7055b6efeb71`; preserve the retained GPU renderer, native 1920×1080 frame and all 624 original artwork/audio asset hashes.

@@ -1,5 +1,29 @@
 # Acceptance and Test Status
 
+## October 5 — owner art correction and recovered references
+
+The owner rejected the first Cache hero for impossible car geometry and the first Mac hero for an inaccurate model. Those candidates are preserved as rejected history. Original Mac face/brown-body/red-body and Cache model source files were recovered from the owner's BARCODE character-reference folder and copied unchanged into review-level3-story/references. Revised hero concepts are under review; no acceptance or runtime installation is claimed. Kave's official public accounts and four inspected images are now collected in [KAVE_REFERENCE_RESEARCH.md](KAVE_REFERENCE_RESEARCH.md) and [KAVE_REFERENCE_REVIEW.html](KAVE_REFERENCE_REVIEW.html). His draft cameo uses a Kaveman Radio review desk and held feed. Scene 3/5/6 paintings and runtime integration still remain. Earlier 'models missing' and 'concepts pending review' checkpoint wording below is historical.
+
+## October 5, 2026 — Level 3 story production review pending
+
+The owner requires at least seven Level 2-to-3 scenes and distinct final Cache/Mac hero poses heading into action. The [story production guide](BROADCAST_SLUM_STORY_PRODUCTION.md) supplies a proposed eight-scene script, two reconverging choices, cameo/9 Bit roles and later payoffs; exact new writing and art remain proposals.
+
+| Story production evidence | Status at this checkpoint |
+| --- | --- |
+| Current cutscene/active campaign audit and reference inventory | Recorded in the guide and [asset manifest](STORY_PRODUCTION_ASSETS.json) |
+| Generated Cache/Mac hero PNG concepts | Available for owner art review; not approved or integrated into runtime |
+| Kave public references / final likeness and scenes 3/5/6 illustrations | Public sources and four images found; final illustrated model and scene paintings still needed |
+| [Visual review page](STORY_PRODUCTION_REVIEW.html) browser verification | Passed: eight scenes, four choice replies, both hero images; desktop 1440×1000 and mobile 390×844; no observed script errors/failed resources |
+| New dialogue choices, eight-scene runtime, migration, skip/replay and Level 3 gameplay | Unimplemented; no acceptance or completion claimed |
+
+The current four-scene Level 2 ending and eight-scene Cache bridge remain unchanged. Story artifacts are unmerged; no new Drums award, deployment is claimed.
+
+## October 5, 2026 — direct mobile release verified and published
+
+Source [PR186](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/186) merged as `d2e3776d6aebbf911b41b9e86b56b769e970e8d1`; site [PR483](https://github.com/6-Bit-01/barcode-network-site/pull/483) merged as `5856516233e5009fea15f60870c889fbdbed9a98` and deployed at [System Override](https://www.barcode-network.com/system-override). Source/site exact-head checks, strict built earned-Level-2 direct-action touch review, live entry/control/audio smoke and critical HTTPS hashes passed. The owner acknowledged this baseline and is preparing Level 2 playtests.
+
+Evidence is `project-root/verification/direct-mobile-actions-20261005/COMPLETE.md` and final receipts. The d2e3776d v5 release archive is validated; this story draft is not a new game release. A review source archive identifies its own exact branch revision in generated metadata. Physical-handset FPS remains unexercised and loading is unchanged. Earlier pending mobile/release entries below retain their historical checkpoint meaning.
+
 ## October 5, 2026 — mobile acceptance pending
 
 Performance source PR183 is merged at `42b2a3157638a8742717095fbdea7055b6efeb71`; the finite physical GPU evidence below remains valid for that runtime. The initial whole-game touch implementation passes 20 focused contracts and independent input/lifecycle/ownership/syntax/89-script prototype checks. Actual bounded prototype flow passed title/settings, opening/difficulty, Level 1 multitouch and earned Level 2 gestures at 390×844, 844×390, 375×667 and 320×568. This is distinct from final release acceptance and the prototype's stale touch-only receipt hash.

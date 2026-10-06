@@ -1,5 +1,7 @@
 # Level 1 → Cache Line bridge
 
+**October 5 hero-finale proposal:** the owner requests a visible Cache heading-into-action final scene, with a pose distinct from 6 Bit and Mac. [BROADCAST_SLUM_STORY_PRODUCTION.md](BROADCAST_SLUM_STORY_PRODUCTION.md) keeps the eight-scene bridge's story, final dialogue and stable `cache-line` identity, while proposing a visible-Cache cockpit/window composition. A generated hero PNG concept in the [production review](STORY_PRODUCTION_REVIEW.html) awaits owner art review; browser review is pending. The existing rear-car final image and runtime remain unchanged; this draft is unmerged and is not a refreshed v5 release.
+
 This eight-scene comic replaces the single post-Level-1 intermission card.
 Base: merged PR #153, `658b99f`, on `agent/cache-eight-scene-bridge`.
 The existing eight-page opening remains unchanged. The bridge uses the

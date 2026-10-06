@@ -1,0 +1,992 @@
+{
+  "schemaVersion": 1,
+  "auditBase": "d2e3776d6aebbf911b41b9e86b56b769e970e8d1",
+  "status": "story-production-review-plan",
+  "acceptedForRuntime": false,
+  "scope": "Level 2 to Level 3 eight-scene expansion; final Cache and Mac hero-introduction assets; scene-driven cameos, choices and 9 Bit presentation dependencies.",
+  "auditScope": [
+    "Current source repository assets and documentation",
+    "Project-root media/reference working directories searched for named supplied models",
+    "Four read-only synced source ZIP entry lists"
+  ],
+  "sourceDocuments": [
+    "docs/source-pack/CACHE_LINE_COMPLETION.md",
+    "docs/source-pack/CACHE_LINE_BRIDGE.md",
+    "docs/source-pack/INTRO_ART_DIRECTION.md",
+    "docs/source-pack/EASTER_EGGS_AND_CAMEOS.md",
+    "docs/source-pack/LORE_AND_CAST.md",
+    "docs/source-pack/CAMPAIGN_REDESIGN.md",
+    "docs/source-pack/CAMPAIGN_SCENE_BEATS.md",
+    "docs/source-pack/BROADCAST_SLUM_STORY_PRODUCTION.md",
+    "docs/source-pack/KAVE_REFERENCE_RESEARCH.md"
+  ],
+  "minimumSceneCount": 7,
+  "plannedSceneCount": 8,
+  "scenes": [
+    {
+      "id": "cutscene.cache-ending.delivered",
+      "order": 1,
+      "title": "ORIGINAL DELIVERED",
+      "purpose": "Cache delivers the intact original; DJ confirms nothing is missing.",
+      "mandatoryFact": "Delivery is successful and Bass/Level 2 completion remain earned.",
+      "cast": [
+        "Cache Back",
+        "DJ Floppydisc"
+      ],
+      "continuityReferenceIds": [
+        "delivered",
+        "cacheProtected",
+        "cacheCar"
+      ],
+      "existingPainting": {
+        "path": "assets/cache-ending/ending-01-delivered.webp",
+        "sha256": "d351494cc4f3918ebf80fc32e8f3a7f3d98f9cdb61ebce18ee7b520a5f1de35e",
+        "availability": "available-in-repository",
+        "purpose": "Available prior painting; continuity reference, not automatic final scene acceptance"
+      },
+      "productionArt": {
+        "status": "existing-painting-available-review-layout",
+        "path": null,
+        "sha256": null,
+        "runtimePath": null,
+        "acceptedForRuntime": false
+      },
+      "dependencyIds": [],
+      "contributor": null,
+      "credit": null,
+      "dialogueStatus": "authored-draft-pending-review",
+      "choiceIds": [],
+      "payoffSceneIds": [],
+      "transitionId": "l02-l03",
+      "slug": "delivered"
+    },
+    {
+      "id": "cutscene.cache-ending.unverified",
+      "order": 2,
+      "title": "DELIVERED / UNVERIFIED",
+      "purpose": "The receiver reports DELIVERED while outward distribution reads UNVERIFIED.",
+      "mandatoryFact": "Delivery and distribution are separate; the original remains safe.",
+      "cast": [
+        "Cache Back",
+        "Mac Modem"
+      ],
+      "continuityReferenceIds": [
+        "unverified",
+        "cacheProtected"
+      ],
+      "existingPainting": {
+        "path": "assets/cache-ending/ending-02-unverified.webp",
+        "sha256": "98a771fe0497e1ebbf6002008b6d0894e22c38a778581ed49f1473e08f9d410b",
+        "availability": "available-in-repository",
+        "purpose": "Available prior painting; continuity reference, not automatic final scene acceptance"
+      },
+      "productionArt": {
+        "status": "existing-painting-available-review-layout",
+        "path": null,
+        "sha256": null,
+        "runtimePath": null,
+        "acceptedForRuntime": false
+      },
+      "dependencyIds": [
+        "dialogue-choice-presentation",
+        "choice-response-callback"
+      ],
+      "contributor": null,
+      "credit": null,
+      "dialogueStatus": "authored-draft-pending-review",
+      "choiceIds": [],
+      "payoffSceneIds": [],
+      "transitionId": "l02-l03",
+      "slug": "unverified"
+    },
+    {
+      "id": "cutscene.cache-ending.kave-dead-air",
+      "order": 3,
+      "title": "KAVE'S DEAD AIR",
+      "purpose": "Kaveman Radio review desk has a waiting submission queue and held outbound feed.",
+      "mandatoryFact": "The distribution hold prevents original artists from reaching listeners; local monitoring still works.",
+      "cast": [
+        "Kave",
+        "Cache Back",
+        "Mac Modem"
+      ],
+      "continuityReferenceIds": [
+        "streetAccess"
+      ],
+      "existingPainting": null,
+      "productionArt": {
+        "status": "new-art-required",
+        "path": null,
+        "sha256": null,
+        "runtimePath": null,
+        "acceptedForRuntime": false
+      },
+      "dependencyIds": [
+        "kave-venue-scene",
+        "kave-dialogue"
+      ],
+      "contributor": null,
+      "credit": null,
+      "dialogueStatus": "authored-draft-pending-review",
+      "choiceIds": [
+        "delivery-question"
+      ],
+      "payoffSceneIds": [],
+      "transitionId": "l02-l03",
+      "slug": "kave-dead-air",
+      "dialogue": [
+        {
+          "speaker": "KAVE",
+          "text": "The review queue's full. Nothing's reaching the listeners."
+        },
+        {
+          "speaker": "CACHE BACK / COMMS",
+          "text": "It got here whole. Somebody's keeping it here."
+        }
+      ]
+    },
+    {
+      "id": "cutscene.cache-ending.held",
+      "order": 4,
+      "title": "THE HOLD IS LOCAL",
+      "purpose": "DJ and Mac follow the hold to local street enforcement.",
+      "mandatoryFact": "No initiator, simulation creator, pursuer identity or separation cause is established.",
+      "cast": [
+        "DJ Floppydisc",
+        "Mac Modem",
+        "Cache Back"
+      ],
+      "continuityReferenceIds": [
+        "held",
+        "crewUplink"
+      ],
+      "existingPainting": {
+        "path": "assets/cache-ending/ending-03-held.webp",
+        "sha256": "f864da0ac3acc3a2db7c6bb8b115be916208ee34369ca92adcc6180ae37800b4",
+        "availability": "available-in-repository",
+        "purpose": "Available prior painting; continuity reference, not automatic final scene acceptance"
+      },
+      "productionArt": {
+        "status": "existing-painting-available-review-layout",
+        "path": null,
+        "sha256": null,
+        "runtimePath": null,
+        "acceptedForRuntime": false
+      },
+      "dependencyIds": [],
+      "contributor": null,
+      "credit": null,
+      "dialogueStatus": "authored-draft-pending-review",
+      "choiceIds": [],
+      "payoffSceneIds": [],
+      "transitionId": "l02-l03",
+      "slug": "held"
+    },
+    {
+      "id": "cutscene.cache-ending.margin-note",
+      "order": 5,
+      "title": "A NOTE IN THE MARGIN",
+      "purpose": "A 9 Bit annotation crosses a nonessential caption margin; the crew notices it.",
+      "mandatoryFact": "An authored presentation intrusion is distinct from genuine receiver status and evidence.",
+      "cast": [
+        "9 Bit",
+        "Mac Modem",
+        "Cache Back"
+      ],
+      "continuityReferenceIds": [
+        "nineIdentity",
+        "held"
+      ],
+      "existingPainting": null,
+      "productionArt": {
+        "status": "new-art-required",
+        "path": null,
+        "sha256": null,
+        "runtimePath": null,
+        "acceptedForRuntime": false
+      },
+      "dependencyIds": [
+        "nine-panel-hand",
+        "nine-annotation-cue",
+        "dialogue-choice-presentation",
+        "choice-response-callback"
+      ],
+      "contributor": null,
+      "credit": null,
+      "dialogueStatus": "authored-draft-pending-review",
+      "choiceIds": [
+        "frame-reply"
+      ],
+      "payoffSceneIds": [],
+      "transitionId": "l02-l03",
+      "slug": "margin-note"
+    },
+    {
+      "id": "cutscene.cache-ending.record-straight",
+      "order": 6,
+      "title": "KEEP THE RECORD STRAIGHT",
+      "purpose": "The crew distinguishes the protected recording from a present-time annotation and keeps its preserved evidence available.",
+      "mandatoryFact": "The essential delivery/blockade objective is conveyed on either choice.",
+      "cast": [
+        "Cache Back",
+        "DJ Floppydisc",
+        "Mac Modem"
+      ],
+      "continuityReferenceIds": [
+        "crewOriginal",
+        "held"
+      ],
+      "existingPainting": null,
+      "productionArt": {
+        "status": "new-art-required",
+        "path": null,
+        "sha256": null,
+        "runtimePath": null,
+        "acceptedForRuntime": false
+      },
+      "dependencyIds": [],
+      "contributor": null,
+      "credit": null,
+      "dialogueStatus": "authored-draft-pending-review",
+      "choiceIds": [],
+      "payoffSceneIds": [],
+      "transitionId": "l02-l03",
+      "slug": "record-straight"
+    },
+    {
+      "id": "cutscene.cache-ending.street-access",
+      "order": 7,
+      "title": "STREET ACCESS",
+      "purpose": "Mac prepares the street-access route while Cache remains at the receiving bay on comms.",
+      "mandatoryFact": "The existing connector/barrier painting is the preparation beat, not the final hero shot.",
+      "cast": [
+        "Mac Modem",
+        "Kave"
+      ],
+      "continuityReferenceIds": [
+        "streetAccess"
+      ],
+      "existingPainting": {
+        "path": "assets/cache-ending/ending-04-street-access.webp",
+        "sha256": "83f6f0db54ff13cf43c76488204b7fd09bb190078d4406c8dacbf7a6604557c1",
+        "availability": "available-in-repository",
+        "purpose": "Available prior painting; continuity reference, not automatic final scene acceptance"
+      },
+      "productionArt": {
+        "status": "existing-painting-available-review-layout",
+        "path": null,
+        "sha256": null,
+        "runtimePath": null,
+        "acceptedForRuntime": false
+      },
+      "dependencyIds": [],
+      "contributor": null,
+      "credit": null,
+      "dialogueStatus": "authored-draft-pending-review",
+      "choiceIds": [],
+      "payoffSceneIds": [],
+      "transitionId": "l02-l03",
+      "slug": "street-access",
+      "dialogue": [
+        {
+          "speaker": "MAC MODEM / COMMS",
+          "text": "The hold points to street enforcement. I'll find a way through."
+        },
+        {
+          "speaker": "KAVE / COMMS",
+          "text": "I'll keep the queue moving and the local line open."
+        }
+      ]
+    },
+    {
+      "id": "cutscene.cache-ending.get-it-heard",
+      "order": 8,
+      "title": "GET IT HEARD",
+      "purpose": "Mac commits to entering the street fight in his own distinctive action pose.",
+      "mandatoryFact": "Final scene belongs to Mac; authored Level 3 gameplay is not yet playable.",
+      "cast": [
+        "Mac Modem",
+        "6 Bit"
+      ],
+      "continuityReferenceIds": [
+        "streetAccess",
+        "sixHero"
+      ],
+      "existingPainting": null,
+      "productionArt": {
+        "status": "corrected-concept-pending-owner-review",
+        "path": "docs/source-pack/review-level3-story/mac-hero-concept-v2.png",
+        "sha256": "7a4ea32cc6842408a4a381ade72595fc8cb8cb3d738802c26597443c08609599",
+        "runtimePath": null,
+        "acceptedForRuntime": false,
+        "bytes": 3111148,
+        "dimensions": [
+          1860,
+          845
+        ],
+        "generationProvenance": "docs/source-pack/review-level3-story/generation-provenance.json",
+        "generationProvenanceEntryId": "hero.mac.v2"
+      },
+      "dependencyIds": [
+        "mac-hero-final"
+      ],
+      "contributor": null,
+      "credit": null,
+      "dialogueStatus": "authored-draft-pending-review",
+      "choiceIds": [],
+      "payoffSceneIds": [],
+      "transitionId": "l02-l03",
+      "slug": "get-it-heard"
+    }
+  ],
+  "references": {
+    "crewOriginal": {
+      "path": "assets/cache-bridge/sources/bridge-03-original.png",
+      "sha256": "1468b86167a5581f66ff79b98fa02280edb621df4d3abcb0a7f3941a101a6bf4",
+      "availability": "available-in-repository",
+      "purpose": "Cache and DJ face/costume, studio and protected cassette"
+    },
+    "crewUplink": {
+      "path": "assets/cache-bridge/sources/bridge-02-uplink.png",
+      "sha256": "3ccd1b49f80f06f639f64018f21e8599febfdafe270507bbeaef4dfb20a3ec4d",
+      "availability": "available-in-repository",
+      "purpose": "Mac and Cache crew/studio continuity"
+    },
+    "cacheProtected": {
+      "path": "assets/cache-bridge/sources/bridge-05-keep-it.png",
+      "sha256": "1457b1b4d66a5850792ade4061f634e9089ee50ade2e87210940dfa773b6670e",
+      "availability": "available-in-repository",
+      "purpose": "Cache exact yellow cap, glasses, mask, collar and Greek-key costume"
+    },
+    "cacheDeparture": {
+      "path": "assets/cache-bridge/sources/bridge-06-departure.png",
+      "sha256": "a2ae283f84ec3b4fe08761b9cbcba6fbf164f54c8a15817191456724277db42e",
+      "availability": "available-in-repository",
+      "purpose": "Cache at studio curb and approved departure continuity"
+    },
+    "cacheIgnition": {
+      "path": "assets/cache-bridge/sources/bridge-07-ignition.png",
+      "sha256": "7566daf8fdcac52674374a5e924ceb919d20d3d43a61d67efc6d322eac127461",
+      "availability": "available-in-repository",
+      "purpose": "Cache cockpit, original already loaded and ignition continuity"
+    },
+    "cacheCar": {
+      "path": "assets/cache-bridge/sources/bridge-08-cache-line.png",
+      "sha256": "4aac33600c8fc05b317dc9c9fa7921a0d9a7a72924f7878a255e41d2f30feeae",
+      "availability": "available-in-repository",
+      "purpose": "Approved rear-view yellow car, reels, trim and central emblem"
+    },
+    "delivered": {
+      "path": "assets/cache-ending/sources/ending-01-delivered.png",
+      "sha256": "f7bab225264a75e3f1a23cf41906c32ec2bdc9dad583a157dcba1851c8a5a924",
+      "availability": "available-in-repository",
+      "purpose": "Existing Level 2 ending scene 1: successful delivery"
+    },
+    "unverified": {
+      "path": "assets/cache-ending/sources/ending-02-unverified.png",
+      "sha256": "ee50481fe00988d4b21bb4bc6d80989faabeba138d89fd3171ce75a2afff8db3",
+      "availability": "available-in-repository",
+      "purpose": "Existing Level 2 ending scene 2: receiver surfaces and safe recording"
+    },
+    "held": {
+      "path": "assets/cache-ending/sources/ending-03-held.png",
+      "sha256": "82a08e60bc79271eb616e22e9bc78cfeaaeacca01941d2cfcfa8da4051896b4b",
+      "availability": "available-in-repository",
+      "purpose": "Existing Level 2 ending scene 3: studio trace comparison and crew separation"
+    },
+    "streetAccess": {
+      "path": "assets/cache-ending/sources/ending-04-street-access.png",
+      "sha256": "a3a7ad1afcb8bb9c48a5c7a310f4d5b97fbcf135c97e45b8653de517c619b708",
+      "availability": "available-in-repository",
+      "purpose": "Existing Level 2 ending scene 4: Mac, red connector and closed barrier"
+    },
+    "sixHero": {
+      "path": "assets/intro/intro-08-keep-it-open.webp",
+      "sha256": "aeb1845156539ce1dbb4b8825e1791b73a418ad40d4eb5cfd2a94a416761ce57",
+      "availability": "available-in-repository",
+      "purpose": "6 Bit final introduction: hero emphasis/style reference, not a pose to duplicate"
+    },
+    "nineIdentity": {
+      "path": "assets/standalone/title-background.png",
+      "sha256": "22321834fb3e659e6e951621d37215bf8d850af22be5613e6c7729d78fb4d592",
+      "availability": "available-in-repository",
+      "purpose": "Existing depicted 9 Bit identity; not a modern expression/hand animation kit"
+    },
+    "crewPortraits": {
+      "path": "assets/cache-road/blood/crew-callout-portraits.webp",
+      "sha256": "a2c0f6f9a29312952844842f844d2ca45d4bee2f59e42e0c0d534df761fb7814",
+      "availability": "available-in-repository",
+      "purpose": "Existing 6 Bit, DJ and Mac single-expression radio portrait atlas"
+    },
+    "studioCat": {
+      "path": "assets/presentation/studio-cat.webp",
+      "sha256": "62670cf5b31c96e9c2bc0c0df33e2852b8f88e6c07a615b8c91716fe2a76115e",
+      "availability": "available-in-repository",
+      "purpose": "Existing feline Studio Cat four-pose walk atlas"
+    },
+    "studioCatEvent": {
+      "path": "assets/finale/studio-cat-event.webp",
+      "sha256": "5e3416e9f7ec25b4a24187953170c57779b47c96d684f9c65ae844cbff21d452",
+      "availability": "available-in-repository",
+      "purpose": "Existing Studio Cat event poses for a recurring physical gag"
+    },
+    "macFaceModel": {
+      "path": "docs/source-pack/review-level3-story/references/mac-face.png",
+      "sha256": "010a1144c9df34a7b88cd629f0d433a0ca18fd4b8b0ea2477dd7342ad9898367",
+      "availability": "original-model-source-recovered",
+      "originalSourcePath": "D:/My Stuff/BARCODE Non Show Components/Character Ref + Art/Mac Modem/openart-image_y8BzeKUf_1771482003518_raw.png",
+      "historicalUploadNote": "Same base filename as documented upload; source bytes differ from historical (1) upload hash. This current source was directly viewed and copied unchanged.",
+      "purpose": "Canonical direct character identity/model reference; do not derive identity from generated scenes"
+    },
+    "macBrownBodyModel": {
+      "path": "docs/source-pack/review-level3-story/references/mac-body-brown.png",
+      "sha256": "ecb059df343da1097343b1b3f7a9dde0271f5658e8e0bacaaf1f6b8ccfe77b4f",
+      "availability": "original-model-source-recovered",
+      "originalSourcePath": "D:/My Stuff/BARCODE Non Show Components/Character Ref + Art/Mac Modem/openart-image_1Jy267qY_1771483756922_raw.png",
+      "historicalUploadNote": "Same base filename as documented upload; source bytes differ from historical (1) upload hash. This current source was directly viewed and copied unchanged.",
+      "purpose": "Canonical direct character identity/model reference; do not derive identity from generated scenes"
+    },
+    "macRedBodyModel": {
+      "path": "docs/source-pack/review-level3-story/references/mac-body-red.png",
+      "sha256": "a6cd01603eef78213ce0ef366508920087ac06c996c6ca5775e6ea3c10f75fbc",
+      "availability": "original-model-source-recovered",
+      "originalSourcePath": "D:/My Stuff/BARCODE Non Show Components/Character Ref + Art/Mac Modem/openart-image_jWL5HfqQ_1771484902321_raw.png",
+      "historicalUploadNote": "Same base filename as documented upload; source bytes differ from historical (1) upload hash. This current source was directly viewed and copied unchanged.",
+      "purpose": "Canonical direct character identity/model reference; do not derive identity from generated scenes"
+    },
+    "cacheOriginalModel": {
+      "path": "docs/source-pack/review-level3-story/references/cache-model.png",
+      "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3",
+      "availability": "original-model-source-recovered",
+      "originalSourcePath": "D:/My Stuff/BARCODE Non Show Components/Character Ref + Art/Cache Back/openart-image_sUa578AT_1765587750737_raw.png",
+      "historicalUploadNote": "Same base filename as documented upload; source bytes differ from historical (1) upload hash. This current source was directly viewed and copied unchanged.",
+      "purpose": "Canonical direct character identity/model reference; do not derive identity from generated scenes"
+    }
+  },
+  "documentedCrewModels": [
+    {
+      "character": "Cache Back",
+      "status": "previously-supplied-model-documented",
+      "localOriginalPath": null,
+      "manifestPath": "assets/intro/art-manifest.json",
+      "files": [
+        {
+          "filename": "openart-image_sUa578AT_1765587750737_raw(1).png",
+          "sha256": "8841d0693638a0bb618cfbba079c393a82781e6cb95fb0f58591a2501c792305",
+          "availability": "documented-original-not-located-in-audited-files"
+        }
+      ],
+      "contributor": null,
+      "credit": null,
+      "needNewInclusionApproval": false
+    },
+    {
+      "character": "Mac Modem",
+      "status": "previously-supplied-model-documented",
+      "localOriginalPath": null,
+      "manifestPath": "assets/intro/art-manifest.json",
+      "files": [
+        {
+          "filename": "openart-image_y8BzeKUf_1771482003518_raw(1).png",
+          "sha256": "c1d952175d4ea08e5fa6c051348d96c351b5999614cabeef21be0627b881ce51",
+          "availability": "documented-original-not-located-in-audited-files"
+        },
+        {
+          "filename": "openart-image_1Jy267qY_1771483756922_raw(1).png",
+          "sha256": "ffbbe39cb07ddd43726a99d63d210205c88f69929c2d95a0dfb9b84f87cfd822",
+          "availability": "documented-original-not-located-in-audited-files"
+        },
+        {
+          "filename": "openart-image_jWL5HfqQ_1771484902321_raw(1).png",
+          "sha256": "2f5473cc410641d15cdb2ead5b6f844d45c8f910fc087e7090c191cb5a5ac8de",
+          "availability": "documented-original-not-located-in-audited-files"
+        }
+      ],
+      "contributor": null,
+      "credit": null,
+      "needNewInclusionApproval": false
+    },
+    {
+      "character": "6 Bit",
+      "status": "previously-supplied-model-documented",
+      "localOriginalPath": null,
+      "manifestPath": "assets/intro/art-manifest.json",
+      "files": [
+        {
+          "filename": "6BitFace(1).png",
+          "sha256": "d6142bfec816391e08d059b43fd005051888aad591c58ba96a688c535949d726",
+          "availability": "documented-original-not-located-in-audited-files"
+        },
+        {
+          "filename": "6BitFullBodyFront(1).png",
+          "sha256": "74d445beb7a17170b1bc218286113461fdc0d6026676462515cd806b9c9f4380",
+          "availability": "documented-original-not-located-in-audited-files"
+        },
+        {
+          "filename": "6BitFullBodySide(1).png",
+          "sha256": "33032565f5462a131e01972a7d57cd6867a573362d4bd03e5cd984ebbc9b6e37",
+          "availability": "documented-original-not-located-in-audited-files"
+        },
+        {
+          "filename": "6BitWaistUpSide(1).png",
+          "sha256": "9e02f07ae69bda1bfca596ff7df74f29d284a62fc0207aa365c845a05b8f9cd4",
+          "availability": "documented-original-not-located-in-audited-files"
+        }
+      ],
+      "contributor": null,
+      "credit": null,
+      "needNewInclusionApproval": false
+    },
+    {
+      "character": "DJ Floppydisc",
+      "status": "previously-supplied-model-documented",
+      "localOriginalPath": null,
+      "manifestPath": "assets/intro/art-manifest.json",
+      "files": [
+        {
+          "filename": "openart-image_H5RWJcvi_1772147226771_raw(1).png",
+          "sha256": "ad7bf222c0b9ede25762cbc7c908e6fffed80a8ceb5f4efff36c29342c3c32e7",
+          "availability": "documented-original-not-located-in-audited-files"
+        }
+      ],
+      "contributor": null,
+      "credit": null,
+      "needNewInclusionApproval": false
+    }
+  ],
+  "heroFinalPlacements": [
+    {
+      "character": "Cache Back",
+      "transition": "Level 1 to Level 2",
+      "sceneId": "l01-l02.08",
+      "requiredFinalScene": true,
+      "currentRuntimePath": "assets/cache-bridge/bridge-08-cache-line.webp",
+      "currentLimitation": "Car only, Cache is not visible.",
+      "assetId": "cache-hero-final"
+    },
+    {
+      "character": "Mac Modem",
+      "transition": "Level 2 to Level 3",
+      "sceneId": "cutscene.cache-ending.get-it-heard",
+      "requiredFinalScene": true,
+      "currentRuntimePath": "assets/cache-ending/ending-04-street-access.webp",
+      "currentLimitation": "Connector preparation at closed gate, not action entrance.",
+      "assetId": "mac-hero-final"
+    }
+  ],
+  "assetCards": [
+    {
+      "assetId": "cache-hero-final",
+      "sceneId": "l01-l02.08",
+      "purpose": "Required final Cache introduction heading into Level 2 action.",
+      "shot": "Entirely inside the car from the front passenger seat; Cache in the left driver seat, steering wheel/dashboard in front, road through forward windshield.",
+      "poseAction": "Distinct active driver posture, hands naturally assigned to driving; not 6 Bit's walking pose.",
+      "continuityBefore": "Bridge scene 7 already loaded the protected original and started ignition.",
+      "continuityAfter": "Rear-view road gameplay; avoid a new unestablished front-facing car design.",
+      "referenceIds": [
+        "cacheIgnition",
+        "cacheOriginalModel",
+        "sixHero"
+      ],
+      "originalSourcePath": "docs/source-pack/review-level3-story/cache-hero-concept-v2.png",
+      "status": "corrected-concept-pending-owner-review",
+      "sha256": "8d7d669100f8538d40ba2c7128998d2ae458c7047e53e36cbbf956f1f93138ce",
+      "contributor": null,
+      "credit": "Generated concept artwork; final credit pending",
+      "approvedForRuntime": false,
+      "bytes": 2839105,
+      "dimensions": [
+        1860,
+        845
+      ],
+      "generationProvenance": "docs/source-pack/review-level3-story/generation-provenance.json",
+      "generator": "image_gen.imagegen (built-in)",
+      "generationProvenanceEntryId": "hero.cache.v2"
+    },
+    {
+      "assetId": "mac-hero-final",
+      "sceneId": "cutscene.cache-ending.get-it-heard",
+      "purpose": "Required final Mac introduction heading into Level 3 action.",
+      "shot": "Mac becomes the unmistakable focal character at street-access threshold, with the route visible ahead.",
+      "poseAction": "Distinct committed brawler entry/ready action, not 6 Bit's walk and not the existing stationary connector operation.",
+      "continuityBefore": "Scene 7 prepares access at Mac's separate street cabinet; Cache remains elsewhere on comms.",
+      "continuityAfter": "Mac's planned Broadcast Slum street brawler; do not relabel the rejected Contra prototype.",
+      "referenceIds": [
+        "macFaceModel",
+        "macRedBodyModel",
+        "sixHero"
+      ],
+      "originalSourcePath": "docs/source-pack/review-level3-story/mac-hero-concept-v2.png",
+      "status": "corrected-concept-pending-owner-review",
+      "sha256": "7a4ea32cc6842408a4a381ade72595fc8cb8cb3d738802c26597443c08609599",
+      "contributor": null,
+      "credit": "Generated concept artwork; final credit pending",
+      "approvedForRuntime": false,
+      "bytes": 3111148,
+      "dimensions": [
+        1860,
+        845
+      ],
+      "generationProvenance": "docs/source-pack/review-level3-story/generation-provenance.json",
+      "generator": "image_gen.imagegen (built-in)",
+      "modelRequirement": "Original model narrow face, slim body, exact asymmetric circuit makeup, long ginger beard/thin braids and red-vest sequence costume.",
+      "generationProvenanceEntryId": "hero.mac.v2"
+    }
+  ],
+  "assetBriefTemplate": {
+    "assetId": null,
+    "sceneId": null,
+    "purpose": null,
+    "mandatoryFact": null,
+    "setupSceneIds": [],
+    "returnSceneIds": [],
+    "payoffSceneIds": [],
+    "choiceIds": [],
+    "choiceResponse": null,
+    "choiceCallback": null,
+    "characterDisplayName": null,
+    "portrayal": null,
+    "identityBoundaries": [],
+    "shot": null,
+    "poseAction": null,
+    "camera": null,
+    "continuityBefore": null,
+    "continuityAfter": null,
+    "referenceIds": [],
+    "sourcePhotoPaths": [],
+    "sourcePhotoHashes": [],
+    "sourceContribution": null,
+    "contributor": null,
+    "credit": null,
+    "contributionPermissionEvidence": null,
+    "assetType": null,
+    "pixelDimensions": null,
+    "aspectRatio": null,
+    "onScreenSize": null,
+    "captionSafeArea": null,
+    "transparentBounds": null,
+    "anchorContactLine": null,
+    "animationFrameRequirements": null,
+    "paletteStyle": null,
+    "audioDependencyIds": [],
+    "originalSourcePath": null,
+    "originalSourceSha256": null,
+    "runtimePath": null,
+    "runtimeSha256": null,
+    "generationPromptPath": null,
+    "orderedReferencePaths": [],
+    "generationProvenancePath": null,
+    "acceptanceImagePath": null,
+    "artReviewStatus": "not-reviewed",
+    "storyStatus": "draft",
+    "integrationStatus": "not-integrated",
+    "approvedForRuntime": false
+  },
+  "assetBriefDefaults": {
+    "aspectRatio": "approximately 2.2:1, reference-native whole-image framing",
+    "suggestedConceptDimensions": {
+      "width": 1860,
+      "height": 845
+    },
+    "runtimeDimensions": "set from selected original after review; do not silently crop or resize",
+    "paletteStyle": "Mature hand-inked cyberpunk graphic novel; amber practical lights, cyan electronics, plum shadows; strong contours and controlled texture.",
+    "captionSafeArea": "Keep principal focal details within art; reserve dialogue/status/control text for the existing runtime scene owner. Do not bake text into illustrations except approved established costume/vehicle insignia.",
+    "sourceHandling": "Preserve original supplied/reference assets and generated sources unchanged; record every selected source hash, prompt and ordered references. Any runtime conversion must document its actual parameters.",
+    "identityPriority": "Canonical face, makeup, cap/insignia, costume and five-finger anatomy take priority over style invention.",
+    "contributor": null,
+    "credit": null
+  },
+  "cameos": [
+    {
+      "name": "Kave",
+      "inclusionStatus": "included",
+      "chapterRole": "Level 3 Kaveman Radio music-review desk in the venue neighborhood, with planned Level 5 artist/reviewer return and optional Level 6 queue/feed testimony",
+      "sceneIds": [
+        "cutscene.cache-ending.kave-dead-air",
+        "cutscene.cache-ending.street-access"
+      ],
+      "referenceIds": [],
+      "likenessReferencePath": null,
+      "referenceStatus": "first-party-public-account-chain-and-four-public-images-found-and-visually-inspected; final-illustrated-model-not-selected",
+      "photoGap": [
+        "Select the performance or casual public look for the illustrated cameo",
+        "Higher-resolution frontal/three-quarter face reference if needed for detailed likeness",
+        "Final review-desk/sign/props and contribution credit",
+        "Actual supplied emblem/voice/music files only if used"
+      ],
+      "fallback": "Use the sourced artist/reviewer role at a fictional review desk without inventing an unreferenced face or real venue ownership.",
+      "portrayal": "Artist/reviewer support keeping submissions and local monitoring alive while the outbound feed is held; no real venue ownership claim, villain role, kill target, captured unit or required access credential.",
+      "contributor": null,
+      "credit": null,
+      "contributionPermissionEvidence": null,
+      "publicReferenceResearch": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+      "publicReferenceReview": "docs/source-pack/KAVE_REFERENCE_REVIEW.html",
+      "publicReferencePages": [
+        "https://linktr.ee/kavemanbrown",
+        "https://www.youtube.com/@KaveManBrown",
+        "https://www.youtube.com/watch?v=ibt4QBgZyoU",
+        "https://www.youtube.com/watch?v=NbZXzh3Ex4U"
+      ]
+    },
+    {
+      "name": "Studio Cats",
+      "inclusionStatus": "included-recurring-cameo",
+      "chapterRole": "One purposeful physical feline gag with a later return/payoff",
+      "sceneIds": [],
+      "referenceIds": [
+        "studioCat",
+        "studioCatEvent"
+      ],
+      "likenessReferencePath": null,
+      "referenceStatus": "existing-approved-feline-art-available",
+      "photoGap": [],
+      "portrayal": "Ordinary scruffy tuxedo cats; Studio Rats is feline slang, not rodents.",
+      "contributor": null,
+      "credit": null,
+      "contributionPermissionEvidence": null
+    },
+    {
+      "name": "WittyF0x",
+      "inclusionStatus": "included",
+      "chapterRole": "Implemented Level 1 text-route detail; Level 2 callback candidate and planned Level 5 presence",
+      "sceneIds": [],
+      "referenceIds": [],
+      "likenessReferencePath": null,
+      "referenceStatus": "no-likeness-reference-located-in-audited-files",
+      "photoGap": [
+        "Scene-specific likeness only if an identifiable appearance is selected"
+      ],
+      "contributor": null,
+      "credit": null,
+      "contributionPermissionEvidence": null
+    },
+    {
+      "name": "Dr3wBaby",
+      "inclusionStatus": "included",
+      "chapterRole": "Level 2 service/decal/transmission candidate and Level 5 recovery/venue return",
+      "sceneIds": [],
+      "referenceIds": [],
+      "likenessReferencePath": null,
+      "referenceStatus": "no-likeness-reference-located-in-audited-files",
+      "photoGap": [
+        "Scene-specific likeness only if an identifiable appearance is selected"
+      ],
+      "contributor": null,
+      "credit": null,
+      "contributionPermissionEvidence": null
+    }
+  ],
+  "campaignCameoContinuity": {
+    "level5IncludedNames": [
+      "Cliff",
+      "Sheila",
+      "Studio Cats",
+      "WittyF0x",
+      "Kave",
+      "SKELLA",
+      "Dr3wBaby",
+      "LostMarbles",
+      "Mr. Nice Guy",
+      "Shadowspit",
+      "Hellcat"
+    ],
+    "supportingCandidates": [
+      "Miss Bit",
+      "BNL-01"
+    ],
+    "excludedNames": [
+      "Mind Fanatic",
+      "Emerald",
+      "Crowline",
+      "W3T TDDY"
+    ],
+    "boundaries": [
+      "Only 6 Bit, DJ Floppydisc, Cache Back and Mac Modem are playable.",
+      "Sheila remains silhouette-only; her compromised trainer role belongs to the forgotten Level 5 competition.",
+      "Do not turn community members into villains, kill targets, humiliating jokes or capturable units without explicit approval.",
+      "Existing inclusion approvals remain valid; exact likeness/music/voice contributions are tracked separately.",
+      "No real-name substitution, Brownout or separate Bini cameo.",
+      "Observer Not Found and NUL.TV retain separate canon."
+    ]
+  },
+  "nineBitBeatDependencies": [
+    {
+      "id": "nine-panel-hand",
+      "sceneIds": [
+        "cutscene.cache-ending.margin-note"
+      ],
+      "status": "new-art-required",
+      "referenceIds": [
+        "nineIdentity"
+      ],
+      "purpose": "A repeated original comic hand/frame gesture can seed later panel-peel evidence payoffs.",
+      "artDependency": "Original transparent hand/gesture pose or scene painting with a clearly owned frame-edge intrusion; no expression kit is currently located.",
+      "runtimeRule": "Presentation only; do not change actual save, clear, score, control binding, receiver status or warning.",
+      "contributor": null,
+      "credit": null
+    },
+    {
+      "id": "nine-annotation-cue",
+      "sceneIds": [
+        "cutscene.cache-ending.margin-note",
+        "cutscene.cache-ending.record-straight"
+      ],
+      "status": "authored-cue-and-layout-required",
+      "referenceIds": [],
+      "purpose": "Mac notices a nonessential caption annotation; Cache contrasts it with the protected original recording.",
+      "runtimeRule": "Genuine speaker/status labels return after the authored crew reaction. Pause, skip, replay, reduced effects and input ownership must remain usable.",
+      "contributor": null,
+      "credit": null
+    }
+  ],
+  "dialogueChoiceDependencies": [
+    {
+      "id": "dialogue-choice-presentation",
+      "sceneIds": [
+        "cutscene.cache-ending.unverified",
+        "cutscene.cache-ending.margin-note"
+      ],
+      "status": "design-required",
+      "purpose": "A direct readable between-action choice, followed by a concrete crew reply.",
+      "runtimeRule": "Choice changes response/acknowledgment and a planned later callback; either response preserves the mandatory blockade objective. No combat menu or input automation.",
+      "choiceIds": [
+        "delivery-question",
+        "frame-reply"
+      ]
+    },
+    {
+      "id": "choice-response-callback",
+      "sceneIds": [
+        "cutscene.cache-ending.unverified",
+        "cutscene.cache-ending.margin-note"
+      ],
+      "status": "script-and-state-contract-required",
+      "purpose": "Track setup, chosen reply and later return/payoff for stable choices delivery-question and frame-reply; define truthful resume/replay behavior.",
+      "choiceIds": [
+        "delivery-question",
+        "frame-reply"
+      ]
+    }
+  ],
+  "deliveryRules": [
+    "This manifest records production dependencies, not shipped scenes or final canon.",
+    "Generated hero concepts remain review assets outside runtime until selected and integrated.",
+    "Null contributor/credit/reference values are unrecorded, not a claim of absent permission or private-photo status.",
+    "Reference availability claims are limited to the audited files; do not claim a photo is missing everywhere.",
+    "Do not infer supplied music or voice from visual inclusion.",
+    "Preserve the successful Level 2 delivery, Bass award and saved handoff.",
+    "The rejected Contra-style preview does not become Mac's authored Level 3."
+  ],
+  "legacyEndingPageMap": [
+    {
+      "legacyPageIndex": 0,
+      "sceneId": "cutscene.cache-ending.delivered"
+    },
+    {
+      "legacyPageIndex": 1,
+      "sceneId": "cutscene.cache-ending.unverified"
+    },
+    {
+      "legacyPageIndex": 2,
+      "sceneId": "cutscene.cache-ending.held"
+    },
+    {
+      "legacyPageIndex": 3,
+      "sceneId": "cutscene.cache-ending.street-access"
+    }
+  ],
+  "dialogueChoices": [
+    {
+      "id": "delivery-question",
+      "sceneId": "cutscene.cache-ending.kave-dead-air",
+      "status": "authored-draft-pending-review",
+      "choiceType": "crew-question",
+      "optionIds": [
+        "people",
+        "blocked"
+      ],
+      "exactOptions": [
+        {
+          "id": "people",
+          "label": "Who's waiting?",
+          "speaker": "KAVE",
+          "reply": "Artists waiting for a play. Listeners waiting for a voice."
+        },
+        {
+          "id": "blocked",
+          "label": "What got blocked?",
+          "speaker": "KAVE",
+          "reply": "The outbound feed. Local monitoring works; distribution doesn't."
+        }
+      ],
+      "reconverge": {
+        "speaker": "MAC MODEM",
+        "line": "Then we open it back up, piece by piece.",
+        "nextSceneId": "cutscene.cache-ending.held"
+      },
+      "progressionEffect": "none",
+      "contributor": null,
+      "credit": null
+    },
+    {
+      "id": "frame-reply",
+      "sceneId": "cutscene.cache-ending.margin-note",
+      "status": "authored-draft-pending-review",
+      "choiceType": "player-addresses-nine-bit",
+      "optionIds": [
+        "listening",
+        "crew"
+      ],
+      "exactOptions": [
+        {
+          "id": "listening",
+          "label": "I'm listening.",
+          "speaker": "9 BIT",
+          "reply": "Then listen to what isn't there."
+        },
+        {
+          "id": "crew",
+          "label": "Let the crew work.",
+          "speaker": "9 BIT",
+          "reply": "Fair. They know the streets. You know the frame."
+        }
+      ],
+      "reconverge": {
+        "speaker": "CACHE BACK",
+        "line": "That wasn't on the tape.",
+        "nextSceneId": "cutscene.cache-ending.record-straight"
+      },
+      "progressionEffect": "none",
+      "contributor": null,
+      "credit": null
+    }
+  ],
+  "legacyCueMigration": [
+    {
+      "legacyVersion": 1,
+      "page": 3,
+      "cue": 1,
+      "sceneId": "cutscene.cache-ending.street-access",
+      "meaning": "Existing Mac access line retained"
+    },
+    {
+      "legacyVersion": 1,
+      "page": 3,
+      "cue": 2,
+      "sceneId": "cutscene.cache-ending.get-it-heard",
+      "meaning": "Existing 6 Bit sendoff retained; do not reinterpret as new Kave line"
+    }
+  ],
+  "completedSaveRule": "Preserve done, Bass, Level 2 clear, delivery and current receipt; never force replay or retroactive choice.",
+  "kavePublicReferences": {
+    "status": "first-party-sources-found-and-visually-inspected",
+    "research": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+    "review": "docs/source-pack/KAVE_REFERENCE_REVIEW.html",
+    "officialHub": "https://linktr.ee/kavemanbrown",
+    "officialChannel": "https://www.youtube.com/@KaveManBrown",
+    "performanceVideo": "https://www.youtube.com/watch?v=ibt4QBgZyoU",
+    "recommendedLook": "Wide-brim black hat and dark outfit; final illustrated model not selected",
+    "cameoProposal": "Kaveman Radio music-review host with a held outbound feed",
+    "finalIllustratedModelSelected": false
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "minimumScenes": 7,
+  "draftScenes": 8,
+  "stableSceneIds": 8,
+  "choiceIds": 2,
+  "referenceAndConceptHashesChecked": 27,
+  "localPathReferencesChecked": 46,
+  "generationEntries": 4,
+  "ownerRejectedV1EntriesPreserved": 2,
+  "correctedV2Entries": 2,
+  "exactV2PromptsAndReferenceOrdersChecked": 2,
+  "currentCandidateIds": [
+    "hero.cache.v2",
+    "hero.mac.v2"
+  ],
+  "ownerArtAcceptance": "pending",
+  "kavePublicReferences": "found; final illustrated model not selected",
+  "runtimeChanged": false,
+  "runtimeDiffBase": "d2e3776d6aebbf911b41b9e86b56b769e970e8d1",
+  "runtimeDiffVerifiedSeparately": true,
+  "browserReviewEvidence": "review-receipt.json; maintained by separate browser reviewer",
+  "checkedAt": "2026-10-06T00:57:21.135682+00:00",
+  "scope": "Documentation-only story draft integrity, local resource paths, complete generation provenance, v2 image hashes/metadata and unchanged source runtime"
+}

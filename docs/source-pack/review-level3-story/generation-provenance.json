@@ -1,0 +1,143 @@
+{
+  "generator": "image_gen.imagegen (built-in)",
+  "purpose": "Two proposed character-led final chapter-entrance paintings for story review; not installed in gameplay",
+  "classification": "illustration-story",
+  "generatedOn": "2026-10-05",
+  "acceptedForRuntime": false,
+  "assets": [
+    {
+      "id": "hero.cache",
+      "path": "docs/source-pack/review-level3-story/cache-hero-concept.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a1033a-c1a6-7aa0-9ce9-295e72ae3419/exec-161d4bee-be3e-4f0c-a1cc-cf8545069913.png",
+      "prompt": "Use case: illustration-story\nAsset type: finished concept painting for Cache Back's last Level 1-to-Level 2 entrance panel in BARCODE: SYSTEM OVERRIDE, new separate artwork.\nInput images (references only, not edit targets): image 1 bridge-05-keep-it is Cache identity and graphic-novel rendering; image 2 bridge-07-ignition establishes the exact driver, vehicle cockpit and secured original cassette; image 3 intro-08 is the dramatic character-led chapter entrance style benchmark. Do not reproduce image 3's forward walking pose.\nPrimary request: ONE very wide landscape 2.2:1 full-bleed premium hand-inked cyberpunk comic illustration, with Cache personally visible and committed to the road mission. New camera: low three-quarter view from just outside the driver's side windshield/window. Cache is already seated behind the wheel after ignition, shoulders leaning forward with focused confidence, one anatomically correct hand gripping the wheel and the other thumb ending a radio push on a small dash microphone. His masked face and brown eyes behind clear black glasses are big and legible on the left-center; his yellow cap with two rounded side protrusions and yellow short-sleeved Greek-key-trim outfit and dark mechanical collar match references exactly. Car is yellow and black, cockpit black with rectangular amber/cyan digital instruments, protected original cassette physically secured in dash. Headlights and wet-road perspective lead toward the open transit line at right. Road is clear at launch, with vivid lived-in amber windows, cyan skyline and plum/magenta reflections. Car stays stationary at this chapter-ready illustration; composition promises forward motion. Pose should feel cool and heroic through concentration, not simply a character portrait or raised fist. Driver and both hands inside safe central 70 percent height; breathing room around hat. No other visible people.\nStyle: confident black ink contours, angular cel shading, mature expressive proportions, rich hand-drawn details and restrained halftone/paper texture. No low-poly shapes, no 3D, no chibi, no photorealism. Maintain established insignia where visible without redesigning it. Avoid random extra masks or headphones.\nConstraints: no caption, dialogue, lettering, panel border, HUD, watermark, speed warning or readable displays, except actual costume/car insignia. Leave quiet upper-right negative space for runtime speech without covering face, hand or cassette. This is standalone new art matching references, not an edit of an old panel. Opaque background.",
+      "references": [
+        {
+          "path": "assets/cache-bridge/sources/bridge-05-keep-it.png",
+          "sha256": "1457b1b4d66a5850792ade4061f634e9089ee50ade2e87210940dfa773b6670e"
+        },
+        {
+          "path": "assets/cache-bridge/sources/bridge-07-ignition.png",
+          "sha256": "7566daf8fdcac52674374a5e924ceb919d20d3d43a61d67efc6d322eac127461"
+        },
+        {
+          "path": "assets/intro/intro-08-keep-it-open.webp",
+          "sha256": "aeb1845156539ce1dbb4b8825e1791b73a418ad40d4eb5cfd2a94a416761ce57"
+        }
+      ],
+      "visualReview": "Matches Cache's cap, glasses, lower-face mask, yellow outfit and cockpit continuity; visible driver heading into action. Concept pending owner review.",
+      "sha256": "e76fbbbbc6876172ab19dcac853e783fa7fa1adb3c89d75c405a9bed3ce1d128",
+      "bytes": 3146233,
+      "dimensions": [
+        1860,
+        845
+      ],
+      "status": "owner-rejected",
+      "ownerFeedback": "Impossible car geometry",
+      "acceptedForRuntime": false
+    },
+    {
+      "id": "hero.mac",
+      "path": "docs/source-pack/review-level3-story/mac-hero-concept.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a1033a-c1a6-7aa0-9ce9-295e72ae3419/exec-15b737ab-18a1-4fa4-92cb-d5a16156968c.png",
+      "prompt": "Use case: illustration-story\nAsset type: final Mac Modem heading-into-action concept painting for Scene 8 GET IT HEARD in BARCODE: SYSTEM OVERRIDE's Level 2-to-Level 3 chapter transition. New artwork, not an edit target.\nInput references: image 1 ending-04-street-access.png is exact Mac identity, tattoos, paint, red costume and gate/street location; image 2 bridge-02-uplink.png reinforces his likeness; image 3 intro-08-keep-it-open.webp is the chapter-entrance graphic-novel style benchmark only. Do not copy 6 Bit's pose.\nPrimary request: ONE very wide 2.2:1 full-bleed mature cyberpunk comic image. Mac himself fills left-center foreground in a heroic, physical three-quarter profile moving diagonally into the street to the right. Low camera looking slightly up; visible from cap to knees with safe breathing room. The yellow-and-black street barrier from reference1 has lifted diagonally clear behind his shoulders, control cabinet behind left. One front foot steps across its threshold, weight already moving forward, knees natural, broad red-vested torso turned toward the street. Near arm is bent in a compact confident fight-ready posture, hand relaxed clenched at his chest; other hand finishes pushing the side gate aside behind him. No arms raised overhead, no identical walk-toward-viewer pose, no giant superhero physique. We read resolve, irritation and readiness: Mac knows how to fight but is about to enter, not already attacking. A clear wet lane leads to a shuttered music venue and distant broadcast distribution district at right, lived-in buildings, silent speaker stacks and original non-readable channel signs, cyan/magenta/amber light. Faint original anonymous enforcement silhouettes very far away, no identifiable cameos or other crew. No gun, sword, powers, violence or borrowed characters.\nExact Mac model: ginger beard, two thin side braids with blue ties, RED eyes, black flat brim cap tiny red MODEM wordmark, white facepaint with fine red signal arcs across forehead and asymmetric thin black circuit marks around eyes, natural human face proportions. Burgundy/red sleeveless vest over black shirt, tattooed muscular human forearms, pendant necklace, dark trousers. No black goggles, no 6Bit eye patches, no pale skeleton skin, no giant armor. Preserve proportions and characteristic art from references.\nStyle: confident mature hand-inked contours, angular cel shading, restrained halftone and paper grain, vivid dense cyberpunk street but strong clear foreground silhouette. Full detailed illustration, no low poly, no 3D render, no photo, no chibi.\nText: no caption, no dialogue, no readable billboards, no panel frame, no HUD, no watermark, except established tiny MODEM cap lettering. Keep upper right and lower-right street relatively quiet for runtime dialogue. All critical face, hands, gate action and knees inside safe central 75 percent image height. Opaque background.",
+      "references": [
+        {
+          "path": "assets/cache-ending/sources/ending-04-street-access.png",
+          "sha256": "a3a7ad1afcb8bb9c48a5c7a310f4d5b97fbcf135c97e45b8653de517c619b708"
+        },
+        {
+          "path": "assets/cache-bridge/sources/bridge-02-uplink.png",
+          "sha256": "3ccd1b49f80f06f639f64018f21e8599febfdafe270507bbeaef4dfb20a3ec4d"
+        },
+        {
+          "path": "assets/intro/intro-08-keep-it-open.webp",
+          "sha256": "aeb1845156539ce1dbb4b8825e1791b73a418ad40d4eb5cfd2a94a416761ce57"
+        }
+      ],
+      "visualReview": "Matches Mac's ginger beard/braids, cap, red costume, paint and tattoos; gate-threshold fighting posture differs from Cache and 6 Bit. Concept pending owner review.",
+      "sha256": "3a4461f22dba175c1054341e7e6795795763bcd79b6c4e1af7fd6b4a1fb38665",
+      "bytes": 3117729,
+      "dimensions": [
+        1860,
+        845
+      ],
+      "status": "owner-rejected",
+      "ownerFeedback": "Does not match Mac's character model",
+      "acceptedForRuntime": false
+    },
+    {
+      "id": "hero.cache.v2",
+      "version": 2,
+      "supersedes": "hero.cache",
+      "path": "docs/source-pack/review-level3-story/cache-hero-concept-v2.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a1033a-c1a6-7aa0-9ce9-295e72ae3419/exec-34ccc479-f12f-419d-b995-2e0328dad952.png",
+      "originalGeneratedSha256": "8d7d669100f8538d40ba2c7128998d2ae458c7047e53e36cbbf956f1f93138ce",
+      "prompt": "Use case: illustration-story\nAsset type: revised final Cache Back chapter-entrance painting, correcting an owner-rejected incoherent car layout. New concept version 2 for story review.\nReferences: image 1 bridge-07-ignition is the exact valid car cabin, driver identity and seat/dash geography and must govern all geometry; image 2 cache-model.png is the ORIGINAL Cache model for exact face/costume; it has priority over painting likeness; image 3 intro-08 is hand-inked chapter-hero style only, not its pose.\nPrimary request: ONE landscape 2.2:1 full-bleed illustration, shot ENTIRELY INSIDE the yellow car. Camera is positioned over the empty front passenger seat at the right, looking diagonally toward Cache in the left-hand driver seat, and forward toward the windshield. Maintain a coherent left-hand-drive car cabin: the steering wheel is mounted directly in front of Cache's chest in the LEFT driver position, the long dashboard runs to its right in front of the empty passenger seat, and the windshield is the single forward-facing glass above the dashboard with the wet transit road beyond. No exterior view of the car, no bonnet, no front bumper, no outside rear wheel, no outside headlight painted on the passenger side, no rearview world placed in a side window. The cabin geography should look physically correct and unmistakable.\nHero moment: Cache seated ready for action, shoulders leaned confidently toward the mission, face and determined brown eyes clearly visible in three-quarter profile. Left hand grips steering wheel naturally, right hand lowers a small push-to-talk microphone after a radio reply. The original cassette is securely seated in a cassette deck on the front dashboard. Canonical yellow cap with its two rounded side protrusions, short dark hair, black CLEAR glasses, dark angular lower-face mask and blue-lit mechanical collar, yellow short-sleeve Greek-key-trim costume and circular emblem match refs exactly. Natural human hands with five fingers, body proportions unchanged. Black cockpit, rectangular amber/cyan digital readouts with no readable words. Keep important hands, cap and cassette inside safe image. Empty front passenger seat is permitted on the lower-right edge, no passengers. Forward road visible through windshield, city amber lights and cyan/plum/magenta reflections. No race has started yet.\nStyle: match the approved image1 premium mature cyberpunk graphic novel, confident hand-inked contours, rich angular cel shading, restrained print grain, not low-poly, not 3D, not photographic, not chibi. A fresh deliberate hero framing, distinct from the earlier ignition loading action and 6 Bit walking.\nText: no dialogue balloons, title, border, watermark, HUD, readable signs or captions. Tiny established costume emblem can remain. Leave some quiet window area for runtime dialogue. Opaque background.\nPriority: physically coherent passenger-seat-to-driver view and exact Cache identity are more important than extravagant camera perspective.",
+      "promptSha256": "a696014fa2b5e3fd0ecf4468d4ef578398d01c78e1a4b82512c95690e0f1edbd",
+      "references": [
+        {
+          "path": "assets/cache-bridge/sources/bridge-07-ignition.png",
+          "sha256": "7566daf8fdcac52674374a5e924ceb919d20d3d43a61d67efc6d322eac127461"
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/cache-model.png",
+          "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3"
+        },
+        {
+          "path": "assets/intro/intro-08-keep-it-open.webp",
+          "sha256": "aeb1845156539ce1dbb4b8825e1791b73a418ad40d4eb5cfd2a94a416761ce57"
+        }
+      ],
+      "status": "corrected-concept-pending-owner-review",
+      "visualReview": "Corrected concept pending owner art review; this integrity audit checks files and provenance, not likeness acceptance.",
+      "acceptedForRuntime": false,
+      "sha256": "8d7d669100f8538d40ba2c7128998d2ae458c7047e53e36cbbf956f1f93138ce",
+      "bytes": 2839105,
+      "dimensions": [
+        1860,
+        845
+      ]
+    },
+    {
+      "id": "hero.mac.v2",
+      "version": 2,
+      "supersedes": "hero.mac",
+      "path": "docs/source-pack/review-level3-story/mac-hero-concept-v2.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a1033a-c1a6-7aa0-9ce9-295e72ae3419/exec-f5eae3be-0beb-4976-8609-b4b5ebe6cafa.png",
+      "originalGeneratedSha256": "7a4ea32cc6842408a4a381ade72595fc8cb8cb3d738802c26597443c08609599",
+      "prompt": "Use case: illustration-story\nAsset type: corrected Mac Modem final hero entrance painting for scene8 GET IT HEARD in BARCODE: SYSTEM OVERRIDE. This replaces a rejected concept with a different inaccurate character model.\nInput references: image1 mac-face.png is the ORIGINAL model and is the absolute authority for face proportions, makeup, beard and braids; image2 mac-body-red.png is ORIGINAL full body and absolute authority for slim build, red/burgundy sleeveless vest, black MODEM shirt, jewellery, tattoos, trousers and red shoes; image3 intro-08-keep-it-open.webp is only the game's premium inked cyberpunk scene style, NOT identity or pose. Do not use the earlier rejected broad muscular Mac concept as reference.\nPrimary request: ONE very wide landscape 2.2:1 full-bleed hand-inked graphic-novel scene. The exact slim, lean human Mac from images1/2 is on left-middle foreground stepping diagonally to the right into the Broadcast Slum street after opening a yellow-black access gate. Knees to cap fully visible, hat fully inside image with breathing room. His front foot crosses threshold, weight shifting forward; one hand behind him pushes the narrow side gate aside, the other hand draws into a compact ready stance beside his ribcage. The posture shows physical commitment without massive superhero arms. Wet cyberpunk street and a closed music/radio frontage on the right lead deeper toward the distribution checkpoint; a lifted yellow-black barrier and cabinet remain behind Mac. Small distant anonymous enforcement shapes may show the task ahead; no named cameo or other crew.\nExact character: lean narrow shoulders and slim neck/arms, LONG NARROW FACE and long nose as model, human unexaggerated jaw and ears. Carefully preserve original full white face makeup, red concentric forehead signal arcs, thin asymmetrical black circuit: a small rounded ring around model's RIGHT eye (on viewer left in frontal ref), thin paired cheek/chin traces with dots. Both irises vivid red. Do not invent giant mask/solid black eye paint, glasses, scars, heavy muscular brow or wider cheekbones. Neat long ginger central beard extending down from narrow chin, separate small ginger moustache, thin two braids hanging near chest with small dark ties, not enormous ropes or short dense bushy square beard. Exact black MODEM cap with red wordmark. Slim burgundy tailored sleeveless vest worn open over BLACK shirt with red MODEM, layered actual pendants. Tattoo patterns are modest and distributed like full-body ref, not entire oversized shoulders filled with invented tribal art. Dark slim jeans and red low-top shoes if visible.\nStyle: matching6Bit game's confident black contours, expressive natural mature anatomy, angular but rich cel shading, restrained halftone/paper texture, cyan/plum/magenta/amber practical street lights. Adapt reference identity faithfully into comic rendering without changing model. No 3D, low-poly, chibi, bodybuilder, photorealistic pasted head.\nComposition: face and important hands inside central75percentheight, quietly clear upper-right area for editable runtime dialogue. Pose should differ from 6Bit facing viewer and Cache seated atwheel. No speech balloons, comicframe, captions, HUD, watermark or readablebillboards. Only small authentic MODEM clothing/cap marks. Opaque background. Most important priority: exact lean character and original facial reference likeness, not generic tough brawler styling.",
+      "promptSha256": "b1860e8b1498bf6d5dba89cf19b6ea6e340ead7f06ff379e3dcb02a0d755edc8",
+      "references": [
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-face.png",
+          "sha256": "010a1144c9df34a7b88cd629f0d433a0ca18fd4b8b0ea2477dd7342ad9898367"
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-body-red.png",
+          "sha256": "a6cd01603eef78213ce0ef366508920087ac06c996c6ca5775e6ea3c10f75fbc"
+        },
+        {
+          "path": "assets/intro/intro-08-keep-it-open.webp",
+          "sha256": "aeb1845156539ce1dbb4b8825e1791b73a418ad40d4eb5cfd2a94a416761ce57"
+        }
+      ],
+      "status": "corrected-concept-pending-owner-review",
+      "visualReview": "Corrected concept pending owner art review; this integrity audit checks files and provenance, not likeness acceptance.",
+      "acceptedForRuntime": false,
+      "sha256": "7a4ea32cc6842408a4a381ade72595fc8cb8cb3d738802c26597443c08609599",
+      "bytes": 3111148,
+      "dimensions": [
+        1860,
+        845
+      ]
+    }
+  ],
+  "currentCandidateIds": [
+    "hero.cache.v2",
+    "hero.mac.v2"
+  ],
+  "ownerRejectedCandidateIds": [
+    "hero.cache",
+    "hero.mac"
+  ]
+}
