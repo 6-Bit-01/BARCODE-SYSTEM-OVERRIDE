@@ -1,5 +1,9 @@
 # Current State
 
+## October 5, 2026 — mobile tutorial instructions
+
+The mobile tutorial incorrectly named Space and other keyboard keys despite working touch controls. Dialogue now says Tap Next; movement, jump, rhythm, beat and hack hints name the existing touch surfaces. Both terminal layouts name digits, Submit, Delete and Cancel. This is a wording correction from published source d2e3776d; tutorial requirements, inputs, timing, original assets, saves and rendering remain unchanged. Focused tutorial flow and 29 touch contracts pass. Exact-head checks, built mobile review and site publication remain pending.
+
 ## October 5, 2026 — whole-game mobile controls implemented; validation pending
 
 The Level 2 performance release merged through PR183 at `42b2a3157638a8742717095fbdea7055b6efeb71`. The mobile work starts from that renderer and preserves all 624 original assets, native resolution, music, gameplay rules and compatible saves. Historical PR183 pending/draft statements below are superseded.
