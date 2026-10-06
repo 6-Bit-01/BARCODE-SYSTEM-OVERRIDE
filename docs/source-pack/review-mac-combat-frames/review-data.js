@@ -1,10 +1,10 @@
 window.MAC_FRAME_REVIEW = {
   "imagePaths": {
-    "basic": "../../../assets/mac-combat-frames/mac-basic-v2.png",
-    "advanced": "../../../assets/mac-combat-frames/mac-advanced-v1.png",
-    "walk": "../../../assets/mac-combat-frames/mac-walk-v1.png",
-    "contacts": "../../../assets/mac-combat-frames/mac-walk-contacts-v1.png",
-    "jump": "../../../assets/mac-combat-frames/mac-jump-kick-v1.png"
+    "basic": "art/mac-basic-v2.png",
+    "advanced": "art/mac-advanced-v1.png",
+    "walk": "art/mac-walk-v1.png",
+    "contacts": "art/mac-walk-contacts-v1.png",
+    "jump": "art/mac-jump-kick-v1.png"
   },
   "backgroundPath": "../../../assets/mac-city-review/service-alley-v1.png",
   "standingHeight": 321,

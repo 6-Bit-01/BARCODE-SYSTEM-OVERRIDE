@@ -25,7 +25,7 @@ RETAINED_REVIEW_MEDIA = {
     "review-cache-visual-drive/Foreground-Pass.mp4",
     "review-cache-lamps-chip-sound/Chip-SFX-Audition.mp3",
 }
-CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/", "review-cache-drive-feedback/", "review-cache-visual-drive/", "review-level3-story/", "review-mac-street-art/", "review-kave-likeness/", "review-mac-city-art/", "review-mac-combat-rigs/")
+CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/", "review-cache-drive-feedback/", "review-cache-visual-drive/", "review-level3-story/", "review-mac-street-art/", "review-kave-likeness/", "review-mac-city-art/", "review-mac-combat-rigs/", "review-mac-combat-frames/")
 RETAINED_REFERENCE_PREFIXES = ("review-level3-story/references/", "review-mac-street-art/references/", "review-kave-likeness/")
 REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".avif", ".gif", ".mp3", ".wav"}
 ROOT_DOCUMENT_SUFFIXES = {".md", ".json", ".txt"}

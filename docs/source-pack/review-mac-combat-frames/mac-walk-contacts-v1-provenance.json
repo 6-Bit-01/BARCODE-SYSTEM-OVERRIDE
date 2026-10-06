@@ -2,7 +2,7 @@
   "tool": "built-in image_gen.imagegen",
   "transparent_background": true,
   "selectedNativePath": "C:\\Users\\jondh\\.codex\\generated_images\\01a1133f-2258-7932-a990-f3a5e1ace2a1\\exec-5df5b45e-c596-4da3-a734-5e15d9c47d58.png",
-  "selectedWorkspacePath": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\mac-walk-contacts-v1.png",
+  "selectedWorkspacePath": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\docs\\source-pack\\review-mac-combat-frames\\art\\mac-walk-contacts-v1.png",
   "selectedNativeSHA256": "046be2474814495be239db517c3cdd82ed3a643c82f441a90b2a37613b86b6f6",
   "selectedWorkspaceSHA256": "046be2474814495be239db517c3cdd82ed3a643c82f441a90b2a37613b86b6f6",
   "nativeBytesPreserved": true,
@@ -11,12 +11,12 @@
   "promptFileSHA256": "2de2ae85eefffa6c669d27dc87ee2fe7dd8d6804a47c05c39b679219cad01c67",
   "references": [
     {
-      "path": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\mac-walk-v1.png",
+      "path": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\docs\\source-pack\\review-mac-combat-frames\\art\\mac-walk-v1.png",
       "sha256": "ae95eaeed9f8e51112c5fd41f19347c41b5662b1a1e5411e48076d9718d06abd",
       "role": "Whole-body character identity and rendering style reference"
     },
     {
-      "path": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\mac-basic-v2.png",
+      "path": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\docs\\source-pack\\review-mac-combat-frames\\art\\mac-basic-v2.png",
       "sha256": "3924a5621c417da3328fcd9979acc37be6be0802d8ec0808194fa188aaa47046",
       "role": "Whole-body character identity and rendering style reference"
     }

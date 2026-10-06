@@ -196,6 +196,7 @@
     "src/game/main-new.js"
   ],
   "unloadedRepositoryJs": [
+    "docs/source-pack/review-mac-combat-frames/review-data.js",
     "src/core/game-manager.js",
     "src/engine/cache-road-texture-worker.js",
     "src/engine/game-logic.js",
