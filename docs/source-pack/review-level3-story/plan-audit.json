@@ -17,9 +17,13 @@
   "ownerArtAcceptance": "pending",
   "kavePublicReferences": "found; final illustrated model not selected",
   "runtimeChanged": false,
-  "runtimeDiffBase": "d2e3776d6aebbf911b41b9e86b56b769e970e8d1",
+  "runtimeDiffBase": "187db68ed9d0b85a247b3ec823d905f0b56ea76d",
   "runtimeDiffVerifiedSeparately": true,
   "browserReviewEvidence": "review-receipt.json; maintained by separate browser reviewer",
-  "checkedAt": "2026-10-06T00:57:21.135682+00:00",
-  "scope": "Documentation-only story draft integrity, local resource paths, complete generation provenance, v2 image hashes/metadata and unchanged source runtime"
+  "checkedAt": "2026-10-06T01:41:48.602208+00:00",
+  "scope": "Preserved documentation-only story draft reconciled with merged source188; no extra runtime/assets/index/style changes beyond that baseline",
+  "inheritedSourcePR": 188,
+  "inheritedTestedSourceCommit": "12dc71b943362a24c33c52e90309c2274ca4b7a3",
+  "websitePR": 484,
+  "websitePublicationCheckpoint": "pending release owner final signal"
 }

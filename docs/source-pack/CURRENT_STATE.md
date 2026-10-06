@@ -1,5 +1,11 @@
 # Current State
 
+## October 5, 2026 — mobile tutorial instructions
+
+The mobile tutorial incorrectly named Space and other keyboard keys despite working touch controls. Dialogue now says Tap Next; movement, jump, rhythm, beat and hack hints name the existing touch surfaces. Both terminal layouts name digits, Submit, Delete and Cancel. This is a wording correction from published source d2e3776d; tutorial requirements, inputs, timing, original assets, saves and rendering remain unchanged. Focused tutorial flow and 29 touch contracts pass. The source correction is now merged; site publication remains pending as recorded below.
+
+Source [PR188](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/188) is merged as `187db68ed9d0b85a247b3ec823d905f0b56ea76d`, retaining tested source `12dc71b943362a24c33c52e90309c2274ca4b7a3` in its ancestry. Website [PR484](https://github.com/6-Bit-01/barcode-network-site/pull/484) publication and live verification remain pending with the release owner. The story branch only inherits this wording fix: its eight-scene draft and corrected hero concepts remain unaccepted, scenes 3/5/6 and future runtime integration remain pending. No new story gameplay is installed.
+
 ## October 5 — owner art correction and recovered references
 
 The owner rejected the first Cache hero for impossible car geometry and the first Mac hero for an inaccurate model. Those candidates are preserved as rejected history. Original Mac face/brown-body/red-body and Cache model source files were recovered from the owner's BARCODE character-reference folder and copied unchanged into review-level3-story/references. Revised hero concepts are under review; no acceptance or runtime installation is claimed. Kave's official public accounts and four inspected images are now collected in [KAVE_REFERENCE_RESEARCH.md](KAVE_REFERENCE_RESEARCH.md) and [KAVE_REFERENCE_REVIEW.html](KAVE_REFERENCE_REVIEW.html). His draft cameo uses a Kaveman Radio review desk and held feed. Scene 3/5/6 paintings and runtime integration still remain. Earlier 'models missing' and 'concepts pending review' checkpoint wording below is historical.
