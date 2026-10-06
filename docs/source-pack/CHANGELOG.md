@@ -1,5 +1,9 @@
 # Changelog
 
+## October 5, 2026 — mobile tutorial instructions
+
+Fixed keyboard-only tutorial instructions on mobile: Tap Next for dialogue, Joystick/Jump/Rhythm/Exit/Beat/Hack/Link for tasks, and touch digits/Submit/Delete/Cancel in both hack terminal layouts. The existing tutorial:continue command already advances dialogue correctly. This patch changes wording and preserves progression, controls, artwork/audio, loading and rendering. Release is pending final checks.
+
 ## October 5, 2026 — whole-game mobile controls implemented, unpublished
 
 - Continue from merged performance PR183 / `42b2a3157638a8742717095fbdea7055b6efeb71`; preserve the retained GPU renderer, native 1920×1080 frame and all 624 original artwork/audio asset hashes.

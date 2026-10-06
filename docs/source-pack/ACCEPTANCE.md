@@ -1,5 +1,9 @@
 # Acceptance and Test Status
 
+## October 5, 2026 — mobile tutorial instructions
+
+Implemented touch-specific tutorial and terminal wording. Existing tutorial-flow (keyboard/PlayStation/Xbox at 30/60/120 Hz) and 29 production touch contracts pass; independent review confirms actual button names and preserved physical-control wording. Full regression/all-file syntax, exact-head CI, strict-built mobile Next reveal/advance and site/live verification remain pending. No physical-handset acceptance is claimed.
+
 ## October 5, 2026 — mobile acceptance pending
 
 Performance source PR183 is merged at `42b2a3157638a8742717095fbdea7055b6efeb71`; the finite physical GPU evidence below remains valid for that runtime. The initial whole-game touch implementation passes 20 focused contracts and independent input/lifecycle/ownership/syntax/89-script prototype checks. Actual bounded prototype flow passed title/settings, opening/difficulty, Level 1 multitouch and earned Level 2 gestures at 390×844, 844×390, 375×667 and 320×568. This is distinct from final release acceptance and the prototype's stale touch-only receipt hash.
