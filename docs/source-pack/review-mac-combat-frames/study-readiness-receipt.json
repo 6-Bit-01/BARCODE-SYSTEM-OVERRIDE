@@ -1,0 +1,1433 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-06T22:11:27.181Z",
+  "revision": "Walk + air kick revision 2 Â· October 6",
+  "walkSpeed": 260,
+  "frames": 36,
+  "sheets": 5,
+  "htmlSHA256": "97ee84091ab30a441b68250665206b1e5399100a68faf7a539ecde536a4efda3",
+  "localDataSHA256": "302309d2710b68dcf89d604be30160b1bbac980001001cb6ba8b851360c3fa3f",
+  "siteDataSHA256": "6febf6a0641f8a62cf370db53302d9d592a89704b402d5122570da17e312f2e3",
+  "checks": [
+    "HTML copies identical and inline syntax valid",
+    "Both current data objects pass actual study validator",
+    "Local/site metadata, cels and clips exactly match",
+    "36 whole-character cels on five sheets",
+    "Correct revision is visible after load",
+    "Walking speed260 with400ms cycle",
+    "Four original walk cels unused by Walk",
+    "Old air_kick/jump_rise/jump_land unused by Air kick",
+    "Flight746.667ms and lift boundaries continuous",
+    "Other ten clip objects exactly match existing0dd327f review",
+    "All five packaged sheets exactly match unchanged source bytes and recorded image hashes",
+    "All36 native alpha bounds match measured crops; no visible crop-edge ink",
+    "Every current clip cel stays inside the stage at gameplay and2x sizes across trajectory endpoints",
+    "Corrected walk uses fixed manual waist projection rather than swinging shoe midpoint"
+  ],
+  "unchangedClips": [
+    "idle",
+    "jab",
+    "cross",
+    "finisher",
+    "combo",
+    "step-strike",
+    "counter",
+    "throw",
+    "hurt",
+    "defeat"
+  ],
+  "nativeChecks": {
+    "status": "PASS",
+    "sheets": [
+      {
+        "sheet": "basic",
+        "sourceSHA256": "3924a5621c417da3328fcd9979acc37be6be0802d8ec0808194fa188aaa47046",
+        "dimensions": {
+          "width": 1448,
+          "height": 1086
+        },
+        "localAndSiteBytesIdentical": true
+      },
+      {
+        "sheet": "advanced",
+        "sourceSHA256": "cc7525692ae6ea5b73b6b5feac312875b0bd55958c9482220133dd8cdff606ab",
+        "dimensions": {
+          "width": 1448,
+          "height": 1086
+        },
+        "localAndSiteBytesIdentical": true
+      },
+      {
+        "sheet": "walk",
+        "sourceSHA256": "ae95eaeed9f8e51112c5fd41f19347c41b5662b1a1e5411e48076d9718d06abd",
+        "dimensions": {
+          "width": 1774,
+          "height": 887
+        },
+        "localAndSiteBytesIdentical": true
+      },
+      {
+        "sheet": "contacts",
+        "sourceSHA256": "046be2474814495be239db517c3cdd82ed3a643c82f441a90b2a37613b86b6f6",
+        "dimensions": {
+          "width": 1774,
+          "height": 887
+        },
+        "localAndSiteBytesIdentical": true
+      },
+      {
+        "sheet": "jump",
+        "sourceSHA256": "ffb03183717c172c788848a446f7bfa0b1ee79b1c4ea0fbe47f41e1a7afea9ed",
+        "dimensions": {
+          "width": 1774,
+          "height": 887
+        },
+        "localAndSiteBytesIdentical": true
+      }
+    ],
+    "nativeWholeCelBoundsMatched": 36,
+    "visibleAlphaAtCropEdges": 0,
+    "placementCount": 132,
+    "allSizesAndTrajectoryEndpointsInsideStage": true,
+    "minimum2xAirHeadMargin": 45.418,
+    "minimumGlobalStageMargin": 45.418
+  },
+  "registration": {
+    "status": "Manual waist pivots now applied to current data",
+    "contacts": {
+      "leftX": 470,
+      "rightX": 373,
+      "standingHeight": 825
+    },
+    "passing": {
+      "walk_3X": 193,
+      "walk_7X": 188
+    },
+    "acceptance": "Requires moving visual review; native checks do not establish likeness or good gait"
+  },
+  "browserAcceptance": "Review pending",
+  "publication": "No commit/deployment performed",
+  "clipPlacements": [
+    {
+      "clip": "idle",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "idle",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "idle",
+      "frame": "idle_b",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 874.143,
+      "rightMargin": 874.143,
+      "insideStage": true
+    },
+    {
+      "clip": "idle",
+      "frame": "idle_b",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 788.287,
+      "rightMargin": 788.287,
+      "insideStage": true
+    },
+    {
+      "clip": "idle",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "idle",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "walk",
+      "frame": "walk_contact_left",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 312.533,
+      "rightMargin": 248.764,
+      "insideStage": true
+    },
+    {
+      "clip": "walk",
+      "frame": "walk_contact_left",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 205.067,
+      "rightMargin": 131.527,
+      "insideStage": true
+    },
+    {
+      "clip": "walk",
+      "frame": "walk_3",
+      "size": 1,
+      "topMargin": 498.186,
+      "bottomMargin": 320,
+      "leftMargin": 351.674,
+      "rightMargin": 290.419,
+      "insideStage": true
+    },
+    {
+      "clip": "walk",
+      "frame": "walk_3",
+      "size": 2,
+      "topMargin": 236.372,
+      "bottomMargin": 320,
+      "leftMargin": 283.349,
+      "rightMargin": 214.837,
+      "insideStage": true
+    },
+    {
+      "clip": "walk",
+      "frame": "walk_contact_right",
+      "size": 1,
+      "topMargin": 497.164,
+      "bottomMargin": 320,
+      "leftMargin": 319.782,
+      "rightMargin": 237.103,
+      "insideStage": true
+    },
+    {
+      "clip": "walk",
+      "frame": "walk_contact_right",
+      "size": 2,
+      "topMargin": 234.327,
+      "bottomMargin": 320,
+      "leftMargin": 219.564,
+      "rightMargin": 108.206,
+      "insideStage": true
+    },
+    {
+      "clip": "walk",
+      "frame": "walk_7",
+      "size": 1,
+      "topMargin": 504.233,
+      "bottomMargin": 320,
+      "leftMargin": 354.698,
+      "rightMargin": 298.884,
+      "insideStage": true
+    },
+    {
+      "clip": "walk",
+      "frame": "walk_7",
+      "size": 2,
+      "topMargin": 248.465,
+      "bottomMargin": 320,
+      "leftMargin": 289.395,
+      "rightMargin": 231.767,
+      "insideStage": true
+    },
+    {
+      "clip": "jab",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "jab",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "jab",
+      "frame": "jab_windup",
+      "size": 1,
+      "topMargin": 511.34,
+      "bottomMargin": 320,
+      "leftMargin": 855.514,
+      "rightMargin": 855.514,
+      "insideStage": true
+    },
+    {
+      "clip": "jab",
+      "frame": "jab_windup",
+      "size": 2,
+      "topMargin": 262.679,
+      "bottomMargin": 320,
+      "leftMargin": 751.028,
+      "rightMargin": 751.028,
+      "insideStage": true
+    },
+    {
+      "clip": "jab",
+      "frame": "jab_contact",
+      "size": 1,
+      "topMargin": 512.96,
+      "bottomMargin": 320,
+      "leftMargin": 852.679,
+      "rightMargin": 830,
+      "insideStage": true
+    },
+    {
+      "clip": "jab",
+      "frame": "jab_contact",
+      "size": 2,
+      "topMargin": 265.919,
+      "bottomMargin": 320,
+      "leftMargin": 745.358,
+      "rightMargin": 700,
+      "insideStage": true
+    },
+    {
+      "clip": "jab",
+      "frame": "jab_recovery",
+      "size": 1,
+      "topMargin": 521.869,
+      "bottomMargin": 320,
+      "leftMargin": 863.209,
+      "rightMargin": 863.209,
+      "insideStage": true
+    },
+    {
+      "clip": "jab",
+      "frame": "jab_recovery",
+      "size": 2,
+      "topMargin": 283.738,
+      "bottomMargin": 320,
+      "leftMargin": 766.417,
+      "rightMargin": 766.417,
+      "insideStage": true
+    },
+    {
+      "clip": "jab",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "jab",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "cross",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "cross",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "cross",
+      "frame": "cross_windup",
+      "size": 1,
+      "topMargin": 521.869,
+      "bottomMargin": 320,
+      "leftMargin": 857.944,
+      "rightMargin": 857.944,
+      "insideStage": true
+    },
+    {
+      "clip": "cross",
+      "frame": "cross_windup",
+      "size": 2,
+      "topMargin": 283.738,
+      "bottomMargin": 320,
+      "leftMargin": 755.888,
+      "rightMargin": 755.888,
+      "insideStage": true
+    },
+    {
+      "clip": "cross",
+      "frame": "cross_contact",
+      "size": 1,
+      "topMargin": 524.299,
+      "bottomMargin": 320,
+      "leftMargin": 852.679,
+      "rightMargin": 831.62,
+      "insideStage": true
+    },
+    {
+      "clip": "cross",
+      "frame": "cross_contact",
+      "size": 2,
+      "topMargin": 288.598,
+      "bottomMargin": 320,
+      "leftMargin": 745.358,
+      "rightMargin": 703.24,
+      "insideStage": true
+    },
+    {
+      "clip": "cross",
+      "frame": "jab_recovery",
+      "size": 1,
+      "topMargin": 521.869,
+      "bottomMargin": 320,
+      "leftMargin": 863.209,
+      "rightMargin": 863.209,
+      "insideStage": true
+    },
+    {
+      "clip": "cross",
+      "frame": "jab_recovery",
+      "size": 2,
+      "topMargin": 283.738,
+      "bottomMargin": 320,
+      "leftMargin": 766.417,
+      "rightMargin": 766.417,
+      "insideStage": true
+    },
+    {
+      "clip": "cross",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "cross",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "hook_windup",
+      "size": 1,
+      "topMargin": 521.869,
+      "bottomMargin": 320,
+      "leftMargin": 847.009,
+      "rightMargin": 847.009,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "hook_windup",
+      "size": 2,
+      "topMargin": 283.738,
+      "bottomMargin": 320,
+      "leftMargin": 734.019,
+      "rightMargin": 734.019,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "hook_contact",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 848.192,
+      "rightMargin": 832.274,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "hook_contact",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 736.385,
+      "rightMargin": 704.548,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "hook_followthrough",
+      "size": 1,
+      "topMargin": 499.242,
+      "bottomMargin": 320,
+      "leftMargin": 838.338,
+      "rightMargin": 838.338,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "hook_followthrough",
+      "size": 2,
+      "topMargin": 238.484,
+      "bottomMargin": 320,
+      "leftMargin": 716.676,
+      "rightMargin": 716.676,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "hook_recovery",
+      "size": 1,
+      "topMargin": 499.242,
+      "bottomMargin": 320,
+      "leftMargin": 859.563,
+      "rightMargin": 859.563,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "hook_recovery",
+      "size": 2,
+      "topMargin": 238.484,
+      "bottomMargin": 320,
+      "leftMargin": 759.125,
+      "rightMargin": 759.125,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "finisher",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "jab_windup",
+      "size": 1,
+      "topMargin": 511.34,
+      "bottomMargin": 320,
+      "leftMargin": 855.514,
+      "rightMargin": 855.514,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "jab_windup",
+      "size": 2,
+      "topMargin": 262.679,
+      "bottomMargin": 320,
+      "leftMargin": 751.028,
+      "rightMargin": 751.028,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "jab_contact",
+      "size": 1,
+      "topMargin": 512.96,
+      "bottomMargin": 320,
+      "leftMargin": 852.679,
+      "rightMargin": 830,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "jab_contact",
+      "size": 2,
+      "topMargin": 265.919,
+      "bottomMargin": 320,
+      "leftMargin": 745.358,
+      "rightMargin": 700,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "jab_recovery",
+      "size": 1,
+      "topMargin": 521.869,
+      "bottomMargin": 320,
+      "leftMargin": 863.209,
+      "rightMargin": 863.209,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "jab_recovery",
+      "size": 2,
+      "topMargin": 283.738,
+      "bottomMargin": 320,
+      "leftMargin": 766.417,
+      "rightMargin": 766.417,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "cross_windup",
+      "size": 1,
+      "topMargin": 521.869,
+      "bottomMargin": 320,
+      "leftMargin": 857.944,
+      "rightMargin": 857.944,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "cross_windup",
+      "size": 2,
+      "topMargin": 283.738,
+      "bottomMargin": 320,
+      "leftMargin": 755.888,
+      "rightMargin": 755.888,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "cross_contact",
+      "size": 1,
+      "topMargin": 524.299,
+      "bottomMargin": 320,
+      "leftMargin": 852.679,
+      "rightMargin": 831.62,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "cross_contact",
+      "size": 2,
+      "topMargin": 288.598,
+      "bottomMargin": 320,
+      "leftMargin": 745.358,
+      "rightMargin": 703.24,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "hook_windup",
+      "size": 1,
+      "topMargin": 521.869,
+      "bottomMargin": 320,
+      "leftMargin": 847.009,
+      "rightMargin": 847.009,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "hook_windup",
+      "size": 2,
+      "topMargin": 283.738,
+      "bottomMargin": 320,
+      "leftMargin": 734.019,
+      "rightMargin": 734.019,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "hook_contact",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 848.192,
+      "rightMargin": 832.274,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "hook_contact",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 736.385,
+      "rightMargin": 704.548,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "hook_followthrough",
+      "size": 1,
+      "topMargin": 499.242,
+      "bottomMargin": 320,
+      "leftMargin": 838.338,
+      "rightMargin": 838.338,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "hook_followthrough",
+      "size": 2,
+      "topMargin": 238.484,
+      "bottomMargin": 320,
+      "leftMargin": 716.676,
+      "rightMargin": 716.676,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "hook_recovery",
+      "size": 1,
+      "topMargin": 499.242,
+      "bottomMargin": 320,
+      "leftMargin": 859.563,
+      "rightMargin": 859.563,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "hook_recovery",
+      "size": 2,
+      "topMargin": 238.484,
+      "bottomMargin": 320,
+      "leftMargin": 759.125,
+      "rightMargin": 759.125,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "combo",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "step-strike",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "step-strike",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "step-strike",
+      "frame": "cross_windup",
+      "size": 1,
+      "topMargin": 521.869,
+      "bottomMargin": 320,
+      "leftMargin": 857.944,
+      "rightMargin": 857.944,
+      "insideStage": true
+    },
+    {
+      "clip": "step-strike",
+      "frame": "cross_windup",
+      "size": 2,
+      "topMargin": 283.738,
+      "bottomMargin": 320,
+      "leftMargin": 755.888,
+      "rightMargin": 755.888,
+      "insideStage": true
+    },
+    {
+      "clip": "step-strike",
+      "frame": "step_contact",
+      "size": 1,
+      "topMargin": 524.257,
+      "bottomMargin": 320,
+      "leftMargin": 815.219,
+      "rightMargin": 812.945,
+      "insideStage": true
+    },
+    {
+      "clip": "step-strike",
+      "frame": "step_contact",
+      "size": 2,
+      "topMargin": 288.513,
+      "bottomMargin": 320,
+      "leftMargin": 670.437,
+      "rightMargin": 665.889,
+      "insideStage": true
+    },
+    {
+      "clip": "step-strike",
+      "frame": "jab_recovery",
+      "size": 1,
+      "topMargin": 521.869,
+      "bottomMargin": 320,
+      "leftMargin": 863.209,
+      "rightMargin": 863.209,
+      "insideStage": true
+    },
+    {
+      "clip": "step-strike",
+      "frame": "jab_recovery",
+      "size": 2,
+      "topMargin": 283.738,
+      "bottomMargin": 320,
+      "leftMargin": 766.417,
+      "rightMargin": 766.417,
+      "insideStage": true
+    },
+    {
+      "clip": "step-strike",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "step-strike",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "load",
+      "size": 1,
+      "topMargin": 575.502,
+      "bottomMargin": 320,
+      "leftMargin": 874.279,
+      "rightMargin": 875.415,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "load",
+      "size": 2,
+      "topMargin": 391.004,
+      "bottomMargin": 320,
+      "leftMargin": 788.559,
+      "rightMargin": 790.83,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "takeoff",
+      "size": 1,
+      "topMargin": 451.5,
+      "bottomMargin": 320,
+      "leftMargin": 866.9,
+      "rightMargin": 883.93,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "takeoff",
+      "size": 2,
+      "topMargin": 143,
+      "bottomMargin": 320,
+      "leftMargin": 773.799,
+      "rightMargin": 807.86,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "chamber",
+      "size": 1,
+      "topMargin": 424.454,
+      "bottomMargin": 382.124,
+      "leftMargin": 883.93,
+      "rightMargin": 887.336,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "chamber",
+      "size": 2,
+      "topMargin": 88.907,
+      "bottomMargin": 444.249,
+      "leftMargin": 807.86,
+      "rightMargin": 814.672,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "kick_extend",
+      "size": 1,
+      "topMargin": 402.709,
+      "bottomMargin": 465.372,
+      "leftMargin": 900.393,
+      "rightMargin": 771.528,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "kick_extend",
+      "size": 2,
+      "topMargin": 45.418,
+      "bottomMargin": 610.743,
+      "leftMargin": 840.786,
+      "rightMargin": 583.057,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "kick_contact",
+      "size": 1,
+      "topMargin": 423.214,
+      "bottomMargin": 472.356,
+      "leftMargin": 882.227,
+      "rightMargin": 766.419,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "kick_contact",
+      "size": 2,
+      "topMargin": 86.427,
+      "bottomMargin": 624.713,
+      "leftMargin": 804.454,
+      "rightMargin": 572.838,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "kick_retract",
+      "size": 1,
+      "topMargin": 414.131,
+      "bottomMargin": 430.54,
+      "leftMargin": 897.555,
+      "rightMargin": 877.686,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "kick_retract",
+      "size": 2,
+      "topMargin": 68.261,
+      "bottomMargin": 541.079,
+      "leftMargin": 835.109,
+      "rightMargin": 795.371,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "descent",
+      "size": 1,
+      "topMargin": 428.631,
+      "bottomMargin": 327.948,
+      "leftMargin": 878.821,
+      "rightMargin": 871.441,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "descent",
+      "size": 2,
+      "topMargin": 97.261,
+      "bottomMargin": 335.895,
+      "leftMargin": 797.642,
+      "rightMargin": 782.882,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "landing",
+      "size": 1,
+      "topMargin": 570.393,
+      "bottomMargin": 320,
+      "leftMargin": 878.821,
+      "rightMargin": 884.498,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "landing",
+      "size": 2,
+      "topMargin": 380.786,
+      "bottomMargin": 320,
+      "leftMargin": 797.642,
+      "rightMargin": 808.996,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "air-kick",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "counter",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "counter",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "counter",
+      "frame": "jump_land",
+      "size": 1,
+      "topMargin": 573.528,
+      "bottomMargin": 320,
+      "leftMargin": 851.603,
+      "rightMargin": 846.297,
+      "insideStage": true
+    },
+    {
+      "clip": "counter",
+      "frame": "jump_land",
+      "size": 2,
+      "topMargin": 387.055,
+      "bottomMargin": 320,
+      "leftMargin": 743.207,
+      "rightMargin": 732.595,
+      "insideStage": true
+    },
+    {
+      "clip": "counter",
+      "frame": "counter_contact",
+      "size": 1,
+      "topMargin": 501.516,
+      "bottomMargin": 320,
+      "leftMargin": 848.571,
+      "rightMargin": 840.991,
+      "insideStage": true
+    },
+    {
+      "clip": "counter",
+      "frame": "counter_contact",
+      "size": 2,
+      "topMargin": 243.032,
+      "bottomMargin": 320,
+      "leftMargin": 737.143,
+      "rightMargin": 721.983,
+      "insideStage": true
+    },
+    {
+      "clip": "counter",
+      "frame": "hook_recovery",
+      "size": 1,
+      "topMargin": 499.242,
+      "bottomMargin": 320,
+      "leftMargin": 859.563,
+      "rightMargin": 859.563,
+      "insideStage": true
+    },
+    {
+      "clip": "counter",
+      "frame": "hook_recovery",
+      "size": 2,
+      "topMargin": 238.484,
+      "bottomMargin": 320,
+      "leftMargin": 759.125,
+      "rightMargin": 759.125,
+      "insideStage": true
+    },
+    {
+      "clip": "counter",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "counter",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "throw",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "throw",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "throw",
+      "frame": "throw_grab",
+      "size": 1,
+      "topMargin": 531.079,
+      "bottomMargin": 320,
+      "leftMargin": 844.402,
+      "rightMargin": 843.644,
+      "insideStage": true
+    },
+    {
+      "clip": "throw",
+      "frame": "throw_grab",
+      "size": 2,
+      "topMargin": 302.157,
+      "bottomMargin": 320,
+      "leftMargin": 728.805,
+      "rightMargin": 727.289,
+      "insideStage": true
+    },
+    {
+      "clip": "throw",
+      "frame": "throw_release",
+      "size": 1,
+      "topMargin": 507.58,
+      "bottomMargin": 320,
+      "leftMargin": 833.032,
+      "rightMargin": 833.032,
+      "insideStage": true
+    },
+    {
+      "clip": "throw",
+      "frame": "throw_release",
+      "size": 2,
+      "topMargin": 255.16,
+      "bottomMargin": 320,
+      "leftMargin": 706.064,
+      "rightMargin": 706.064,
+      "insideStage": true
+    },
+    {
+      "clip": "throw",
+      "frame": "hook_recovery",
+      "size": 1,
+      "topMargin": 499.242,
+      "bottomMargin": 320,
+      "leftMargin": 859.563,
+      "rightMargin": 859.563,
+      "insideStage": true
+    },
+    {
+      "clip": "throw",
+      "frame": "hook_recovery",
+      "size": 2,
+      "topMargin": 238.484,
+      "bottomMargin": 320,
+      "leftMargin": 759.125,
+      "rightMargin": 759.125,
+      "insideStage": true
+    },
+    {
+      "clip": "throw",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "throw",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "hurt",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "hurt",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "hurt",
+      "frame": "hurt_stagger",
+      "size": 1,
+      "topMargin": 509.096,
+      "bottomMargin": 320,
+      "leftMargin": 830,
+      "rightMargin": 859.563,
+      "insideStage": true
+    },
+    {
+      "clip": "hurt",
+      "frame": "hurt_stagger",
+      "size": 2,
+      "topMargin": 258.192,
+      "bottomMargin": 320,
+      "leftMargin": 700,
+      "rightMargin": 759.125,
+      "insideStage": true
+    },
+    {
+      "clip": "hurt",
+      "frame": "hook_recovery",
+      "size": 1,
+      "topMargin": 499.242,
+      "bottomMargin": 320,
+      "leftMargin": 859.563,
+      "rightMargin": 859.563,
+      "insideStage": true
+    },
+    {
+      "clip": "hurt",
+      "frame": "hook_recovery",
+      "size": 2,
+      "topMargin": 238.484,
+      "bottomMargin": 320,
+      "leftMargin": 759.125,
+      "rightMargin": 759.125,
+      "insideStage": true
+    },
+    {
+      "clip": "hurt",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "hurt",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "defeat",
+      "frame": "idle_a",
+      "size": 1,
+      "topMargin": 500,
+      "bottomMargin": 320,
+      "leftMargin": 872.118,
+      "rightMargin": 872.118,
+      "insideStage": true
+    },
+    {
+      "clip": "defeat",
+      "frame": "idle_a",
+      "size": 2,
+      "topMargin": 240,
+      "bottomMargin": 320,
+      "leftMargin": 784.237,
+      "rightMargin": 784.237,
+      "insideStage": true
+    },
+    {
+      "clip": "defeat",
+      "frame": "hurt_stagger",
+      "size": 1,
+      "topMargin": 509.096,
+      "bottomMargin": 320,
+      "leftMargin": 830,
+      "rightMargin": 859.563,
+      "insideStage": true
+    },
+    {
+      "clip": "defeat",
+      "frame": "hurt_stagger",
+      "size": 2,
+      "topMargin": 258.192,
+      "bottomMargin": 320,
+      "leftMargin": 700,
+      "rightMargin": 759.125,
+      "insideStage": true
+    },
+    {
+      "clip": "defeat",
+      "frame": "down",
+      "size": 1,
+      "topMargin": 637.201,
+      "bottomMargin": 320,
+      "leftMargin": 835.685,
+      "rightMargin": 805.364,
+      "insideStage": true
+    },
+    {
+      "clip": "defeat",
+      "frame": "down",
+      "size": 2,
+      "topMargin": 514.402,
+      "bottomMargin": 320,
+      "leftMargin": 711.37,
+      "rightMargin": 650.729,
+      "insideStage": true
+    }
+  ],
+  "finalCopiesRecheckedAfterManualWaistUpdate": true
+}

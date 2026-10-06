@@ -1,0 +1,312 @@
+{
+  "sourceImage": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\mac-advanced-v1.png",
+  "sourceSHA256": "cc7525692ae6ea5b73b6b5feac312875b0bd55958c9482220133dd8cdff606ab",
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "frames": [
+    {
+      "id": "hook_contact",
+      "source": {
+        "x": 0,
+        "y": 0,
+        "width": 363,
+        "height": 360
+      },
+      "feetPivot": {
+        "x": 166.5,
+        "y": 357
+      },
+      "visibleBounds": {
+        "x": 19,
+        "y": 14,
+        "width": 316,
+        "height": 343
+      },
+      "transparentMargins": {
+        "left": 19,
+        "top": 14,
+        "right": 28,
+        "bottom": 3
+      }
+    },
+    {
+      "id": "hook_followthrough",
+      "source": {
+        "x": 363,
+        "y": 0,
+        "width": 366,
+        "height": 360
+      },
+      "feetPivot": {
+        "x": 188.5,
+        "y": 357
+      },
+      "visibleBounds": {
+        "x": 28,
+        "y": 13,
+        "width": 321,
+        "height": 344
+      },
+      "transparentMargins": {
+        "left": 28,
+        "top": 13,
+        "right": 17,
+        "bottom": 3
+      }
+    },
+    {
+      "id": "hook_recovery",
+      "source": {
+        "x": 729,
+        "y": 0,
+        "width": 301,
+        "height": 360
+      },
+      "feetPivot": {
+        "x": 150.5,
+        "y": 357
+      },
+      "visibleBounds": {
+        "x": 18,
+        "y": 13,
+        "width": 265,
+        "height": 344
+      },
+      "transparentMargins": {
+        "left": 18,
+        "top": 13,
+        "right": 18,
+        "bottom": 3
+      }
+    },
+    {
+      "id": "step_contact",
+      "source": {
+        "x": 1030,
+        "y": 0,
+        "width": 418,
+        "height": 360
+      },
+      "feetPivot": {
+        "x": 210.0,
+        "y": 351
+      },
+      "visibleBounds": {
+        "x": 19,
+        "y": 40,
+        "width": 385,
+        "height": 311
+      },
+      "transparentMargins": {
+        "left": 19,
+        "top": 40,
+        "right": 14,
+        "bottom": 9
+      }
+    },
+    {
+      "id": "jump_rise",
+      "source": {
+        "x": 0,
+        "y": 360,
+        "width": 326,
+        "height": 359
+      },
+      "feetPivot": {
+        "x": 161.0,
+        "y": 325
+      },
+      "visibleBounds": {
+        "x": 72,
+        "y": 3,
+        "width": 214,
+        "height": 322
+      },
+      "transparentMargins": {
+        "left": 72,
+        "top": 3,
+        "right": 40,
+        "bottom": 34
+      }
+    },
+    {
+      "id": "air_kick",
+      "source": {
+        "x": 326,
+        "y": 360,
+        "width": 428,
+        "height": 359
+      },
+      "feetPivot": {
+        "x": 191.5,
+        "y": 278
+      },
+      "visibleBounds": {
+        "x": 40,
+        "y": 25,
+        "width": 382,
+        "height": 253
+      },
+      "transparentMargins": {
+        "left": 40,
+        "top": 25,
+        "right": 6,
+        "bottom": 81
+      }
+    },
+    {
+      "id": "jump_land",
+      "source": {
+        "x": 754,
+        "y": 360,
+        "width": 328,
+        "height": 359
+      },
+      "feetPivot": {
+        "x": 150.0,
+        "y": 348
+      },
+      "visibleBounds": {
+        "x": 7,
+        "y": 102,
+        "width": 293,
+        "height": 246
+      },
+      "transparentMargins": {
+        "left": 7,
+        "top": 102,
+        "right": 28,
+        "bottom": 11
+      }
+    },
+    {
+      "id": "counter_contact",
+      "source": {
+        "x": 1082,
+        "y": 360,
+        "width": 366,
+        "height": 359
+      },
+      "feetPivot": {
+        "x": 176.0,
+        "y": 356
+      },
+      "visibleBounds": {
+        "x": 29,
+        "y": 15,
+        "width": 304,
+        "height": 341
+      },
+      "transparentMargins": {
+        "left": 29,
+        "top": 15,
+        "right": 33,
+        "bottom": 3
+      }
+    },
+    {
+      "id": "throw_grab",
+      "source": {
+        "x": 0,
+        "y": 719,
+        "width": 355,
+        "height": 367
+      },
+      "feetPivot": {
+        "x": 169.5,
+        "y": 334
+      },
+      "visibleBounds": {
+        "x": 17,
+        "y": 32,
+        "width": 306,
+        "height": 302
+      },
+      "transparentMargins": {
+        "left": 17,
+        "top": 32,
+        "right": 32,
+        "bottom": 33
+      }
+    },
+    {
+      "id": "throw_release",
+      "source": {
+        "x": 355,
+        "y": 719,
+        "width": 378,
+        "height": 367
+      },
+      "feetPivot": {
+        "x": 200.5,
+        "y": 337
+      },
+      "visibleBounds": {
+        "x": 33,
+        "y": 4,
+        "width": 335,
+        "height": 333
+      },
+      "transparentMargins": {
+        "left": 33,
+        "top": 4,
+        "right": 10,
+        "bottom": 30
+      }
+    },
+    {
+      "id": "hurt_stagger",
+      "source": {
+        "x": 733,
+        "y": 719,
+        "width": 325,
+        "height": 367
+      },
+      "feetPivot": {
+        "x": 181.5,
+        "y": 336
+      },
+      "visibleBounds": {
+        "x": 10,
+        "y": 5,
+        "width": 304,
+        "height": 331
+      },
+      "transparentMargins": {
+        "left": 10,
+        "top": 5,
+        "right": 11,
+        "bottom": 31
+      }
+    },
+    {
+      "id": "down",
+      "source": {
+        "x": 1058,
+        "y": 719,
+        "width": 390,
+        "height": 367
+      },
+      "feetPivot": {
+        "x": 175.0,
+        "y": 347
+      },
+      "visibleBounds": {
+        "x": 11,
+        "y": 185,
+        "width": 368,
+        "height": 162
+      },
+      "transparentMargins": {
+        "left": 11,
+        "top": 185,
+        "right": 11,
+        "bottom": 20
+      }
+    }
+  ],
+  "analysis": "Alpha >8, measured nonuniform row/figure separation and lowest18-row opaque-strip midpoint; no pixels changed",
+  "edgeContacts": []
+}

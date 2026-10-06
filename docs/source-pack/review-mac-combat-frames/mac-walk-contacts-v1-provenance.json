@@ -1,0 +1,35 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "transparent_background": true,
+  "selectedNativePath": "C:\\Users\\jondh\\.codex\\generated_images\\01a1133f-2258-7932-a990-f3a5e1ace2a1\\exec-5df5b45e-c596-4da3-a734-5e15d9c47d58.png",
+  "selectedWorkspacePath": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\mac-walk-contacts-v1.png",
+  "selectedNativeSHA256": "046be2474814495be239db517c3cdd82ed3a643c82f441a90b2a37613b86b6f6",
+  "selectedWorkspaceSHA256": "046be2474814495be239db517c3cdd82ed3a643c82f441a90b2a37613b86b6f6",
+  "nativeBytesPreserved": true,
+  "promptSavedBeforeGeneration": true,
+  "promptPath": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\mac-walk-contacts-v1-prompt.txt",
+  "promptFileSHA256": "2de2ae85eefffa6c669d27dc87ee2fe7dd8d6804a47c05c39b679219cad01c67",
+  "references": [
+    {
+      "path": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\mac-walk-v1.png",
+      "sha256": "ae95eaeed9f8e51112c5fd41f19347c41b5662b1a1e5411e48076d9718d06abd",
+      "role": "Whole-body character identity and rendering style reference"
+    },
+    {
+      "path": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\mac-basic-v2.png",
+      "sha256": "3924a5621c417da3328fcd9979acc37be6be0802d8ec0808194fa188aaa47046",
+      "role": "Whole-body character identity and rendering style reference"
+    }
+  ],
+  "analysisPath": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\mac-walk-contacts-v1-analysis.json",
+  "visualLegSwapVerdict": "PASS: opposite near-leg overlap and opposite tattooed near-arm swing; both face right",
+  "selectedCandidate": "First native contact pair, selected by root after visual review",
+  "unselectedPaddingCandidate": {
+    "path": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\mac-walk-contacts-v2-padding-native-unselected.png",
+    "nativePath": "C:\\Users\\jondh\\.codex\\generated_images\\01a1133f-2258-7932-a990-f3a5e1ace2a1\\exec-b7e630b3-365b-4edb-8da3-41ef09afb156.png",
+    "sha256": "93ebc19fc1b40a2a684c5f8d44ee46aa261a5522b2b2dc744d3aee179c501557",
+    "promptPath": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\mac-walk-contacts-v1-padding-prompt.txt",
+    "selected": false
+  },
+  "pixelEdits": "None; imagegen native PNG copied unchanged. PIL used only for read-only alpha analysis."
+}
