@@ -1,5 +1,15 @@
 # Changelog
 
+## October 5, 2026 — approved story and private Mac street slice
+
+The owner approved the eight-scene Level 2-to-3 script and Mac's recovered-model v2 hero. The owner requested clearer Kave photographs and replaced Cache's cockpit proposal with a confident walk toward the yellow car, keys in hand, immediately before the preserved final car shot. New reference photos come from Kave's artist-managed profile and his own official performance video; the sources and unmodified images are in the reference gallery.
+
+Cache's walking candidate replaces the bridge's penultimate ignition panel, preserving all eight indices, the legacy resume identity and the original final car image. The ignition cue moves to departure. The original cassette stays with Cache; the new view shows the same yellow vehicle and a plausible approach to its driver door. Mac's costume, face markings and build follow the approved hero and recovered references. Kave's review room matches the new street frontage; DJ stays remote in the new receiver scene. The older studio comparison is explicitly presented as an earlier feed so Mac does not teleport between locations.
+
+The private entry is `index.html?preview=mac-firstslice`: eight illustrated scenes and two direct choices, Mac's first two street fights, and a safe Kave conversation reopening the local feed. Mac walks in both axes, jumps, chains strikes, guards/counters and makes contextual nearby throws. Phone controls keep Jump, Strike and Guard in stable thumb positions; Throw appears when useful and Talk at the desk. Dialogue uses readable phone text with both answers visible. Keyboard, touch and controller use the existing input, frame, audio and pause owners. Preview state is temporary; it does not grant Drums, unlock the full chapter or write campaign progress. Existing Level 1/2 completion and saves remain on their original paths. The temporary Level 03 proof stems are prototype audio, not Mac's final song.
+
+New paintings and gameplay remain review candidates. The production release is still source PR188 / website PR484. Focused combat, story and real-module integration checks pass; full-suite, strict-build and browser evidence for the final snapshot is recorded in the external `verification/mac-street-slice-20261005` receipts as work completes. Physical handset feel and a full Level 3 clear are not covered by those checks. Historical draft and pending statements below are superseded for this private branch only.
+
 ## October 5, 2026 — mobile tutorial instructions
 
 Fixed keyboard-only tutorial instructions on mobile: Tap Next for dialogue, Joystick/Jump/Rhythm/Exit/Beat/Hack/Link for tasks, and touch digits/Submit/Delete/Cancel in both hack terminal layouts. The existing tutorial:continue command already advances dialogue correctly. This patch changes wording and preserves progression, controls, artwork/audio, loading and rendering. The source correction is merged and published; final release evidence is recorded below.

@@ -81,6 +81,9 @@
     "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
+    "src/game/mac-street-combat.js",
+    "src/game/mac-street-story.js",
+    "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",
@@ -173,6 +176,9 @@
     "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
+    "src/game/mac-street-combat.js",
+    "src/game/mac-street-story.js",
+    "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",
@@ -562,6 +568,18 @@
         "status": "pass"
       },
       {
+        "file": "src/game/mac-street-combat.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/mac-street-story.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/mac-combat-preview.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/lost-data.js",
         "status": "pass"
       },
@@ -616,11 +634,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 89,
+        "index": 92,
         "status": "pass"
       },
       {
-        "index": 91,
+        "index": 94,
         "status": "pass"
       }
     ]
@@ -960,7 +978,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 214,
+      "line": 225,
       "loaded": true
     },
     {
@@ -1075,6 +1093,9 @@
     "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
+    "src/game/mac-street-combat.js",
+    "src/game/mac-street-story.js",
+    "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",

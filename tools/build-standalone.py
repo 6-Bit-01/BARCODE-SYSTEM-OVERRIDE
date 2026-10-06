@@ -55,6 +55,10 @@ VENDOR_REFERENCES = {
 }
 OWNER_FILE = ".standalone-build.json"
 TOOL_ID = "barcode-system-override-standalone-v1"
+MAC_REVIEW_ASSETS = {"assets/mac-street-review/" + name for name in (
+    "cache-walk-to-car-v4.png", "mac-hero-v2.png", "mac-poses-v3-frames.json", "mac-poses-v3.png",
+    "scene03-kave-dead-air-v1.png", "scene05-margin-note-v1.png", "scene06-record-straight-v1.png",
+    "street-panorama-v1.png")}
 VIEWPORT_STYLE = """<style id="standalone-viewport-style">
 /* Fit the complete native backing image; runtime owners still control display. */
 .game-container {
@@ -332,13 +336,17 @@ def verify_texture_bank(output, files):
     require(compressed == 149 and original == 22, "Incomplete raster/vector bank accounting")
     require({name for name in files if name.startswith(prefix)} == derivatives,
             "Unowned texture derivative or private generation receipt entered the package")
+    require({name for name in files if name.startswith("assets/mac-street-review/")} == MAC_REVIEW_ASSETS,
+            "The private Mac review must include exactly its eight registered runtime assets")
     originals = sorted([name, record["bytes"], record["sha256"]]
-                       for name, record in files.items() if name.startswith("assets/") and name not in derivatives)
+                       for name, record in files.items() if name.startswith("assets/")
+                       and name not in derivatives and name not in MAC_REVIEW_ASSETS)
     require(len(originals) == 624 and sha(json.dumps(originals, separators=(",", ":")).encode("utf-8")) ==
             "0b2ac58dc88ddb68b595fb8592d242d8478c426d78309fe4ff45b88c04027f56",
             "Original 624 artwork/audio identities or bytes changed")
     return {"sources": 171, "compressedSources": 149, "originalSvgSources": 22,
             "derivativeCount": len(derivatives), "unchangedOriginalCount": len(originals),
+            "macReviewAssetCount": len(MAC_REVIEW_ASSETS),
             "gpuMipBytes": bank.get("allGpuMipBytes"), "runtimeAcceptance": "not established by packaging"}
 
 

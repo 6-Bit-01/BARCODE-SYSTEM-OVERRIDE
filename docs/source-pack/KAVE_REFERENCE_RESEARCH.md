@@ -1,6 +1,37 @@
 # Kaveman Brown — public reference research
 
-Research date: October 5, 2026. This is a production reference sheet, not an approved game model or a shipped cameo. No person was contacted and no reference files were downloaded to the repository.
+Research date: October 5, 2026. This is a production reference sheet, not an approved game model or a shipped cameo. No person was contacted. The owner requested better photographs after the first pass; the second pass preserves two inspected production references for illustration input, with source provenance below. Final Kave likeness remains pending owner art review.
+
+## Improved reference set after the owner's correction
+
+Use these three complementary references rather than deriving Kave's face from the small performance thumbnail or lowered-head portrait. The first two were newly inspected in the live browser; the third retains the useful 900-pixel outfit/profile view from the first pass. Public source identity is established through account links, not a generic name-based image search.
+
+### 1. Artist-managed Slaps portrait — strongest facial reference
+
+- Source page: [KaveMan Brown's own Slaps profile](https://slaps.com/user/KaveManBrown). It explicitly links `instagram.com/kavemanbrown`, the account already verified through his Linktree, and his legacy own YouTube address `youtube.com/user/kaveman410`.
+- [Exact public image](https://distrokid.imgix.net/http%3A%2F%2Fs3.amazonaws.com%2Fgather.fandalism.com%2Favatar-8CE4A29B-EEAD-4CB8-8744DF21D1B09398.jpg?fm=jpg&q=75&w=600&s=fe47274aff2f3c2cd5a3ddedddf88e71), observed on the profile page and inspected directly: **600 × 600 JPEG**, 67,043 bytes.
+- Visible: close frontal/three-quarter face in a car, bright daylight, exposed forehead and brows, shaped beard and moustache, small ear stud, dark hood and grey outer layer. The photograph provides substantially more facial detail than the previous small or downward-facing images. It is not a current costume lock; the capture date is unknown.
+- Preserved unchanged for production input: [kave-slaps-frontal-600.jpg](review-level3-story/references/kave-slaps-frontal-600.jpg). SHA-256: `c67313340b3ae09bc24b0fbeee7cd0e652bbb98505a122cb624bb8af1c78aa84`.
+- Best use: facial proportions, brows, nose, beard/moustache outline and earring. Pair with the wide-brim performance references for clothing and hat; do not turn the hood into an unapproved cameo costume.
+
+### 2. Actual “Succubus Woes” performance frame — strongest current outfit/action reference
+
+- Source: [KaveMan Brown's own official upload at 00:30](https://www.youtube.com/watch?v=ibt4QBgZyoU&t=30s), reached from his verified official artist channel. The live page identifies uploader `@KaveManBrown` and stable channel `UCur_viZ6YIkGnpUAiwRAvJg`.
+- Inspected paused timestamp: **30.336837 seconds**. The browser's visible video element reported **1280 × 720 decoded pixels**. This is an actual inspected frame, not a thumbnail or an inferred pose.
+- The saved browser capture is **1413 × 795 JPEG**, 158,098 bytes, at the displayed player size. Screenshot pixels are preserved without resizing; its larger display dimensions do not establish a higher-resolution source video.
+- Visible: front/three-quarter performance face, wide-brim black hat, full dark beard, black top and open dark jacket, long cross chain, watch and wrist bracelet. Crossed expressive hands and the concrete arches/marina provide clear costume and staging detail in outdoor daylight.
+- Saved input: [kave-succubus-30s-frame.jpg](review-level3-story/references/kave-succubus-30s-frame.jpg). SHA-256: `027f5ed50a510aa8e0cea6959dc398012d6a1234c12b55b4460799ffc9019413`.
+- Working evidence receipt: `verification/mac-street-slice-20261005/kave-production-references/kave-succubus-30s-frame-provenance.json` in the project root. It records the primary source, precise timestamp, decoded dimensions and capture method. The video upload was July 3, 2026; the precise shooting date is not established.
+- Best use: wide-brim hat shape, dark performance costume, jewellery, beard silhouette and natural hand anatomy. For face detail, prioritize reference 1; the hat still casts a brow shadow here.
+
+### 3. Own-channel 900-pixel portrait — complementary side profile
+
+- Source and image: [official channel](https://www.youtube.com/@KaveManBrown) / [900 × 900 portrait](https://yt3.googleusercontent.com/nfsHMVHMwBn4txAmc7G30qJYlN3xVEsvb-pQt1s7YdlB9nYZkmWMkxWJ5p03e9bD6o0TAqkB=s900-c-k-c0x00ffffff-no-rj).
+- This previously inspected photograph remains useful for the side profile, full beard, black wide-brim hat, dark short-sleeved top, cross chain, watch and relaxed upper-body proportions. It complements the new frontal photo and actual performance frame; it does not replace them.
+
+The new gallery promotes these three references. The old 480-pixel performance thumbnail, lowered-head Linktree portrait and matching behind-the-scenes thumbnail remain historical source evidence. The newly observed food-review thumbnail is rejected as a main likeness input because food and an eating expression obscure the mouth; generic image-search results and unrelated people remain excluded.
+
+**Production recommendation:** use the clear Slaps face plus the current performance frame as the principal ordered pair, with the 900-pixel side portrait as a third angle. These inputs improve illustration fidelity; the final illustrated Kave still needs owner review. His approved story purpose remains the Kaveman Radio review desk and blocked outbound feed.
 
 ## Identity and first-party source chain
 
@@ -15,12 +46,13 @@ The connection to BARCODE is independently corroborated by [6 Bit’s BARCODE, V
 | Own Instagram | [@kavemanbrown](https://www.instagram.com/kavemanbrown/) | Exact destination linked from his hub and own video description. No individual Instagram post visually inspected in this pass. |
 | Own TikTok | [@kavemanbrown](https://www.tiktok.com/@kavemanbrown) | Exact destination linked from his hub. No individual TikTok clip visually inspected in this pass. |
 | Own Facebook | [Linked artist profile](https://www.facebook.com/raphael.brown.1840070) | Exact destination linked from his hub. No Facebook portrait inspected in this pass. |
+| Artist-managed Slaps | [KaveMan Brown](https://slaps.com/user/KaveManBrown) | Crosslinks the verified Instagram and legacy own YouTube; 600-pixel frontal profile photograph directly inspected in the second pass. |
 | Spotify artist | [Artist 2sdsY2FA4EBjwB3lWLpuT6](https://open.spotify.com/artist/2sdsY2FA4EBjwB3lWLpuT6) | Linked from his hub and own video description. |
 | Merchandise | [kavemanmerch.com](https://www.kavemanmerch.com/) | Linked from his hub. The storefront fetch did not yield usable content; do not claim any current product or model was reviewed. |
 
 General image-search results returned unrelated people and were discarded. No NBA/Kwame Brown or unrelated rapper image is part of this reference set.
 
-## Images actually inspected
+## Historical first-pass images actually inspected
 
 Each description below comes from direct visual inspection of the public image bytes, not a search caption. Images were inspected in memory and have not been copied into the game. Image URLs may change; the artist/video page beside each one preserves provenance.
 
@@ -60,12 +92,12 @@ His hub describes him as a rapper and provides music-review submission informati
 
 **Proposed game adaptation:** Kave is at an independent music-review/radio desk whose outbound feed has been held. Artists are waiting to be heard; Kave keeps the submission queue and local monitoring alive while Mac tackles the street distribution blockade. This translates his actual public artist/reviewer role into the game’s fiction. It does not claim that he owns a real venue, radio station building or transport network.
 
-Suggested adjustment to the current scene draft: replace the invented venue-owner framing and “house line” terminology with **review queue / outbound feed / local listeners**. Preserve the scene’s purpose and player choice: ask who is waiting, or what was blocked. Exact dialogue remains a draft until written into the production treatment.
+The owner-approved eight-scene transition uses **review queue / outbound feed / local listeners** and asks who is waiting, or what was blocked. [BROADCAST_SLUM_STORY_PRODUCTION.md](BROADCAST_SLUM_STORY_PRODUCTION.md) records the approved writing; public references support the role without establishing real venue ownership. Gameplay and likeness acceptance remain separate.
 
 ## Found versus still needed
 
-**Found:** verified public account chain, BARCODE collaboration credit, two inspected references for the wide-brim performance look, two inspected references for the casual cap/shorts look, and a real music-review/radio basis for the cameo.
+**Found:** verified public account chain, BARCODE collaboration credit, the clearer 600-pixel Slaps facial photograph, an actual official-video frame at 00:30, the complementary 900-pixel channel profile, historical casual references, and a real music-review/radio basis for the cameo.
 
-**Recommended production direction:** use the wide-brim performance look from A/B for a recognisable illustration, adapted into the existing inked BARCODE style. This is a proposed choice, not an approved costume lock.
+**Recommended production direction:** prioritize the new Slaps face and actual performance frame, with the 900-pixel side portrait as the third angle. Adapt the performance look into the inked BARCODE style; the final Kave likeness is not yet accepted.
 
-**Still needed:** select which public look the cameo should use; obtain or select a higher-resolution frontal/three-quarter reference before detailed likeness production; settle his illustrated desk/sign/props and final dialogue. A source URL being found does not mean a final portrait, exact likeness, voice or music contribution has been approved or installed. No assumptions about private life, legal name, biography or venue ownership are required for this cameo.
+**Still needed:** review the improved-reference illustrated likeness and its desk/sign/props. The two bridge-choice replies are approved writing, while the final Kave image, voice and any music contribution are not implicitly accepted or installed. No assumptions about private life, legal name, biography or venue ownership are required for this cameo.

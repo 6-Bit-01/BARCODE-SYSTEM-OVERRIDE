@@ -1,5 +1,14 @@
 # Decision Register
 
+## October 5 — current owner direction: story approval and continuity
+
+- Approve the eight-scene Level 2-to-3 script and Mac v2 hero; continue the first street-brawler slice as a private playable review.
+- Use better Kave photographs from his own artist profile and performance video to guide his face and public clothing. New illustrated likeness remains subject to visual review.
+- Cache walks toward his yellow car holding keys, looking ready for action. Replace the penultimate ignition panel with this approach; retain eight panels, legacy indices and the final car shot. The cockpit-final proposal is superseded.
+- Track the protected original, keys, driver door, car reels, red gate cable, comparison channels and remote crew locations across adjacent panels. Preserve original artwork and rejected candidates as history.
+- The finite slice restores one local feed. The remaining Broadcast Slum, its final boss, distribution log, Drums award and later chapter entry are separate future work. Do not represent the preview's local result as a full chapter clear.
+- Production publication remains separate from this new private gameplay/art review. Existing approved mobile release stays live.
+
 ## October 5, 2026 — mobile tutorial instructions
 
 The owner asks how to advance tutorial text without a mobile space bar. Keep the existing Next utility action and reveal-then-advance behavior. When TouchControls is enabled, name the controls actually on screen and use Tap; preserve keyboard/controller instructions in their existing branches. This follows standing whole-game mobile and site-publication authorization. No new input owner, automation or gameplay behavior is added.

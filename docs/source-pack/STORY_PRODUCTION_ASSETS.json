@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "auditBase": "d2e3776d6aebbf911b41b9e86b56b769e970e8d1",
-  "status": "story-production-review-plan",
+  "status": "owner-approved-script-private-first-slice-implemented-review-pending",
   "acceptedForRuntime": false,
-  "scope": "Level 2 to Level 3 eight-scene expansion; final Cache and Mac hero-introduction assets; scene-driven cameos, choices and 9 Bit presentation dependencies.",
+  "scope": "Approved Level 2-to-3 eight-scene script and Mac v2 hero artwork; owner-directed replacement of the penultimate Cache bridge panel with a walking-with-keys hero, retaining eight panels and the final car shot; private preview production dependencies.",
   "auditScope": [
     "Current source repository assets and documentation",
     "Project-root media/reference working directories searched for named supplied models",
@@ -45,16 +45,18 @@
         "purpose": "Available prior painting; continuity reference, not automatic final scene acceptance"
       },
       "productionArt": {
-        "status": "existing-painting-available-review-layout",
-        "path": null,
-        "sha256": null,
-        "runtimePath": null,
-        "acceptedForRuntime": false
+        "status": "retained-original-installed-private-review",
+        "path": "assets/cache-ending/ending-01-delivered.webp",
+        "sha256": "d351494cc4f3918ebf80fc32e8f3a7f3d98f9cdb61ebce18ee7b520a5f1de35e",
+        "runtimePath": "assets/cache-ending/ending-01-delivered.webp",
+        "acceptedForRuntime": false,
+        "bytes": 541290,
+        "integrationStatus": "private-preview-implemented"
       },
       "dependencyIds": [],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "authored-draft-pending-review",
+      "dialogueStatus": "owner-approved-eight-scene-script",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -81,11 +83,13 @@
         "purpose": "Available prior painting; continuity reference, not automatic final scene acceptance"
       },
       "productionArt": {
-        "status": "existing-painting-available-review-layout",
-        "path": null,
-        "sha256": null,
-        "runtimePath": null,
-        "acceptedForRuntime": false
+        "status": "retained-original-installed-private-review",
+        "path": "assets/cache-ending/ending-02-unverified.webp",
+        "sha256": "98a771fe0497e1ebbf6002008b6d0894e22c38a778581ed49f1473e08f9d410b",
+        "runtimePath": "assets/cache-ending/ending-02-unverified.webp",
+        "acceptedForRuntime": false,
+        "bytes": 508898,
+        "integrationStatus": "private-preview-implemented"
       },
       "dependencyIds": [
         "dialogue-choice-presentation",
@@ -93,7 +97,7 @@
       ],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "authored-draft-pending-review",
+      "dialogueStatus": "owner-approved-eight-scene-script",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -115,11 +119,18 @@
       ],
       "existingPainting": null,
       "productionArt": {
-        "status": "new-art-required",
-        "path": null,
-        "sha256": null,
-        "runtimePath": null,
-        "acceptedForRuntime": false
+        "status": "new-art-candidate-installed-private-review",
+        "path": "assets/mac-street-review/scene03-kave-dead-air-v1.png",
+        "sha256": "f74ac5197495069502f519f5ef46a916246b3f90e9baa7b6b80c415a85b19fb5",
+        "runtimePath": "assets/mac-street-review/scene03-kave-dead-air-v1.png",
+        "acceptedForRuntime": false,
+        "bytes": 2831184,
+        "dimensions": [
+          1860,
+          845
+        ],
+        "integrationStatus": "private-preview-implemented",
+        "generationProvenance": "docs/source-pack/review-mac-street-art/generation-provenance.json"
       },
       "dependencyIds": [
         "kave-venue-scene",
@@ -127,7 +138,7 @@
       ],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "authored-draft-pending-review",
+      "dialogueStatus": "owner-approved-eight-scene-script",
       "choiceIds": [
         "delivery-question"
       ],
@@ -149,7 +160,7 @@
       "id": "cutscene.cache-ending.held",
       "order": 4,
       "title": "THE HOLD IS LOCAL",
-      "purpose": "DJ and Mac follow the hold to local street enforcement.",
+      "purpose": "An explicitly labelled earlier studio comparison accompanies the retained live crew-comms discussion of the distribution hold.",
       "mandatoryFact": "No initiator, simulation creator, pursuer identity or separation cause is established.",
       "cast": [
         "DJ Floppydisc",
@@ -167,20 +178,26 @@
         "purpose": "Available prior painting; continuity reference, not automatic final scene acceptance"
       },
       "productionArt": {
-        "status": "existing-painting-available-review-layout",
-        "path": null,
-        "sha256": null,
-        "runtimePath": null,
-        "acceptedForRuntime": false
+        "status": "retained-original-installed-private-review",
+        "path": "assets/cache-ending/ending-03-held.webp",
+        "sha256": "f864da0ac3acc3a2db7c6bb8b115be916208ee34369ca92adcc6180ae37800b4",
+        "runtimePath": "assets/cache-ending/ending-03-held.webp",
+        "acceptedForRuntime": false,
+        "bytes": 499532,
+        "integrationStatus": "private-preview-implemented"
       },
       "dependencyIds": [],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "authored-draft-pending-review",
+      "dialogueStatus": "owner-approved-eight-scene-script",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
-      "slug": "held"
+      "slug": "held",
+      "artLabel": "EARLIER / STUDIO COMPARISON",
+      "artLocation": "studio",
+      "artTime": "earlier-comparison",
+      "dialogueContext": "live-comms"
     },
     {
       "id": "cutscene.cache-ending.margin-note",
@@ -199,11 +216,18 @@
       ],
       "existingPainting": null,
       "productionArt": {
-        "status": "new-art-required",
-        "path": null,
-        "sha256": null,
-        "runtimePath": null,
-        "acceptedForRuntime": false
+        "status": "new-art-candidate-installed-private-review",
+        "path": "assets/mac-street-review/scene05-margin-note-v1.png",
+        "sha256": "a7da9e13bbf406915c00928868b0b78b3e9e4127d771bfd4a37f8c72b7f50a16",
+        "runtimePath": "assets/mac-street-review/scene05-margin-note-v1.png",
+        "acceptedForRuntime": false,
+        "bytes": 2888147,
+        "dimensions": [
+          1860,
+          845
+        ],
+        "integrationStatus": "private-preview-implemented",
+        "generationProvenance": "docs/source-pack/review-mac-street-art/generation-provenance.json"
       },
       "dependencyIds": [
         "nine-panel-hand",
@@ -213,7 +237,7 @@
       ],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "authored-draft-pending-review",
+      "dialogueStatus": "owner-approved-eight-scene-script",
       "choiceIds": [
         "frame-reply"
       ],
@@ -238,16 +262,23 @@
       ],
       "existingPainting": null,
       "productionArt": {
-        "status": "new-art-required",
-        "path": null,
-        "sha256": null,
-        "runtimePath": null,
-        "acceptedForRuntime": false
+        "status": "new-art-candidate-installed-private-review",
+        "path": "assets/mac-street-review/scene06-record-straight-v1.png",
+        "sha256": "ff127fe0bda0d0a9fdada2863b7f466eeb135e9f18e571cb7838f0ad68016d88",
+        "runtimePath": "assets/mac-street-review/scene06-record-straight-v1.png",
+        "acceptedForRuntime": false,
+        "bytes": 2770208,
+        "dimensions": [
+          1860,
+          845
+        ],
+        "integrationStatus": "private-preview-implemented",
+        "generationProvenance": "docs/source-pack/review-mac-street-art/generation-provenance.json"
       },
       "dependencyIds": [],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "authored-draft-pending-review",
+      "dialogueStatus": "owner-approved-eight-scene-script",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -273,16 +304,18 @@
         "purpose": "Available prior painting; continuity reference, not automatic final scene acceptance"
       },
       "productionArt": {
-        "status": "existing-painting-available-review-layout",
-        "path": null,
-        "sha256": null,
-        "runtimePath": null,
-        "acceptedForRuntime": false
+        "status": "retained-original-installed-private-review",
+        "path": "assets/cache-ending/ending-04-street-access.webp",
+        "sha256": "83f6f0db54ff13cf43c76488204b7fd09bb190078d4406c8dacbf7a6604557c1",
+        "runtimePath": "assets/cache-ending/ending-04-street-access.webp",
+        "acceptedForRuntime": false,
+        "bytes": 659830,
+        "integrationStatus": "private-preview-implemented"
       },
       "dependencyIds": [],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "authored-draft-pending-review",
+      "dialogueStatus": "owner-approved-eight-scene-script",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -303,7 +336,7 @@
       "order": 8,
       "title": "GET IT HEARD",
       "purpose": "Mac commits to entering the street fight in his own distinctive action pose.",
-      "mandatoryFact": "Final scene belongs to Mac; authored Level 3 gameplay is not yet playable.",
+      "mandatoryFact": "Final scene belongs to Mac; owner-approved art and script do not establish gameplay acceptance or a full Level 3 clear.",
       "cast": [
         "Mac Modem",
         "6 Bit"
@@ -314,25 +347,27 @@
       ],
       "existingPainting": null,
       "productionArt": {
-        "status": "corrected-concept-pending-owner-review",
-        "path": "docs/source-pack/review-level3-story/mac-hero-concept-v2.png",
+        "status": "owner-approved-art-installed-private-preview",
+        "path": "assets/mac-street-review/mac-hero-v2.png",
         "sha256": "7a4ea32cc6842408a4a381ade72595fc8cb8cb3d738802c26597443c08609599",
-        "runtimePath": null,
-        "acceptedForRuntime": false,
+        "runtimePath": "assets/mac-street-review/mac-hero-v2.png",
+        "acceptedForRuntime": true,
         "bytes": 3111148,
         "dimensions": [
           1860,
           845
         ],
         "generationProvenance": "docs/source-pack/review-level3-story/generation-provenance.json",
-        "generationProvenanceEntryId": "hero.mac.v2"
+        "generationProvenanceEntryId": "hero.mac.v2",
+        "ownerArtApproved": true,
+        "integrationStatus": "private-preview-implemented"
       },
       "dependencyIds": [
         "mac-hero-final"
       ],
       "contributor": null,
       "credit": null,
-      "dialogueStatus": "authored-draft-pending-review",
+      "dialogueStatus": "owner-approved-eight-scene-script",
       "choiceIds": [],
       "payoffSceneIds": [],
       "transitionId": "l02-l03",
@@ -558,11 +593,20 @@
     {
       "character": "Cache Back",
       "transition": "Level 1 to Level 2",
-      "sceneId": "l01-l02.08",
-      "requiredFinalScene": true,
-      "currentRuntimePath": "assets/cache-bridge/bridge-08-cache-line.webp",
-      "currentLimitation": "Car only, Cache is not visible.",
-      "assetId": "cache-hero-final"
+      "sceneId": "cutscene.cache-bridge.ignition",
+      "requiredFinalScene": false,
+      "currentRuntimePath": "assets/cache-bridge/bridge-07-ignition.webp",
+      "currentLimitation": "Replace the current already-inside ignition art with Cache approaching the car; preserve the separate current final rear-car shot.",
+      "assetId": "cache-hero-approach-v4",
+      "requiredHeroScene": true,
+      "placement": "penultimate",
+      "plannedSceneCount": 8,
+      "retainedFinalSceneId": "cache-line",
+      "preserveCurrentFinalArtwork": true,
+      "retainedFinalRuntimePath": "assets/cache-bridge/bridge-08-cache-line.webp",
+      "legacyPageIndex": 6,
+      "privatePreviewRuntimePath": "assets/mac-street-review/cache-walk-to-car-v4.png",
+      "integrationStatus": "private-preview-implemented"
     },
     {
       "character": "Mac Modem",
@@ -571,14 +615,17 @@
       "requiredFinalScene": true,
       "currentRuntimePath": "assets/cache-ending/ending-04-street-access.webp",
       "currentLimitation": "Connector preparation at closed gate, not action entrance.",
-      "assetId": "mac-hero-final"
+      "assetId": "mac-hero-final",
+      "ownerArtApproved": true,
+      "integrationStatus": "private-preview-implemented",
+      "privatePreviewRuntimePath": "assets/mac-street-review/mac-hero-v2.png"
     }
   ],
   "assetCards": [
     {
       "assetId": "cache-hero-final",
       "sceneId": "l01-l02.08",
-      "purpose": "Required final Cache introduction heading into Level 2 action.",
+      "purpose": "Historical cockpit v2 candidate; preserved but not selected for the owner-directed penultimate walking hero panel.",
       "shot": "Entirely inside the car from the front passenger seat; Cache in the left driver seat, steering wheel/dashboard in front, road through forward windshield.",
       "poseAction": "Distinct active driver posture, hands naturally assigned to driving; not 6 Bit's walking pose.",
       "continuityBefore": "Bridge scene 7 already loaded the protected original and started ignition.",
@@ -589,7 +636,7 @@
         "sixHero"
       ],
       "originalSourcePath": "docs/source-pack/review-level3-story/cache-hero-concept-v2.png",
-      "status": "corrected-concept-pending-owner-review",
+      "status": "owner-not-selected-superseded-by-walking-approach",
       "sha256": "8d7d669100f8538d40ba2c7128998d2ae458c7047e53e36cbbf956f1f93138ce",
       "contributor": null,
       "credit": "Generated concept artwork; final credit pending",
@@ -601,7 +648,9 @@
       ],
       "generationProvenance": "docs/source-pack/review-level3-story/generation-provenance.json",
       "generator": "image_gen.imagegen (built-in)",
-      "generationProvenanceEntryId": "hero.cache.v2"
+      "generationProvenanceEntryId": "hero.cache.v2",
+      "supersededByAssetId": "cache-hero-approach-v4",
+      "ownerArtApproved": false
     },
     {
       "assetId": "mac-hero-final",
@@ -617,11 +666,11 @@
         "sixHero"
       ],
       "originalSourcePath": "docs/source-pack/review-level3-story/mac-hero-concept-v2.png",
-      "status": "corrected-concept-pending-owner-review",
+      "status": "owner-approved-art-installed-private-preview",
       "sha256": "7a4ea32cc6842408a4a381ade72595fc8cb8cb3d738802c26597443c08609599",
       "contributor": null,
       "credit": "Generated concept artwork; final credit pending",
-      "approvedForRuntime": false,
+      "approvedForRuntime": true,
       "bytes": 3111148,
       "dimensions": [
         1860,
@@ -630,7 +679,45 @@
       "generationProvenance": "docs/source-pack/review-level3-story/generation-provenance.json",
       "generator": "image_gen.imagegen (built-in)",
       "modelRequirement": "Original model narrow face, slim body, exact asymmetric circuit makeup, long ginger beard/thin braids and red-vest sequence costume.",
-      "generationProvenanceEntryId": "hero.mac.v2"
+      "generationProvenanceEntryId": "hero.mac.v2",
+      "ownerArtApproved": true,
+      "integrationStatus": "private-preview-implemented",
+      "runtimePath": "assets/mac-street-review/mac-hero-v2.png"
+    },
+    {
+      "assetId": "cache-hero-approach-v4",
+      "sceneId": "cutscene.cache-bridge.ignition",
+      "purpose": "Owner-directed visible Cache hero panel immediately before the preserved cache-line final car shot.",
+      "shot": "Cache walking toward the established yellow car with keys visibly and naturally held; confident mission-ready presence.",
+      "poseAction": "Distinct badass walking approach; retain supplied Cache identity and established costume.",
+      "placement": "revised-penultimate-panel-of-eight",
+      "continuityBefore": "Cache approaches the established car with keys and the protected original; replaces the prior already-inside ignition beat.",
+      "continuityAfter": "Stable cache-line final remains page index 7 with its current rear-car artwork and existing dialogue.",
+      "referenceIds": [
+        "cacheOriginalModel",
+        "cacheDeparture",
+        "cacheCar",
+        "sixHero"
+      ],
+      "originalSourcePath": "assets/mac-street-review/cache-walk-to-car-v4.png",
+      "sha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe",
+      "bytes": 2812836,
+      "dimensions": [
+        1860,
+        845
+      ],
+      "status": "new-walking-v4-installed-private-art-review",
+      "contributor": null,
+      "credit": "Generated scene artwork; image_gen.imagegen; reference and exact prompt provenance retained",
+      "approvedForRuntime": false,
+      "ownerArtApproved": false,
+      "displayTitle": "KEYS TO THE LINE",
+      "legacyPageIndex": 6,
+      "audioRequirement": "No engine ignition on the walking panel; place only at the final car cue if needed.",
+      "path": "assets/mac-street-review/cache-walk-to-car-v4.png",
+      "runtimePath": "assets/mac-street-review/cache-walk-to-car-v4.png",
+      "generationProvenance": "docs/source-pack/review-mac-street-art/generation-provenance.json",
+      "integrationStatus": "private-preview-implemented"
     }
   ],
   "assetBriefTemplate": {
@@ -705,12 +792,14 @@
         "cutscene.cache-ending.kave-dead-air",
         "cutscene.cache-ending.street-access"
       ],
-      "referenceIds": [],
-      "likenessReferencePath": null,
-      "referenceStatus": "first-party-public-account-chain-and-four-public-images-found-and-visually-inspected; final-illustrated-model-not-selected",
+      "referenceIds": [
+        "kave-slaps-frontal-600",
+        "kave-succubus-30s-frame"
+      ],
+      "likenessReferencePath": "docs/source-pack/review-level3-story/references/kave-slaps-frontal-600.jpg",
+      "referenceStatus": "verified-first-party-chain-improved-frontal-and-performance-inputs-preserved; final-illustrated-likeness-not-selected",
       "photoGap": [
-        "Select the performance or casual public look for the illustrated cameo",
-        "Higher-resolution frontal/three-quarter face reference if needed for detailed likeness",
+        "Approve the improved-reference illustrated likeness and final costume",
         "Final review-desk/sign/props and contribution credit",
         "Actual supplied emblem/voice/music files only if used"
       ],
@@ -725,7 +814,8 @@
         "https://linktr.ee/kavemanbrown",
         "https://www.youtube.com/@KaveManBrown",
         "https://www.youtube.com/watch?v=ibt4QBgZyoU",
-        "https://www.youtube.com/watch?v=NbZXzh3Ex4U"
+        "https://www.youtube.com/watch?v=NbZXzh3Ex4U",
+        "https://slaps.com/user/KaveManBrown"
       ]
     },
     {
@@ -815,7 +905,7 @@
       "sceneIds": [
         "cutscene.cache-ending.margin-note"
       ],
-      "status": "new-art-required",
+      "status": "static-scene-and-authored-annotation-installed-private-preview",
       "referenceIds": [
         "nineIdentity"
       ],
@@ -823,7 +913,8 @@
       "artDependency": "Original transparent hand/gesture pose or scene painting with a clearly owned frame-edge intrusion; no expression kit is currently located.",
       "runtimeRule": "Presentation only; do not change actual save, clear, score, control binding, receiver status or warning.",
       "contributor": null,
-      "credit": null
+      "credit": null,
+      "limitation": "Hand is part of the scene painting; independent animated withdrawal is not implemented."
     },
     {
       "id": "nine-annotation-cue",
@@ -831,46 +922,49 @@
         "cutscene.cache-ending.margin-note",
         "cutscene.cache-ending.record-straight"
       ],
-      "status": "authored-cue-and-layout-required",
+      "status": "static-scene-and-authored-annotation-installed-private-preview",
       "referenceIds": [],
       "purpose": "Mac notices a nonessential caption annotation; Cache contrasts it with the protected original recording.",
       "runtimeRule": "Genuine speaker/status labels return after the authored crew reaction. Pause, skip, replay, reduced effects and input ownership must remain usable.",
       "contributor": null,
-      "credit": null
+      "credit": null,
+      "limitation": "Hand is part of the scene painting; independent animated withdrawal is not implemented."
     }
   ],
   "dialogueChoiceDependencies": [
     {
       "id": "dialogue-choice-presentation",
       "sceneIds": [
-        "cutscene.cache-ending.unverified",
+        "cutscene.cache-ending.kave-dead-air",
         "cutscene.cache-ending.margin-note"
       ],
-      "status": "design-required",
+      "status": "private-reader-and-reconverging-responses-implemented",
       "purpose": "A direct readable between-action choice, followed by a concrete crew reply.",
       "runtimeRule": "Choice changes response/acknowledgment and a planned later callback; either response preserves the mandatory blockade objective. No combat menu or input automation.",
       "choiceIds": [
         "delivery-question",
         "frame-reply"
-      ]
+      ],
+      "futureCampaignCallback": "not-implemented-in-temporary-preview"
     },
     {
       "id": "choice-response-callback",
       "sceneIds": [
-        "cutscene.cache-ending.unverified",
+        "cutscene.cache-ending.kave-dead-air",
         "cutscene.cache-ending.margin-note"
       ],
-      "status": "script-and-state-contract-required",
+      "status": "private-reader-and-reconverging-responses-implemented",
       "purpose": "Track setup, chosen reply and later return/payoff for stable choices delivery-question and frame-reply; define truthful resume/replay behavior.",
       "choiceIds": [
         "delivery-question",
         "frame-reply"
-      ]
+      ],
+      "futureCampaignCallback": "not-implemented-in-temporary-preview"
     }
   ],
   "deliveryRules": [
-    "This manifest records production dependencies, not shipped scenes or final canon.",
-    "Generated hero concepts remain review assets outside runtime until selected and integrated.",
+    "This manifest distinguishes owner-approved transition writing and selected Mac v2 art from unaccepted implementation, gameplay and future full-chapter integration.",
+    "Mac v2 is owner-approved art; Cache cockpit v2 remains historical and unselected. The new Cache walking candidate and Kave likeness require art review; current final car artwork is retained.",
     "Null contributor/credit/reference values are unrecorded, not a claim of absent permission or private-photo status.",
     "Reference availability claims are limited to the audited files; do not claim a photo is missing everywhere.",
     "Do not infer supplied music or voice from visual inclusion.",
@@ -899,7 +993,7 @@
     {
       "id": "delivery-question",
       "sceneId": "cutscene.cache-ending.kave-dead-air",
-      "status": "authored-draft-pending-review",
+      "status": "owner-approved-eight-scene-script",
       "choiceType": "crew-question",
       "optionIds": [
         "people",
@@ -931,7 +1025,7 @@
     {
       "id": "frame-reply",
       "sceneId": "cutscene.cache-ending.margin-note",
-      "status": "authored-draft-pending-review",
+      "status": "owner-approved-eight-scene-script",
       "choiceType": "player-addresses-nine-bit",
       "optionIds": [
         "listening",
@@ -979,14 +1073,109 @@
   ],
   "completedSaveRule": "Preserve done, Bass, Level 2 clear, delivery and current receipt; never force replay or retroactive choice.",
   "kavePublicReferences": {
-    "status": "first-party-sources-found-and-visually-inspected",
+    "status": "first-party-identity-verified-improved-inputs-found-likeness-review-pending",
     "research": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
     "review": "docs/source-pack/KAVE_REFERENCE_REVIEW.html",
     "officialHub": "https://linktr.ee/kavemanbrown",
     "officialChannel": "https://www.youtube.com/@KaveManBrown",
     "performanceVideo": "https://www.youtube.com/watch?v=ibt4QBgZyoU",
-    "recommendedLook": "Wide-brim black hat and dark outfit; final illustrated model not selected",
+    "recommendedLook": "Use the clear Slaps face and actual own-video frame at 00:30, complemented by the 900-pixel channel profile; wide-brim costume and final likeness remain subject to owner art review.",
     "cameoProposal": "Kaveman Radio music-review host with a held outbound feed",
-    "finalIllustratedModelSelected": false
+    "finalIllustratedModelSelected": false,
+    "productionInputs": [
+      {
+        "id": "kave-slaps-frontal-600",
+        "sourcePage": "https://slaps.com/user/KaveManBrown",
+        "path": "docs/source-pack/review-level3-story/references/kave-slaps-frontal-600.jpg",
+        "width": 600,
+        "height": 600,
+        "bytes": 67043,
+        "sha256": "c67313340b3ae09bc24b0fbeee7cd0e652bbb98505a122cb624bb8af1c78aa84",
+        "use": "Primary facial proportions; date unknown, costume not selected"
+      },
+      {
+        "id": "kave-succubus-30s-frame",
+        "sourcePage": "https://www.youtube.com/watch?v=ibt4QBgZyoU&t=30s",
+        "path": "docs/source-pack/review-level3-story/references/kave-succubus-30s-frame.jpg",
+        "width": 1413,
+        "height": 795,
+        "bytes": 158098,
+        "sha256": "027f5ed50a510aa8e0cea6959dc398012d6a1234c12b55b4460799ffc9019413",
+        "timestampSeconds": 30.336837,
+        "decodedVideoWidth": 1280,
+        "decodedVideoHeight": 720,
+        "captureMethod": "Unresized cropped browser screenshot of the paused visible player",
+        "use": "Performance hat, dark costume, jewellery and natural hands"
+      }
+    ]
+  },
+  "ownerAcceptance": {
+    "date": "2026-10-05",
+    "eightSceneTransitionScript": "approved-including-two-reconverging-choices",
+    "macHeroV2": "owner-approved-artwork",
+    "cacheHeroV2": "not-selected-preserved-historical-candidate",
+    "cacheWalkingHeroV3": "superseded-stride-candidate-preserved-in-provenance",
+    "kaveLikeness": "improved-first-party-inputs-used-new-illustration-pending-owner-art-review",
+    "privatePreviewImplementation": "implemented-validation-and-owner-playtest-pending",
+    "gameplayAcceptance": "pending-owner-playtest",
+    "fullLevel3CampaignIntegration": "future-work",
+    "newPreviewPublished": false,
+    "cacheWalkingHeroV4": "new-owner-directed-candidate-pending-art-review"
+  },
+  "cacheBridgePlan": {
+    "currentPublishedSceneCount": 8,
+    "plannedSceneCount": 8,
+    "revisedHeroSceneId": "ignition",
+    "legacyPageIndex": 6,
+    "displayTitle": "KEYS TO THE LINE",
+    "heroPlacement": "penultimate",
+    "replaceExistingPanelArtwork": true,
+    "preserveOriginalIgnitionArtworkAsUnusedSource": true,
+    "plannedDialogue": [
+      {
+        "speaker": "MAC MODEM / COMMS",
+        "text": "Route is yours. Keep the original moving."
+      },
+      {
+        "speaker": "CACHE BACK",
+        "text": "Keys. Original. Let's go."
+      }
+    ],
+    "retainedFinalSceneId": "cache-line",
+    "retainedFinalPageIndex": 7,
+    "retainedFinalRuntimePath": "assets/cache-bridge/bridge-08-cache-line.webp",
+    "retainFinalArtworkBytesAndDialogue": true,
+    "chronologyConstraint": "Replace the already-inside ignition beat with the walking approach. The cassette and keys remain with Cache until he reaches the established car.",
+    "ignitionAudio": "Remove page-6 ignition sound; engine ignition only at the final car cue if needed.",
+    "saveCompatibility": "Keep eight panels, legacy ignition page index 6, and stable cache-line final index 7 and cues; no final-page renumbering.",
+    "privatePreviewRuntimePath": "assets/mac-street-review/cache-walk-to-car-v4.png",
+    "integrationStatus": "private-preview-implemented"
+  },
+  "sceneConsistencyChecklist": [
+    "Use supplied identity and dress references consistently across camera changes; Mac v2 is selected, Kave likeness is pending.",
+    "Keep the yellow car orientation, driver side, reels, emblem, curb location and direction of travel; do not mirror to solve staging.",
+    "Track cassette original, cleaned copy, keys, radio, cables and connector by owner and location; scene props cannot teleport.",
+    "Keep receiver, studio, street gate and review desk geography distinct; comms do not relocate characters.",
+    "Preserve practical lighting, time of day, eyelines, anatomy and contact geometry across new angles and portrait crops.",
+    "Replace the existing ignition beat with Cache walking toward the car; retain eight bridge panels, page-6 compatibility identity and the current final art/cues at page index 7."
+  ],
+  "runtimeInstalledPrivatePreview": true,
+  "productionPublished": false,
+  "privatePreview": {
+    "entry": "index.html?preview=mac-firstslice",
+    "phase": "first-street-slice",
+    "story": "eight approved scenes; two reconverging choices; optional safe post-fight desk conversation",
+    "combat": "two arenas; three enemies; combos, fresh guard/counter, contextual nearby throw, two-axis walk and jump",
+    "saveWrites": 0,
+    "awardDrums": false,
+    "unlocksFullLevel3": false,
+    "temporaryMusic": "existing level-03.proof stems; canonical Mac song remains future work",
+    "runtimeFiles": [
+      "src/game/mac-street-combat.js",
+      "src/game/mac-street-story.js",
+      "src/game/mac-combat-preview.js"
+    ],
+    "provenance": "docs/source-pack/review-mac-street-art/generation-provenance.json",
+    "poseRegistration": "assets/mac-street-review/mac-poses-v3-frames.json"
   }
 }

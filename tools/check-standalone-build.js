@@ -28,6 +28,13 @@ const textureRoot = 'assets/cache-road/gpu-textures/';
 const textureManifestName = textureRoot + 'manifest.json';
 const originalAssetCount = 624;
 const originalAssetInventorySHA256 = '0b2ac58dc88ddb68b595fb8592d242d8478c426d78309fe4ff45b88c04027f56';
+// These eight siblings extend the package; they never replace the sealed bank.
+const macReviewRoot = 'assets/mac-street-review/';
+const macReviewAssets = new Set([
+  'cache-walk-to-car-v4.png', 'mac-hero-v2.png', 'mac-poses-v3-frames.json', 'mac-poses-v3.png',
+  'scene03-kave-dead-air-v1.png', 'scene05-margin-note-v1.png',
+  'scene06-record-straight-v1.png', 'street-panorama-v1.png'
+].map(name => macReviewRoot + name));
 const encoderCommit = '4d6fc70eaf62ad0558e63e8d97eb9766118327a6';
 const transcoderCommit = '9bebe16726b3a61c8c213eeee3b7cffb462ef34e';
 function textureManifest() {
@@ -128,6 +135,61 @@ function safeUInt64(data, offset) {
   return Number(value);
 }
 
+function checkMacReviewAssets(scripts, index) {
+  const files = owner.files;
+  assert.deepEqual(Object.keys(files).filter(name => name.startsWith(macReviewRoot)).sort(), [...macReviewAssets].sort(),
+    'Mac review must contain the exact eight approved siblings, with no extra photos or review files');
+  const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  const dimensions = {};
+  for (const name of macReviewAssets) {
+    const file = localFile(name);
+    if (!name.endsWith('.png')) continue;
+    assert(header(file, 8).equals(pngSignature), 'Mac art must retain native PNG bytes: ' + name);
+    dimensions[name] = originalDimensions(file);
+    assert(dimensions[name].every(value => Number.isSafeInteger(value) && value > 0), 'Invalid native Mac image dimensions');
+  }
+  const imageName = macReviewRoot + 'mac-poses-v3.png', sheet = JSON.parse(read(macReviewRoot + 'mac-poses-v3-frames.json'));
+  assert.equal(sheet.schemaVersion, 1); assert.equal(sheet.sourceImage, imageName); assert.equal(sheet.facing, 'right');
+  assert.deepEqual([sheet.dimensions.width, sheet.dimensions.height], dimensions[imageName], 'Pose registration must describe the actual unchanged image');
+  const pngHeader = header(localFile(imageName), 26);
+  assert.equal(pngHeader[24], 8); assert.equal(pngHeader[25], 6, 'Mac pose sheet requires its original RGBA transparency');
+  assert.deepEqual(sheet.frames.map(frame => frame.id), ['idle', 'walk_left', 'walk_right', 'punch', 'guard', 'jump']);
+  assert.equal(sheet.pixelScale.standingVisibleHeight, sheet.frames[0].visibleBounds.height, 'One shared scale derives from visible standing height');
+  for (const frame of sheet.frames) {
+    const crop = frame.source, visible = frame.visibleBounds, pivot = frame.pivot;
+    for (const rect of [crop, visible]) {
+      assert(Number.isSafeInteger(rect.x) && rect.x >= 0 && Number.isSafeInteger(rect.y) && rect.y >= 0);
+      assert(Number.isSafeInteger(rect.width) && rect.width > 0 && Number.isSafeInteger(rect.height) && rect.height > 0);
+    }
+    assert(crop.x + crop.width <= sheet.dimensions.width && crop.y + crop.height <= sheet.dimensions.height, 'Registered crop escapes image: ' + frame.id);
+    assert(visible.x + visible.width <= crop.width && visible.y + visible.height <= crop.height, 'Visible silhouette escapes its crop: ' + frame.id);
+    assert(Number.isFinite(pivot.x) && Number.isFinite(pivot.y) && pivot.x >= visible.x && pivot.x <= visible.x + visible.width);
+    assert.equal(pivot.y, visible.y + visible.height, 'Feet must anchor the measured lowest shoe: ' + frame.id);
+  }
+  for (let i = 0; i < sheet.frames.length; i++) for (let j = i + 1; j < sheet.frames.length; j++) {
+    const a = sheet.frames[i].source, b = sheet.frames[j].source;
+    assert(Math.min(a.x + a.width, b.x + b.width) <= Math.max(a.x, b.x) ||
+      Math.min(a.y + a.height, b.y + b.height) <= Math.max(a.y, b.y), 'Registered pose crops overlap');
+  }
+  assert(new Set(sheet.frames.map(frame => frame.source.width)).size > 1, 'Measured nonuniform crops must not become equal atlas cells');
+  const macScripts = ['src/game/mac-street-combat.js', 'src/game/mac-street-story.js', 'src/game/mac-combat-preview.js'];
+  for (const name of macScripts) { assert.equal(scripts.filter(script => script === name).length, 1, 'One Mac script owner: ' + name); localFile(name); }
+  assert(scripts.indexOf(macScripts[0]) < scripts.indexOf(macScripts[2]) && scripts.indexOf(macScripts[1]) < scripts.indexOf(macScripts[2]), 'Both factories must precede the preview wrapper');
+  assert(scripts.indexOf('src/core/runtime-lifecycle.js') < scripts.indexOf(macScripts[2]), 'Mac preview must retain the shared lifecycle owner');
+  const sandbox = makeContext({ location: { search: '' } }); sandbox.URLSearchParams = URLSearchParams;
+  let registrations = 0; sandbox.window.BARCODE.Campaign = {register() { registrations++; }};
+  for (const name of macScripts) load(sandbox, name);
+  const preview = sandbox.window.BARCODE.MacCombatPreview;
+  assert.equal(registrations, 0, 'Private preview must not register or replace a campaign chapter');
+  assert.equal(preview.active, false); assert.equal(preview.requested(), false, 'Ordinary title must remain the normal campaign');
+  for (const [query, expected] of [['?preview=mac-firstslice', true], ['?preview=other', false], ['?mac-firstslice=1', false]]) {
+    sandbox.window.location.search = query; assert.equal(preview.requested(), expected, 'Exact private query gate: ' + query);
+  }
+  assert.match(index, /MacCombatPreview\?\.requested\?\.\(\)/, 'The real title must read the private query gate');
+  assert.match(index, /privatePreview:\s*['"]mac-firstslice['"]/, 'The private title route must enter through RuntimeLifecycle');
+  return {approvedSiblingAssets: macReviewAssets.size, nativePngDimensions: dimensions, registeredPoseCrops: 6, privateQueryGate: true, noCampaignRegistration: true};
+}
+
 function rgbaMipBytes(width, height) {
   let bytes = 0;
   for (;;) {
@@ -216,9 +278,10 @@ async function checkRoadTextureBank() {
   assert.equal(bank.allGpuMipBytes, residentMipBytes + svgMipBytes);
   const assets = Object.keys(files).filter(name => name.startsWith('assets/')).sort();
   assert.deepEqual(assets.filter(name => name.startsWith(textureRoot)), [...derivatives].sort(), 'Only declared texture derivatives may be added');
-  const originals = assets.filter(name => !derivatives.has(name));
+  assert.deepEqual(assets.filter(name => name.startsWith(macReviewRoot)), [...macReviewAssets].sort(), 'Only the exact approved Mac siblings may extend originals');
+  const originals = assets.filter(name => !derivatives.has(name) && !macReviewAssets.has(name));
   assert.equal(originals.length, originalAssetCount, 'All 624 original assets must remain present');
-  assert.equal(owner.canonicalAssetCount - derivatives.size, originalAssetCount);
+  assert.equal(owner.canonicalAssetCount - derivatives.size - macReviewAssets.size, originalAssetCount);
   const originalRows = originals.map(name => [name, files[name].bytes, files[name].sha256]);
   assert.equal(crypto.createHash('sha256').update(JSON.stringify(originalRows)).digest('hex'), originalAssetInventorySHA256,
     'Original artwork, music, sprites or asset metadata changed');
@@ -303,6 +366,7 @@ async function main() {
     assert(scripts.indexOf(name) < scripts.indexOf(touchScript),
       'Touch controls must follow the existing input owners');
   }
+  const macReview = checkMacReviewAssets(scripts, index);
   const vendorRoot = 'src/vendor/pixi-8.22.0/';
   const vendorHashes = {
     'pixi.min.js': '06d9ef9823e743518793083c296d801e752db128cb1f519fbabe37e1259567ea',
@@ -437,7 +501,7 @@ async function main() {
     localAnimatedShipTypes: 3, forcedShipAtlasRetry: true, existingBootOwnerSpritePreload: true,
     containedNativeViewportCSS: true, linkedStylesheet: true, localIndexLinks,
     pinnedLocalRenderer: 'pixi.js@8.22.0', pinnedLocalTranscoder: 'Basis Universal@2.50',
-    vendorLicenseAndHashes: true, gpuRendererLoadOrder: true, compressedTextureBank: textureInventory,
+    vendorLicenseAndHashes: true, gpuRendererLoadOrder: true, compressedTextureBank: textureInventory, macReview,
     limits: 'VM contracts and local files only; no browser, listening or performance acceptance' }));
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

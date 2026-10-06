@@ -1,8 +1,9 @@
 # Broadcast Slum: story, scenes and production guide
 
-October 5, 2026. **Documentation and proposed writing only.**
-The four-scene Level 2 ending and eight-scene Level 1-to-2 bridge remain unchanged in runtime.
-The first two hero concepts were rejected by the owner: Cache's cockpit geometry was impossible and Mac used the wrong character model. Corrected v2 concepts are available and require new owner art review. Dialogue choices, cameos, 9 Bit intrusions and Level 3 gameplay remain proposed and are not installed.
+October 5, 2026. **Eight-scene transition script and Mac hero v2 approved by the owner.**
+The published campaign still has its four-scene Level 2 ending and eight-scene Level 1-to-2 bridge; a separate private Mac preview is in development.
+The owner approves the eight-scene Level 2-to-3 script, including its two choices, and Mac's corrected v2 hero artwork. This does not establish gameplay acceptance, full Level 3 completion or publication of the new preview.
+Kave's likeness needs better references. Cache's cockpit v2 is not selected: the owner now requests a new walking-with-keys hero candidate immediately before the existing final car shot. Replace the current penultimate ignition illustration, retaining the bridge's eight panels and final page index. That v3 candidate awaits art review. Rejected v1 concepts remain historical records.
 The shipped Level 2 clear, Bass key and saves retain their existing behavior.
 
 ## Direction and authority
@@ -12,7 +13,8 @@ dialogue choices, fourth-wall breaks, 9 Bit hacks, references and assets identif
 The Level 2-to-3 cutscene must contain **at least seven scenes**; this proposal uses eight.
 The final scene before each of the two requested solo chapters must show its hero heading into action:
 Cache Back for Level 2 and Mac Modem for Level 3, with poses distinct from 6 Bit's finale.
-These are owner requirements. The exact eight scenes, dialogue, choices and placements below are new proposals.
+The owner's later correction places Cache's hero panel immediately before the retained car finale; Mac remains the final Level 2-to-3 panel.
+These are owner requirements. The eight-scene transition writing and Mac v2 are now approved; future gameplay sections and unreviewed illustrations remain production proposals.
 
 The active campaign authorities are [CAMPAIGN_REDESIGN.md](CAMPAIGN_REDESIGN.md),
 [CAMPAIGN_SCENE_BEATS.md](CAMPAIGN_SCENE_BEATS.md) and
@@ -29,8 +31,8 @@ The review page makes the sequence and art gaps visible; a proposal card is not 
 
 The eight-scene Level 1-to-2 bridge restores outgoing access, compares the original with a cleaned copy,
 preserves both traces, and puts Cache in the yellow car with the original recording.
-Its last page, `cache-line`, shows the car from behind rather than a visible Cache hero pose.
-Retain this bridge's story and final dialogue; propose a targeted final-image replacement.
+Its last page, `cache-line`, shows the car from behind. The owner explicitly wants this final image retained.
+Revise the existing penultimate panel into Cache's visible walking-with-keys hero beat; the bridge stays at eight panels.
 
 The current Level 2 ending has four panels: `delivered`, `unverified`, `held`, `street-access`.
 Cache's delivered recording is complete; the receiver accepts transfer but holds outbound distribution.
@@ -46,7 +48,7 @@ Scene 7 remains the existing Mac street-gate access setup, with Kave heard over 
 
 Each scene has a stable identity separate from its displayed position.
 The artwork contains no baked dialogue or critical UI labels; runtime layers supply readable text.
-The exact writing below is proposed except where explicitly marked as retained dialogue.
+The owner has approved the exact eight-scene transition writing below, including both choices. Retained dialogue is identified for continuity.
 
 ### 1. ORIGINAL DELIVERED — `delivered`
 
@@ -89,9 +91,10 @@ Both answers express Cache's priorities; neither withholds the route or changes 
 
 ### 4. THE HOLD IS LOCAL — `held`
 
-**Image/action:** DJ and Mac's established studio comparison, Cache linked from the receiver.
-Reuse `assets/cache-ending/ending-03-held.webp`; a readable routing overlay locates the street hold.
-Any added receiver/relay/gate labels are authored display evidence, separate from image pixels.
+**Image/action:** The retained image shows Mac physically beside DJ in the studio, earlier than Mac's current street approach.
+Reuse `assets/cache-ending/ending-03-held.webp` as an explicitly labelled earlier comparison replay.
+An authored **EARLIER / STUDIO COMPARISON** ribbon distinguishes the image's time/location; both live spoken lines remain crew comms.
+Reader metadata is `artLocation: studio`, `artTime: earlier-comparison`, `dialogueContext: live-comms`; do not pretend these pixels depict the gate or add invented routing data.
 
 - **DJ FLOPPYDISC / COMMS:** "The original arrived. The distribution hold is still there."
 - **CACHE BACK / COMMS:** "Then being delivered isn't enough. They're stopping it here."
@@ -100,7 +103,8 @@ Both lines are retained. The next step is distribution enforcement, not identify
 
 ### 5. A NOTE IN THE MARGIN — `margin-note`
 
-**Image/action:** Mac's ordinary caption receives a hand-pasted comic annotation:
+**Image/action:** Mac remains at the current street gate; the image does not return him to the earlier studio.
+His ordinary caption receives a hand-pasted comic annotation:
 `AUTHORISED PUNCHING CONSULTANT`. A hand crosses the illustrated border, then withdraws.
 This is a visible presentation prank; real speaker labels, controls, scores and saves remain accurate.
 
@@ -122,9 +126,10 @@ Original, cleaned copy and present interruption are visibly separated; 9 Bit doe
 This can use current model/reference elements, but needs a deliberate new storytelling image.
 
 - **CACHE BACK / COMMS:** "That wasn't on the tape."
-- **DJ FLOPPYDISC:** "Then keep it separate. Record the interruption. Don't call it proof."
+- **DJ FLOPPYDISC / COMMS:** "Then keep it separate. Record the interruption. Don't call it proof."
 
 The crew recognizes a performed intrusion without accepting every claim made by its speaker.
+Cache remains at the receiver; DJ's comparison-monitor contribution is remote comms, not a relocation to Cache's room.
 The original recording remains original; there is no new memory or separation verdict here.
 
 ### 7. STREET ACCESS — `street-access`
@@ -136,7 +141,7 @@ Do not turn this retained setup into a new montage, move the crew to the venue, 
 - **MAC MODEM / COMMS:** "The hold points to street enforcement. I'll find a way through."
 - **KAVE / COMMS:** "I'll keep the queue moving and the local line open."
 
-Mac's line is retained. Kave's proposed reply ties the cameo to his review desk and a later distribution payoff.
+Mac's line is retained. Kave's approved reply ties the cameo to his review desk and a later distribution payoff.
 
 ### 8. GET IT HEARD — `get-it-heard`
 
@@ -148,24 +153,36 @@ Preserve his ginger beard, two side braids, MODEM cap, face markings and burgund
 - **6 BIT / COMMS:** "Cache got it here. Mac, get it heard."
 - **MAC MODEM:** "Open the channel."
 
-6 Bit's sendoff is retained from the old fourth scene. Mac's reply is proposed.
+6 Bit's sendoff is retained from the old fourth scene. Mac's reply and the v2 hero illustration are owner-approved.
 The image is a distinct physical commitment pose, not a copy of 6 Bit's posture with a different head.
-This guide does not create a working Level 3 entry: the existing finish/results behavior remains until integration.
+The private `index.html?preview=mac-firstslice` entry now uses this transition before Mac’s first street encounter. The published ending/results and full campaign Level 3 entry remain unchanged.
 
-## Cache Back's separate final hero scene
+## Cache Back's penultimate hero scene and preserved finale
 
-Target only the final Level 1-to-2 page, keeping `cache-line` identity and its dialogue:
+The owner supersedes the cockpit-final proposal with a new hero panel: Cache walks toward the current yellow car with his keys, looking ready for the mission. Use his supplied model and established dress, with a distinct confident walking pose. The new v4 walking candidate is installed in the private preview for visual review; its superseded v3 remains preserved.
+
+Keep eight panels: revise zero-based page 6, retaining the legacy `ignition` identity for resume compatibility, to display **KEYS TO THE LINE** and Cache walking toward the car. Its planned lines are:
+
+- **MAC MODEM / COMMS:** "Route is yours. Keep the original moving."
+- **CACHE BACK:** "Keys. Original. Let's go."
+
+The `cache-line` identity remains the final page at zero-based index 7, with its existing rear-car illustration and dialogue:
 
 - **6 BIT / COMMS:** "We're on the line."
 - **CACHE BACK:** "Then let's make some noise."
 
-Replace the proposed rear-car-only composition with an interior view from the empty front passenger seat toward Cache in the left driver seat and the forward windshield.
-Cache is unmistakably visible: shoulders leaning forward, one hand on the wheel,
-the other finishing a radio press; the original cassette is secured in the dashboard.
-The yellow car's headlights and open road pull the composition toward the mission.
-He stays seated after Scene 7's ignition; do not make him get out and enter the car again.
-His concentrated driver pose differs from Mac's forward barrier-opening stride and 6 Bit's existing finale.
-Compare all three finals together before accepting artwork; honor portrait crops and dialogue-safe space.
+Retain `assets/cache-bridge/bridge-08-cache-line.webp` byte-for-byte as the final car shot. Preserve the yellow body, reels, trim, central emblem, road direction and established curb geometry in the new approach image.
+The old ignition illustration remains preserved as an unused original after selection of the new approach candidate. Replace that beat rather than inserting an approach after Cache is already inside. Remove the page-6 ignition sound; any engine ignition belongs at the final car cue, if needed. The original cassette and keys remain with Cache before he reaches the car.
+Keep the keys in a physically plausible hand, track the original cassette's custody, and show movement toward the same car rather than an invented replacement vehicle. Compare this approach, Mac's barrier-opening stride and 6 Bit's existing finale; honor portrait crops and dialogue-safe space.
+
+## Scene, character, setting and prop consistency checklist
+
+- Check each character against supplied identity references: face, build, markings, cap/insignia, beard/braids, glasses/mask, collar and costume stay consistent across camera changes. Mac uses the approved v2 model; Kave's final likeness remains open.
+- Keep the yellow car's front/rear orientation, door and driver side, wheels, reels, emblem and street direction consistent. Never mirror an illustration simply to solve a composition.
+- Track the original cassette, cleaned copy, keys, radio, cables and gate connector from one panel to the next. Record who holds each prop and where it rests; props cannot teleport between hands, vehicle, studio and receiver.
+- Maintain scene geography: Cache at the receiver, DJ/studio crew connected over comms, Mac at street access and Kave at the neighborhood review desk. A cut or inset must explain a new viewpoint without moving a remote speaker into the scene.
+- Match practical lights, screen glow, time of day, shadows and camera eyelines. New angles must preserve character scale, physical anatomy, equipment contacts and the direction of travel.
+- Review every panel beside its predecessor and successor, including portrait crops. Confirm that added labels are authored overlays and that loading, ignition, approach and departure follow a deliberate timeline.
 
 ## Level 3: story woven through play
 
@@ -274,7 +291,7 @@ Migrate legacy ending version-1 pages explicitly: `0 → delivered`, `1 → unve
 Map title/line cues by meaning: the old fourth-scene Mac line remains in `street-access`;
 its old 6 Bit second line moves to `get-it-heard`. Do not resume that cue as Kave's new line.
 Preserve completed `done` state and all delivery/key/clear facts; no forced re-clear or replay of unchosen branches.
-The `cache-line` bridge ID and existing final cues remain stable despite a proposed replacement image.
+The eight-panel Cache bridge keeps page 6's `ignition` compatibility identity while changing its display title, illustration and authored Cache line. The `cache-line` bridge ID, page index 7, existing final image and final cues remain stable; no final-page renumbering is needed.
 New optional choice IDs are `delivery-question` and `frame-reply`; missing old-save fields mean no answer yet.
 Validate migration/resume, explicit skip, both replies and replay separately when implementation begins.
 
@@ -285,12 +302,12 @@ Use the linked asset manifest to verify available model references before reques
 inspected public images and artist/music-review basis: [official reference hub](https://linktr.ee/kavemanbrown),
 [own YouTube channel](https://www.youtube.com/@KaveManBrown) and
 [Kaveman Radio playlist](https://open.spotify.com/playlist/6fGMpNWTr1oGVt6DHh8viH).
-The inspected wide-brim performance look is a proposal, not a locked model or costume.
-Select his look and a detailed frontal/three-quarter reference before producing likeness art;
+The owner-requested clearer references are found: a 600-pixel Slaps face and actual own-video frame at 00:30, with the 900-pixel channel profile as a third angle.
+The wide-brim performance costume and resulting illustrated likeness still need art review before accepting the desk illustration;
 the fictional review desk, submission queue and neighborhood setting do not imply real venue ownership.
 Mac and Cache use their established supplied models; obtain extra pose angles only if current references cannot support the shot.
 Record each art card's scene/asset ID, source references, size, safe text space, crop, status and credit.
 Keep new hero images as versioned siblings; preserve original illustration bytes until a reviewed integration selects replacements.
-Compare the two proposed hero finales with 6 Bit's existing image and review all eight scenes as one sequence.
+Compare Cache's new approach candidate and the approved Mac v2 with 6 Bit's existing image; review each full transition as a sequence.
 Script review, reference collection, image generation, runtime integration and publication are distinct production states.
-The rejected first hero concepts and their full prompts/reference hashes remain documented in review-level3-story/generation-provenance.json; they are not selected runtime art. Mac's correction uses his actual supplied models; Cache's correction resolves the shot from inside the cabin. Both v2 replacements are generated, with exact prompts, reference order and file hashes recorded; they await new owner art review. The eight-scene script, choices and Level 3 remain a production draft.
+The rejected v1 concepts and all v2 prompts, reference orders and hashes remain documented in review-level3-story/generation-provenance.json. Mac v2 is approved artwork; Cache cockpit v2 is preserved but not selected. Cache's walking-with-keys v3 artwork and the improved-reference Kave likeness remain pending owner review. The eight-scene script and two bridge choices are approved; the separate private reader is implemented, while gameplay acceptance, full chapter integration and publication are distinct work.

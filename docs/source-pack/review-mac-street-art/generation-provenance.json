@@ -1,0 +1,757 @@
+{
+  "schemaVersion": 1,
+  "generator": "image_gen.imagegen (built-in)",
+  "generatedOn": "2026-10-05",
+  "branch": "agent/mac-street-slice-20261005",
+  "scope": "New Mac street gameplay/narrative private review candidates only. Existing artwork preserved; no commit or publication performed by art agent.",
+  "acceptedForRuntime": false,
+  "callCount": 9,
+  "classification": "Game character/background and illustration-story; targeted identity-preserve corrections",
+  "originalsPreserved": true,
+  "candidateIds": [
+    "mac-poses-v3",
+    "cache-walk-to-car-v4",
+    "street-panorama-v1",
+    "scene03-kave-dead-air-v1",
+    "scene05-margin-note-v1",
+    "scene06-record-straight-v1"
+  ],
+  "rejectedOrSupersededIds": [
+    "mac-poses-v1",
+    "mac-poses-v2",
+    "cache-walk-to-car-v3"
+  ],
+  "rendererMetadata": "docs/source-pack/review-mac-street-art/mac-poses-v3-frames.json",
+  "referencePrinciple": "Supplied canonical character models govern identity; current art governs style/location/props. Kave final likeness pending owner review, based on verified first-party photos/video. No inference of real venue ownership.",
+  "assets": [
+    {
+      "id": "mac-poses-v1",
+      "path": "docs/source-pack/review-mac-street-art/candidates/mac-poses-v1.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-12db70f9-4b0c-4da6-990e-fedd3be47ec9.png",
+      "tool": "image_gen.imagegen (built-in)",
+      "toolArguments": {
+        "prompt": "Use case: stylized-concept.\nAsset type: actual 2D side-view brawler character animation sheet, transparent RGBA, one horizontal row of exactly SIX distinct full-body poses.\nPrimary request: Generate Mac Modem from the supplied canonical references as a slim, wiry man, never a bulky muscular action hero. This is a game sprite sheet, NOT a character poster or scene.\nInput images: 1 exact canonical facial identity/paint; 2 canonical red outfit and slim body proportions; 3 corroborating thin body and two narrow braids; 4 polished detailed comic-ink style only, not its camera angle.\nIdentity: ginger beard and moustache; precisely two thin long ginger braids; black cap and black tee with the small red MODEM clothing mark; open burgundy sleeveless vest; narrow black trousers and red low-top sneakers with pale soles; tattooed slender arms, pendant. White painted face, fine red Wi-Fi/signal arcs across forehead, red eyes, fine asymmetric black circuit paint. Keep the same recognizable face and clothing in every pose.\nComposition: wide 3:1 canvas, ideally 3072 x 1024. Six EQUAL invisible rectangular cells, each one sixth of width, centered at 1/12, 3/12, 5/12, 7/12, 9/12, 11/12. Leave at least 5% cell-width clear alpha margin at BOTH edges of EVERY cell. Character entirely contained in his own cell, including fists, hair and sneakers. No cell outlines. Orthographic SIDE VIEW facing RIGHT in every cell, with only slight chest visibility to preserve the tee. Same camera, silhouette proportions and pixel scale, no foreshortening and no tilted view.\nPose order strictly left to right: 1 idle ready stance arms relaxed; 2 walking contact pose left leg forward/right leg back; 3 walking opposite contact pose right leg forward/left leg back; 4 straight punch to the right, ONE lead fist extended horizontally and other fist guarding, plausible connected shoulder/elbow/wrist, no weapon; 5 compact guard with both fists in front of face; 6 jump silhouette with bent knees and arms balanced.\nRegistration: keep cap top and body scale consistent. For poses 1-5 set the lowest shoe sole to the same baseline at 92% canvas height. For pose 6 use the same cell anchor baseline, with the lowest shoe sole also at 92% so the GAME can lift the whole pose during the jump; bend knees by raising the other shoe, do not shrink the man. Preserve clean separation and padding for deterministic equal-cell cropping.\nStyle: sharp detailed hand-inked comic illustration, textured painted clothing and clean readable silhouettes, restrained amber/cyan edge highlights on the character only. No pixelation, no low-poly facets, no blurry areas.\nConstraints: GENUINE transparent background with clean alpha. NO opaque color backdrop, fake checkerboard, ground shadow, platform or scenery. No separate portraits, no text labels or captions, no grid, no borders, no other characters, no extra arms or legs, no floating hands, no extra weapons, no motion streaks crossing cells, no watermark. Anatomy and hands must be plausible; six instances of the SAME slim Mac.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-face.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-body-red.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-body-brown.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/mac-hero-concept-v2.png"
+        ],
+        "transparent_background": true
+      },
+      "prompt": "Use case: stylized-concept.\nAsset type: actual 2D side-view brawler character animation sheet, transparent RGBA, one horizontal row of exactly SIX distinct full-body poses.\nPrimary request: Generate Mac Modem from the supplied canonical references as a slim, wiry man, never a bulky muscular action hero. This is a game sprite sheet, NOT a character poster or scene.\nInput images: 1 exact canonical facial identity/paint; 2 canonical red outfit and slim body proportions; 3 corroborating thin body and two narrow braids; 4 polished detailed comic-ink style only, not its camera angle.\nIdentity: ginger beard and moustache; precisely two thin long ginger braids; black cap and black tee with the small red MODEM clothing mark; open burgundy sleeveless vest; narrow black trousers and red low-top sneakers with pale soles; tattooed slender arms, pendant. White painted face, fine red Wi-Fi/signal arcs across forehead, red eyes, fine asymmetric black circuit paint. Keep the same recognizable face and clothing in every pose.\nComposition: wide 3:1 canvas, ideally 3072 x 1024. Six EQUAL invisible rectangular cells, each one sixth of width, centered at 1/12, 3/12, 5/12, 7/12, 9/12, 11/12. Leave at least 5% cell-width clear alpha margin at BOTH edges of EVERY cell. Character entirely contained in his own cell, including fists, hair and sneakers. No cell outlines. Orthographic SIDE VIEW facing RIGHT in every cell, with only slight chest visibility to preserve the tee. Same camera, silhouette proportions and pixel scale, no foreshortening and no tilted view.\nPose order strictly left to right: 1 idle ready stance arms relaxed; 2 walking contact pose left leg forward/right leg back; 3 walking opposite contact pose right leg forward/left leg back; 4 straight punch to the right, ONE lead fist extended horizontally and other fist guarding, plausible connected shoulder/elbow/wrist, no weapon; 5 compact guard with both fists in front of face; 6 jump silhouette with bent knees and arms balanced.\nRegistration: keep cap top and body scale consistent. For poses 1-5 set the lowest shoe sole to the same baseline at 92% canvas height. For pose 6 use the same cell anchor baseline, with the lowest shoe sole also at 92% so the GAME can lift the whole pose during the jump; bend knees by raising the other shoe, do not shrink the man. Preserve clean separation and padding for deterministic equal-cell cropping.\nStyle: sharp detailed hand-inked comic illustration, textured painted clothing and clean readable silhouettes, restrained amber/cyan edge highlights on the character only. No pixelation, no low-poly facets, no blurry areas.\nConstraints: GENUINE transparent background with clean alpha. NO opaque color backdrop, fake checkerboard, ground shadow, platform or scenery. No separate portraits, no text labels or captions, no grid, no borders, no other characters, no extra arms or legs, no floating hands, no extra weapons, no motion streaks crossing cells, no watermark. Anatomy and hands must be plausible; six instances of the SAME slim Mac.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-face.png",
+          "sha256": "010a1144c9df34a7b88cd629f0d433a0ca18fd4b8b0ea2477dd7342ad9898367",
+          "bytes": 7759875,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-body-red.png",
+          "sha256": "a6cd01603eef78213ce0ef366508920087ac06c996c6ca5775e6ea3c10f75fbc",
+          "bytes": 2658845,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-body-brown.png",
+          "sha256": "ecb059df343da1097343b1b3f7a9dde0271f5658e8e0bacaaf1f6b8ccfe77b4f",
+          "bytes": 4804124,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/mac-hero-concept-v2.png",
+          "sha256": "7a4ea32cc6842408a4a381ade72595fc8cb8cb3d738802c26597443c08609599",
+          "bytes": 3111148,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 2
+          }
+        }
+      ],
+      "status": "rejected-layout",
+      "acceptedForRuntime": false,
+      "visualReview": "Punch crosses equal-cell boundary; walk phases too similar; jump baseline differs. Retained unchanged; do not integrate.",
+      "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
+      "sha256": "f1b747034b631d92d838e3936481f918c766665de06ad09643bb23c9dcb29707",
+      "bytes": 1512308,
+      "dimensions": {
+        "width": 2172,
+        "height": 724,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 6
+      },
+      "originalProjectPathAtGeneration": "assets/mac-street-review/mac-poses-v1.png",
+      "relocation": "Moved unchanged out of runtime assets after rejection or supersession; original generated PNG remains preserved.",
+      "originalGeneratedSha256": "f1b747034b631d92d838e3936481f918c766665de06ad09643bb23c9dcb29707",
+      "originalGeneratedBytes": 1512308,
+      "originalCopyVerified": true
+    },
+    {
+      "id": "mac-poses-v2",
+      "path": "docs/source-pack/review-mac-street-art/candidates/mac-poses-v2.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-5c7d8f6f-1cb1-44e2-9ed1-25c979405325.png",
+      "tool": "image_gen.imagegen (built-in)",
+      "toolArguments": {
+        "prompt": "Use case: identity-preserve. Asset type: corrected transparent 2D game sprite sheet.\nEdit image1 only. Preserve the canonical slim Mac identity, clothing, detailed comic ink, tattoos, face paint and real transparent alpha. Images2-4 are the governing canonical face/slim outfit references. Do not bulk up the arms or torso.\nFix ONLY the animation-sheet framing/poses. Exactly six EQUAL cells in one horizontal row, no outlines/captions. Each cell is one sixth of total width. Full characters must never cross their cell boundaries; especially shorten the punch's stance and shift its arm within cell4. Maintain 10% completely clear transparent left and right padding inside every cell. Leave continuous transparent gutters between all six poses. Make all poses fit by drawing the standing character slightly shorter in the canvas (about 72% canvas height), with ample empty alpha above and below. Do not crop a sneaker or fist.\nThe six cells in order: idle; LEFT foot forward walking with RIGHT foot back; clearly opposite RIGHT foot forward walking with LEFT foot back; straight right-facing punch; both fists up guarding; jump pose with bent knees.\nCamera is strict orthographic side/right-facing for all6, same body proportions, scale and outfit. Left/right walk contacts must visibly alternate the lead leg and arm, not duplicate the same stride.\nRegistration: for ALL six cells align the LOWEST SHOE SOLE exactly to the SAME horizontal line at 90% canvas height. Jump pose is a bent-knee pose located at this same crop anchor, not floating at the top of its cell; the game supplies the airborne vertical movement. Jump crouching lowers head height naturally, but do not change the man's actual body scale.\nA clean straight punch: one slender arm extended right, opposite arm guarding, realistic fist/wrist; use compact feet so it fits its column. Plausible hands, no disconnected joints or duplicate limbs. Guard compact and relaxed, not a bodybuilder.\nNo scenery, ground shadows, solid background, checkerboard pixels, labels, borders, other characters, weapons or extra objects. The only lettering is Mac's existing MODEM clothing mark. Preserve genuine transparency and leave every gutter completely empty. Final row is six separately usable game poses with no overlap.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/mac-poses-v1.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-face.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-body-red.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-body-brown.png"
+        ],
+        "transparent_background": true
+      },
+      "prompt": "Use case: identity-preserve. Asset type: corrected transparent 2D game sprite sheet.\nEdit image1 only. Preserve the canonical slim Mac identity, clothing, detailed comic ink, tattoos, face paint and real transparent alpha. Images2-4 are the governing canonical face/slim outfit references. Do not bulk up the arms or torso.\nFix ONLY the animation-sheet framing/poses. Exactly six EQUAL cells in one horizontal row, no outlines/captions. Each cell is one sixth of total width. Full characters must never cross their cell boundaries; especially shorten the punch's stance and shift its arm within cell4. Maintain 10% completely clear transparent left and right padding inside every cell. Leave continuous transparent gutters between all six poses. Make all poses fit by drawing the standing character slightly shorter in the canvas (about 72% canvas height), with ample empty alpha above and below. Do not crop a sneaker or fist.\nThe six cells in order: idle; LEFT foot forward walking with RIGHT foot back; clearly opposite RIGHT foot forward walking with LEFT foot back; straight right-facing punch; both fists up guarding; jump pose with bent knees.\nCamera is strict orthographic side/right-facing for all6, same body proportions, scale and outfit. Left/right walk contacts must visibly alternate the lead leg and arm, not duplicate the same stride.\nRegistration: for ALL six cells align the LOWEST SHOE SOLE exactly to the SAME horizontal line at 90% canvas height. Jump pose is a bent-knee pose located at this same crop anchor, not floating at the top of its cell; the game supplies the airborne vertical movement. Jump crouching lowers head height naturally, but do not change the man's actual body scale.\nA clean straight punch: one slender arm extended right, opposite arm guarding, realistic fist/wrist; use compact feet so it fits its column. Plausible hands, no disconnected joints or duplicate limbs. Guard compact and relaxed, not a bodybuilder.\nNo scenery, ground shadows, solid background, checkerboard pixels, labels, borders, other characters, weapons or extra objects. The only lettering is Mac's existing MODEM clothing mark. Preserve genuine transparency and leave every gutter completely empty. Final row is six separately usable game poses with no overlap.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-street-art/candidates/mac-poses-v1.png",
+          "sha256": "f1b747034b631d92d838e3936481f918c766665de06ad09643bb23c9dcb29707",
+          "originalPathAtGeneration": "assets/mac-street-review/mac-poses-v1.png",
+          "bytes": 1512308,
+          "dimensions": {
+            "width": 2172,
+            "height": 724,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-face.png",
+          "sha256": "010a1144c9df34a7b88cd629f0d433a0ca18fd4b8b0ea2477dd7342ad9898367",
+          "bytes": 7759875,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-body-red.png",
+          "sha256": "a6cd01603eef78213ce0ef366508920087ac06c996c6ca5775e6ea3c10f75fbc",
+          "bytes": 2658845,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-body-brown.png",
+          "sha256": "ecb059df343da1097343b1b3f7a9dde0271f5658e8e0bacaaf1f6b8ccfe77b4f",
+          "bytes": 4804124,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        }
+      ],
+      "status": "rejected-layout",
+      "acceptedForRuntime": false,
+      "visualReview": "Targeted layout edit did not fully correct punch cell overrun, walk distinction or jump anchor. Retained unchanged; do not integrate.",
+      "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
+      "sha256": "bd1fd007c713b77ca3026338f706e664ad5d841b12155f0542ea6222f066aa14",
+      "bytes": 1128345,
+      "dimensions": {
+        "width": 2172,
+        "height": 724,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 6
+      },
+      "originalProjectPathAtGeneration": "assets/mac-street-review/mac-poses-v2.png",
+      "relocation": "Moved unchanged out of runtime assets after rejection or supersession; original generated PNG remains preserved.",
+      "originalGeneratedSha256": "bd1fd007c713b77ca3026338f706e664ad5d841b12155f0542ea6222f066aa14",
+      "originalGeneratedBytes": 1128345,
+      "originalCopyVerified": true
+    },
+    {
+      "id": "mac-poses-v3",
+      "path": "assets/mac-street-review/mac-poses-v3.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-900f7ea6-eec9-45f2-a155-063eb6af2320.png",
+      "tool": "image_gen.imagegen (built-in)",
+      "toolArguments": {
+        "prompt": "Use case: stylized-concept. Generate a production 2D game sprite sheet on genuine transparent alpha.\nExactly SIX SMALL full-body Mac Modem sprites in ONE horizontal row on a wide 3:1 canvas. Imagine SIX EQUAL invisible portrait columns. Center one pose in each column. CRITICAL: each standing man is only HALF THE HEIGHT of the whole canvas, so even a horizontal punch easily fits inside his own equal column. Use generous completely clear transparent gaps: no sprite pixel within the outer 15% of its column. No overlaps, cell lines, background, shadows or labels.\nCanonical identity supplied in images1-3: same SLIM WIRY ginger-bearded man with TWO THIN LONG BRAIDS, white face paint, delicate red signal forehead arcs and red eyes, fine black facial circuitry, black MODEM cap, small red MODEM tee mark, open burgundy sleeveless vest, narrow black trousers, red sneakers, tattoos and small pendant. Narrow shoulders and slender arms, no bodybuilder anatomy. Rich hand-inked comic painting, clear silhouettes.\nEvery sprite strict side profile facing RIGHT, same body size and clothing. Cell1 idle. Cell2 walking with NEAR LEG forward and far leg behind, near arm swung back. Cell3 OPPOSITE walking with NEAR LEG behind and far leg forward, near arm swung forward. Cell4 one straight punch to right, compact stance, anatomically connected arm, other hand guards. Cell5 both fists up in compact guard. Cell6 knees tucked in a jump pose.\nCoordinate plan: six column centers at 8.333%,25%,41.667%,58.333%,75%,91.667% of width. All sprites' LOWEST SHOE SOLE is positioned at 80% of canvas height, including cell6 jump: jump body is LOWER in its column, knees bent, lowest shoe touching that same invisible baseline. The game provides upward movement; do not place the jump in the air at a different baseline. Standing heads about30% of canvas height, with lots of blank alpha above. Maintain actual body scale while bend lowers head in punch/guard/jump.\nExactly six versions of the same character, plausible fists and joints, no extra body parts. No weapons or environment. No captions or numbers. Transparent pixels truly empty, not a drawn checkerboard.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-face.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-body-red.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-body-brown.png"
+        ],
+        "transparent_background": true
+      },
+      "prompt": "Use case: stylized-concept. Generate a production 2D game sprite sheet on genuine transparent alpha.\nExactly SIX SMALL full-body Mac Modem sprites in ONE horizontal row on a wide 3:1 canvas. Imagine SIX EQUAL invisible portrait columns. Center one pose in each column. CRITICAL: each standing man is only HALF THE HEIGHT of the whole canvas, so even a horizontal punch easily fits inside his own equal column. Use generous completely clear transparent gaps: no sprite pixel within the outer 15% of its column. No overlaps, cell lines, background, shadows or labels.\nCanonical identity supplied in images1-3: same SLIM WIRY ginger-bearded man with TWO THIN LONG BRAIDS, white face paint, delicate red signal forehead arcs and red eyes, fine black facial circuitry, black MODEM cap, small red MODEM tee mark, open burgundy sleeveless vest, narrow black trousers, red sneakers, tattoos and small pendant. Narrow shoulders and slender arms, no bodybuilder anatomy. Rich hand-inked comic painting, clear silhouettes.\nEvery sprite strict side profile facing RIGHT, same body size and clothing. Cell1 idle. Cell2 walking with NEAR LEG forward and far leg behind, near arm swung back. Cell3 OPPOSITE walking with NEAR LEG behind and far leg forward, near arm swung forward. Cell4 one straight punch to right, compact stance, anatomically connected arm, other hand guards. Cell5 both fists up in compact guard. Cell6 knees tucked in a jump pose.\nCoordinate plan: six column centers at 8.333%,25%,41.667%,58.333%,75%,91.667% of width. All sprites' LOWEST SHOE SOLE is positioned at 80% of canvas height, including cell6 jump: jump body is LOWER in its column, knees bent, lowest shoe touching that same invisible baseline. The game provides upward movement; do not place the jump in the air at a different baseline. Standing heads about30% of canvas height, with lots of blank alpha above. Maintain actual body scale while bend lowers head in punch/guard/jump.\nExactly six versions of the same character, plausible fists and joints, no extra body parts. No weapons or environment. No captions or numbers. Transparent pixels truly empty, not a drawn checkerboard.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-face.png",
+          "sha256": "010a1144c9df34a7b88cd629f0d433a0ca18fd4b8b0ea2477dd7342ad9898367",
+          "bytes": 7759875,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-body-red.png",
+          "sha256": "a6cd01603eef78213ce0ef366508920087ac06c996c6ca5775e6ea3c10f75fbc",
+          "bytes": 2658845,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-body-brown.png",
+          "sha256": "ecb059df343da1097343b1b3f7a9dde0271f5658e8e0bacaaf1f6b8ccfe77b4f",
+          "bytes": 4804124,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        }
+      ],
+      "status": "candidate-private-runtime-review",
+      "acceptedForRuntime": false,
+      "visualReview": "Canonical slim Mac, readable distinct right-facing poses and clean actual alpha. Equal grid failed; use nonuniform crops and measured shoe pivots. Renderer registration/feel acceptance remains separate.",
+      "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
+      "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80",
+      "bytes": 837375,
+      "dimensions": {
+        "width": 2172,
+        "height": 724,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 6
+      },
+      "originalGeneratedSha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80",
+      "originalGeneratedBytes": 837375,
+      "originalCopyVerified": true
+    },
+    {
+      "id": "cache-walk-to-car-v3",
+      "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v3.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-982e6748-018b-471e-8deb-c062ce7175a3.png",
+      "tool": "image_gen.imagegen (built-in)",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story.\nAsset type: new penultimate Cache Back chapter-entrance painting, KEYS TO THE LINE, for an established graphic-novel game. This replaces the old ignition scene; the existing rear car-on-road painting comes next unchanged.\nInput images: 1 Cache Back canonical identity/outfit; 2 EXACT yellow archive hatchback and wet night avenue setting; 3 car dashboard/cassette and street-weather continuity; 4 EXACT protected original cartridge prop, studio interior lighting and comic style.\nPrimary request: one wide 2.2:1 hand-inked cinematic scene of CACHE BACK looking cool, confident and determined while walking TOWARD HIS PARKED YELLOW CAR with a visible small metal CAR KEY RING held naturally in his forward hand. He is still OUTSIDE the car, full recognizable figure cap to shoes or knees, heading diagonally right toward the driver's door. His other arm securely carries the same chunky black original archive cassette with yellow hazard band from image4 at his hip; the original is never left loose on the pavement. Body weight moves into a natural stride, shoulders relaxed, eyes focused on the route. This is his own calm heading-into-action pose, not a clenched fist or walking straight toward the viewer.\nComposition: low three-quarter view from street-side studio/repair-garage curb. Cache is strong foreground left-center; car occupies midground right, seen rear-left three-quarter so its closed LEFT driver door and rear hatch are visible. The car faces AWAY toward the wet avenue and skyline, matching the direction of travel in image2. Cache is approaching the left driver door, not its rear hatch or wrong side. All doors remain closed; no impossible cutaway, no person already driving. Preserve coherent real car geometry, four tires grounded, one front and rear axle, conventional single windshield, correct door handles.\nEXACT car: modest boxy 1980s yellow archival hatchback, black/white diagonal side/rear stripes, circular rear emblem, black Greek-key edge trim, rectangular amber/red tail lights, dark bumper, left exhaust, yellow tow hook, a single strapped rectangular roof recorder box, and two large tape reels visible through rear hatch glass. Do not create a muscle car, supercar or extra roof devices. Roof recorder remains strapped; original cassette remains in Cache's hand until the later implied entry.\nEXACT Cache: brown eyes behind CLEAR black rectangular glasses, yellow cap with two rounded short side protrusions, short dark hair, angular black lower-face mask, black mechanical neck collar with restrained cyan edges, yellow short-sleeved shirt with black Greek-key trim and established round arm emblem, dark trousers. Human proportions, no face paint, no new goggles/helmet/armor. Keys must be legible as keys and separate from fingers; plausible thumb and fingers holding the ring, not a weapon.\nSetting/continuity: same wet-after-rain inhabited broadcast street, warm amber studio/shop lights at left, cyan/plum skyscraper skyline and sparse warm street lamps at right, restrained magenta road reflections. Preserve the moody night/weather and modest repair garage setting of images2-4, no daytime, no desert, no apocalypse.\nStyle: premium detailed black-ink comic contours, angular painted cel shading, subtle halftone/grain, crisp environmental detail, rich navy/plum shadows and yellow hero emphasis. No low-poly, no pixelation, no photo/3D, no blur, no anime redesign.\nConstraints: no other identifiable characters, no duplicate Cache, no captions, dialogue, title, HUD, watermark or readable signs. Preserve established costume/car insignia only. Leave quiet upper-right space for runtime dialogue. Keep face, keys, protected cassette and car fully coherent and inside safe image margins. Opaque background.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-bridge/bridge-08-cache-line.webp",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-bridge/bridge-07-ignition.webp",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-bridge/bridge-05-keep-it.webp"
+        ],
+        "transparent_background": false
+      },
+      "prompt": "Use case: illustration-story.\nAsset type: new penultimate Cache Back chapter-entrance painting, KEYS TO THE LINE, for an established graphic-novel game. This replaces the old ignition scene; the existing rear car-on-road painting comes next unchanged.\nInput images: 1 Cache Back canonical identity/outfit; 2 EXACT yellow archive hatchback and wet night avenue setting; 3 car dashboard/cassette and street-weather continuity; 4 EXACT protected original cartridge prop, studio interior lighting and comic style.\nPrimary request: one wide 2.2:1 hand-inked cinematic scene of CACHE BACK looking cool, confident and determined while walking TOWARD HIS PARKED YELLOW CAR with a visible small metal CAR KEY RING held naturally in his forward hand. He is still OUTSIDE the car, full recognizable figure cap to shoes or knees, heading diagonally right toward the driver's door. His other arm securely carries the same chunky black original archive cassette with yellow hazard band from image4 at his hip; the original is never left loose on the pavement. Body weight moves into a natural stride, shoulders relaxed, eyes focused on the route. This is his own calm heading-into-action pose, not a clenched fist or walking straight toward the viewer.\nComposition: low three-quarter view from street-side studio/repair-garage curb. Cache is strong foreground left-center; car occupies midground right, seen rear-left three-quarter so its closed LEFT driver door and rear hatch are visible. The car faces AWAY toward the wet avenue and skyline, matching the direction of travel in image2. Cache is approaching the left driver door, not its rear hatch or wrong side. All doors remain closed; no impossible cutaway, no person already driving. Preserve coherent real car geometry, four tires grounded, one front and rear axle, conventional single windshield, correct door handles.\nEXACT car: modest boxy 1980s yellow archival hatchback, black/white diagonal side/rear stripes, circular rear emblem, black Greek-key edge trim, rectangular amber/red tail lights, dark bumper, left exhaust, yellow tow hook, a single strapped rectangular roof recorder box, and two large tape reels visible through rear hatch glass. Do not create a muscle car, supercar or extra roof devices. Roof recorder remains strapped; original cassette remains in Cache's hand until the later implied entry.\nEXACT Cache: brown eyes behind CLEAR black rectangular glasses, yellow cap with two rounded short side protrusions, short dark hair, angular black lower-face mask, black mechanical neck collar with restrained cyan edges, yellow short-sleeved shirt with black Greek-key trim and established round arm emblem, dark trousers. Human proportions, no face paint, no new goggles/helmet/armor. Keys must be legible as keys and separate from fingers; plausible thumb and fingers holding the ring, not a weapon.\nSetting/continuity: same wet-after-rain inhabited broadcast street, warm amber studio/shop lights at left, cyan/plum skyscraper skyline and sparse warm street lamps at right, restrained magenta road reflections. Preserve the moody night/weather and modest repair garage setting of images2-4, no daytime, no desert, no apocalypse.\nStyle: premium detailed black-ink comic contours, angular painted cel shading, subtle halftone/grain, crisp environmental detail, rich navy/plum shadows and yellow hero emphasis. No low-poly, no pixelation, no photo/3D, no blur, no anime redesign.\nConstraints: no other identifiable characters, no duplicate Cache, no captions, dialogue, title, HUD, watermark or readable signs. Preserve established costume/car insignia only. Leave quiet upper-right space for runtime dialogue. Keep face, keys, protected cassette and car fully coherent and inside safe image margins. Opaque background.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-level3-story/references/cache-model.png",
+          "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3",
+          "bytes": 7306986,
+          "dimensions": {
+            "width": 1600,
+            "height": 2848,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "assets/cache-bridge/bridge-08-cache-line.webp",
+          "sha256": "acd64c5f5e958c3905a0da11ebaddc54dc6a4309f893c4dce423ac79a4ec23ab",
+          "bytes": 600228,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "WebP"
+          }
+        },
+        {
+          "path": "assets/cache-bridge/bridge-07-ignition.webp",
+          "sha256": "4940ef74ef8464ce8b2477f38afe5bccf6cd19097be180f8b3feaa9b57fa676e",
+          "bytes": 540428,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "WebP"
+          }
+        },
+        {
+          "path": "assets/cache-bridge/bridge-05-keep-it.webp",
+          "sha256": "08c7e189746f34ba8a1b021cb8326618a59be8641d64fc9a3a312b7ff2ad22b7",
+          "bytes": 498612,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "WebP"
+          }
+        }
+      ],
+      "status": "superseded-pose-direction",
+      "acceptedForRuntime": false,
+      "visualReview": "Identity, keys, protected cassette and car/setting are coherent, but stride reads toward camera. Direction corrected in v4.",
+      "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
+      "sha256": "96ee4b0d425f82db57e67f299019fc10e02e07b50f1405d127daf182d9b5007c",
+      "bytes": 2886177,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 2
+      },
+      "originalProjectPathAtGeneration": "assets/mac-street-review/cache-walk-to-car-v3.png",
+      "relocation": "Moved unchanged out of runtime assets after rejection or supersession; original generated PNG remains preserved.",
+      "originalGeneratedSha256": "96ee4b0d425f82db57e67f299019fc10e02e07b50f1405d127daf182d9b5007c",
+      "originalGeneratedBytes": 2886177,
+      "originalCopyVerified": true
+    },
+    {
+      "id": "cache-walk-to-car-v4",
+      "path": "assets/mac-street-review/cache-walk-to-car-v4.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-66461160-06f6-48d3-a44f-edeaaeb6d849.png",
+      "tool": "image_gen.imagegen (built-in)",
+      "toolArguments": {
+        "prompt": "Use case: identity-preserve. Edit target is image1. Image2 is exact Cache identity reference.\nChange ONLY Cache Back's BODY STRIDE DIRECTION in image1 so he is unmistakably walking TOWARD the visible driver's door of the yellow car at screen-right. At present he reads as walking toward the viewer; fix this.\nPreserve the entire exact garage, skyline, wet night street, yellow hatchback, its parked orientation, roof recorder, rear glass two tape reels, stripes/emblems, tires, light/color and detailed comic style. Do NOT redraw the car or change any object arrangement.\nRotate Cache's shoulders/hips/legs into a right-facing three-quarter walking profile. His near shoulder and back edge face the viewer a little; knees, hips and leading toe point DIAGONALLY RIGHT toward the left-side driver door at the car's screen-left side. One foot is naturally stepping toward that door, other behind. Keep his head turned slightly back toward camera so both clear glasses and black tech mask remain recognizable; relaxed confident badass glance, not surprise.\nKeep his small metal key ring in his RIGHT hand closest to the driver door, keys visible, natural finger/thumb holding ring. Keep the exact protected black archive cassette with yellow hazard band secured under his LEFT arm against his hip. Do not swap/destroy cassette or duplicate props. Preserve yellow cap's two rounded protrusions, yellow Greek-key short sleeves, clear glasses, mechanical collar and dark trousers. Slim natural human anatomy, correct connected arms/hands, no giant action-hero muscles.\nMaintain existing foreground scale, place him on the same pavement with natural foot contact, allow knees/shoes to remain inside bottom image if possible. No walking toward viewer and no walking away from car. Leave car door shut until the next implied action. No new text, captions, effects, HUD, characters or weapons. Opaque background.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/cache-walk-to-car-v3.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png"
+        ],
+        "transparent_background": false
+      },
+      "prompt": "Use case: identity-preserve. Edit target is image1. Image2 is exact Cache identity reference.\nChange ONLY Cache Back's BODY STRIDE DIRECTION in image1 so he is unmistakably walking TOWARD the visible driver's door of the yellow car at screen-right. At present he reads as walking toward the viewer; fix this.\nPreserve the entire exact garage, skyline, wet night street, yellow hatchback, its parked orientation, roof recorder, rear glass two tape reels, stripes/emblems, tires, light/color and detailed comic style. Do NOT redraw the car or change any object arrangement.\nRotate Cache's shoulders/hips/legs into a right-facing three-quarter walking profile. His near shoulder and back edge face the viewer a little; knees, hips and leading toe point DIAGONALLY RIGHT toward the left-side driver door at the car's screen-left side. One foot is naturally stepping toward that door, other behind. Keep his head turned slightly back toward camera so both clear glasses and black tech mask remain recognizable; relaxed confident badass glance, not surprise.\nKeep his small metal key ring in his RIGHT hand closest to the driver door, keys visible, natural finger/thumb holding ring. Keep the exact protected black archive cassette with yellow hazard band secured under his LEFT arm against his hip. Do not swap/destroy cassette or duplicate props. Preserve yellow cap's two rounded protrusions, yellow Greek-key short sleeves, clear glasses, mechanical collar and dark trousers. Slim natural human anatomy, correct connected arms/hands, no giant action-hero muscles.\nMaintain existing foreground scale, place him on the same pavement with natural foot contact, allow knees/shoes to remain inside bottom image if possible. No walking toward viewer and no walking away from car. Leave car door shut until the next implied action. No new text, captions, effects, HUD, characters or weapons. Opaque background.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v3.png",
+          "sha256": "96ee4b0d425f82db57e67f299019fc10e02e07b50f1405d127daf182d9b5007c",
+          "originalPathAtGeneration": "assets/mac-street-review/cache-walk-to-car-v3.png",
+          "bytes": 2886177,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 2
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/cache-model.png",
+          "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3",
+          "bytes": 7306986,
+          "dimensions": {
+            "width": 1600,
+            "height": 2848,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        }
+      ],
+      "status": "candidate-owner-review",
+      "acceptedForRuntime": false,
+      "visualReview": "Three-quarter stride toward left driver door, confident glance back, visible key ring leading hand, original cassette secured under opposite arm. Same parked yellow archive hatchback/recorder/two rear reels and wet garage street. Candidate replaces old ignition illustration; original final car shot unchanged.",
+      "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
+      "sha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe",
+      "bytes": 2812836,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 2
+      },
+      "originalGeneratedSha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe",
+      "originalGeneratedBytes": 2812836,
+      "originalCopyVerified": true
+    },
+    {
+      "id": "street-panorama-v1",
+      "path": "assets/mac-street-review/street-panorama-v1.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-a14aa399-6662-4c0d-8c75-a9d947066644.png",
+      "tool": "image_gen.imagegen (built-in)",
+      "toolArguments": {
+        "prompt": "Use case: stylized-concept.\nAsset type: high-detail FULL-RESOLUTION 2.5D side-scrolling brawler environment painting, empty gameplay backdrop, one coherent wide 3:1 panorama. Request highest practical resolution, ideally 3240x1080 or higher 3:1.\nInput images1-2 are style, materials, neighborhood architecture, barrier props and wet-night palette ONLY. Remove every character from the new scene; do NOT copy their perspective alley camera. This must be a SIDE-ON street, designed for horizontal player movement.\nComposition/geometry: a long left-to-right urban broadcast street seen straight across at its front facades, nearly orthographic 2.5D; no central vanishing-point road running into distance. Facades and shopfronts occupy TOP70%; a wide UNOBSTRUCTED wet walking/street plane occupies BOTTOM30%, continuing across the whole width. Ground horizontal from left edge to right edge; curb at roughly70% height. Intended game world3400x1080, walking feet between y780-980 centered880. Keep lower street open for characters added by game; no obstacles baked into that band. One side-on scene, not separate panels, no thick dividing walls.\nSpatial progression from LEFT to RIGHT: LEFT quarter a weathered street enforcement/access gate with yellow-and-black barrier support, wired control cabinet, corrugated steel and cyan indicators, built into facade behind walking plane. MIDDLE half rundown inhabited broadcast market: patched brick/concrete frontages, shuttered small shop, old signal-repair kiosk, empty awnings/stalls folded against shopfronts, vents, utility boxes, overhead cable bundles, modest speaker equipment, worn steps ABOVE the walk plane. RIGHT quarter a distinctive small music-review radio room visible through a broad warm-amber street-front glass window, RED-BRICK frontage with a TEAL corrugated awning and slim MAGENTA light edge, a round small radio aerial above; inside behind glass an empty review desk, dark chair, microphone arm, headphones, two small nearfield speakers and non-readable monitor waveform glow. This is a fictional review desk setting, no invented real venue branding. Preserve that rightmost building design as the scene3 composition reference.\nLighting/style: match mature detailed hand-inked cyberpunk graphic-novel reference, confident black contours, sharp painted cel shadows, restrained halftone/grain, weathered metal/concrete/glass textures, FULL detail without blur. Wet-after-rain nighttime, warm amber windows/lamps, deep navy/plum shadows, cyan and restrained magenta reflections. Thin distant cyan/plum broadcast skyline glimpsed above roof gaps only. Clear visual depth through layered front facades, no low-poly facets, no pixel-art simplification, no plastic 3D.\nEdge continuity: the exact same horizontal curb, pavement height and rainy night ambience continues naturally beyond BOTH edges. No compositional frame, border or black fades. Keep near-edge architecture naturally cut by viewport so adjacent street segments can join; no giant object tangent at image edges.\nConstraints: absolutely NO people, characters, faces, crowd, humanoid silhouettes, robots, vehicles, enemies or animals baked into the background. No readable letters, numbers, advertisements, signage text, graffiti wording, HUD, controls, dialogue, border or watermark. No foreground props across the empty walking plane. Not a top-down map, not perspective driving road, not an alley with a deep vanishing point. Opaque continuous environment, high-detail sharp original artwork.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-ending/ending-04-street-access.webp",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/mac-hero-concept-v2.png"
+        ],
+        "transparent_background": false
+      },
+      "prompt": "Use case: stylized-concept.\nAsset type: high-detail FULL-RESOLUTION 2.5D side-scrolling brawler environment painting, empty gameplay backdrop, one coherent wide 3:1 panorama. Request highest practical resolution, ideally 3240x1080 or higher 3:1.\nInput images1-2 are style, materials, neighborhood architecture, barrier props and wet-night palette ONLY. Remove every character from the new scene; do NOT copy their perspective alley camera. This must be a SIDE-ON street, designed for horizontal player movement.\nComposition/geometry: a long left-to-right urban broadcast street seen straight across at its front facades, nearly orthographic 2.5D; no central vanishing-point road running into distance. Facades and shopfronts occupy TOP70%; a wide UNOBSTRUCTED wet walking/street plane occupies BOTTOM30%, continuing across the whole width. Ground horizontal from left edge to right edge; curb at roughly70% height. Intended game world3400x1080, walking feet between y780-980 centered880. Keep lower street open for characters added by game; no obstacles baked into that band. One side-on scene, not separate panels, no thick dividing walls.\nSpatial progression from LEFT to RIGHT: LEFT quarter a weathered street enforcement/access gate with yellow-and-black barrier support, wired control cabinet, corrugated steel and cyan indicators, built into facade behind walking plane. MIDDLE half rundown inhabited broadcast market: patched brick/concrete frontages, shuttered small shop, old signal-repair kiosk, empty awnings/stalls folded against shopfronts, vents, utility boxes, overhead cable bundles, modest speaker equipment, worn steps ABOVE the walk plane. RIGHT quarter a distinctive small music-review radio room visible through a broad warm-amber street-front glass window, RED-BRICK frontage with a TEAL corrugated awning and slim MAGENTA light edge, a round small radio aerial above; inside behind glass an empty review desk, dark chair, microphone arm, headphones, two small nearfield speakers and non-readable monitor waveform glow. This is a fictional review desk setting, no invented real venue branding. Preserve that rightmost building design as the scene3 composition reference.\nLighting/style: match mature detailed hand-inked cyberpunk graphic-novel reference, confident black contours, sharp painted cel shadows, restrained halftone/grain, weathered metal/concrete/glass textures, FULL detail without blur. Wet-after-rain nighttime, warm amber windows/lamps, deep navy/plum shadows, cyan and restrained magenta reflections. Thin distant cyan/plum broadcast skyline glimpsed above roof gaps only. Clear visual depth through layered front facades, no low-poly facets, no pixel-art simplification, no plastic 3D.\nEdge continuity: the exact same horizontal curb, pavement height and rainy night ambience continues naturally beyond BOTH edges. No compositional frame, border or black fades. Keep near-edge architecture naturally cut by viewport so adjacent street segments can join; no giant object tangent at image edges.\nConstraints: absolutely NO people, characters, faces, crowd, humanoid silhouettes, robots, vehicles, enemies or animals baked into the background. No readable letters, numbers, advertisements, signage text, graffiti wording, HUD, controls, dialogue, border or watermark. No foreground props across the empty walking plane. Not a top-down map, not perspective driving road, not an alley with a deep vanishing point. Opaque continuous environment, high-detail sharp original artwork.",
+      "references": [
+        {
+          "path": "assets/cache-ending/ending-04-street-access.webp",
+          "sha256": "83f6f0db54ff13cf43c76488204b7fd09bb190078d4406c8dacbf7a6604557c1",
+          "bytes": 659830,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "WebP"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/mac-hero-concept-v2.png",
+          "sha256": "7a4ea32cc6842408a4a381ade72595fc8cb8cb3d738802c26597443c08609599",
+          "bytes": 3111148,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 2
+          }
+        }
+      ],
+      "status": "candidate-private-runtime-review",
+      "acceptedForRuntime": false,
+      "visualReview": "Sharp detailed side-on gate/market/review-room environment with empty wet lower walking plane, no baked people/vehicles/readable text. Right room has red brick, teal awning and magenta light edge. Actual generated resolution2167x725, not requested3240x1080; preserve aspect/finite crop. Not a seamless tiling certification.",
+      "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
+      "sha256": "c7766ad68ac4b82db7808370a84d47725d538216523cacb80a27c56193363d69",
+      "bytes": 3181059,
+      "dimensions": {
+        "width": 2167,
+        "height": 725,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 2
+      },
+      "originalGeneratedSha256": "c7766ad68ac4b82db7808370a84d47725d538216523cacb80a27c56193363d69",
+      "originalGeneratedBytes": 3181059,
+      "originalCopyVerified": true
+    },
+    {
+      "id": "scene05-margin-note-v1",
+      "path": "assets/mac-street-review/scene05-margin-note-v1.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-8527a69a-102e-4bde-ac20-32f999ad6396.png",
+      "tool": "image_gen.imagegen (built-in)",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story.\nAsset type: new full-bleed wide 2.2:1 narrative illustration, scene5 A NOTE IN THE MARGIN, BARCODE System Override.\nInput images1-2 govern Mac's exact SLIM wiry body, costume and face. Image3 governs the physical gate/control cabinet/red cable props and detailed comic style only, NOT its overly broad arm proportions. Image4 is approved slim Mac and neighborhood style.\nNarrative geography: ONLY MAC MODEM is physically at this wet street-access gate. Cache is back at the receiver and DJ is at studio on comms, so do NOT place them in the street. No other identifiable person. This is a presentation intrusion by 9Bit at the nonessential comic caption margin, NOT a broken world or new receiver evidence.\nScene: medium three-quarter view of slim Mac left-center beside the wired control cabinet, waist-up with relaxed shoulders. The yellow/black barrier remains CLOSED in the right midground, before he later opens it. Red connector cable stays attached/resting at the cabinet as in image3; it is not a weapon. Mac turns his head and RED eyes UP toward the upper-right edge of the illustrated scene with a dry irritated questioning look: somebody has meddled with his caption. Natural slender tattooed arms, one hand resting near cabinet with plausible fingers, other relaxed. Keep exact ginger beard, TWO THIN long braids, black MODEM cap and tee, burgundy open sleeveless vest, white face paint/fine red signal arcs and asymmetric black circuitry, pendant, no goggles and no bodybuilder build.\nFourth-wall composition: a SMALL blank torn-paper caption strip or removable sticker floats against the upper-right comic margin, clearly separate from every terminal and control display. ONE anonymous dark-gloved hand with plausible five-finger anatomy enters from OUTSIDE the top-right image edge as if pasting the blank strip, with only a tiny forearm sliver visible. This hand is a presentation-layer silhouette; reveal no face, body, costume or full new villain likeness. Do not attach this hand to Mac, do not let it touch real controls, do not copy any third arm. Keep the strip BLANK: runtime will render the prank text and dialogue. Make this one clean authored margin intrusion, no fake software error, no multicolor pixel corruption or scene-wide glitch.\nEnvironment: same rainy-night broadcast street-access cabinet, closed striped gate, amber lamps, cyan/plum distant skyline and magenta wet-road reflection as refs3-4. Match car/street world time and materials. High-detail confident comic ink contours, painted cel shadows, restrained halftone/grain, sharp and rich, not pixel art, not low-poly, not 3D/photo.\nNo speech bubbles, readable captions, HUD, numbers, scores, control labels, title or watermark. MODEM clothing mark alone may remain. Protected original tape is NOT at this gate and must NOT appear or be edited. Keep Mac face, hands and blank margin strip inside safe composition; leave quiet left/top margins for later dialogue overlays. Opaque background.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-body-red.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/mac-face.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-ending/ending-04-street-access.webp",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/mac-hero-concept-v2.png"
+        ],
+        "transparent_background": false
+      },
+      "prompt": "Use case: illustration-story.\nAsset type: new full-bleed wide 2.2:1 narrative illustration, scene5 A NOTE IN THE MARGIN, BARCODE System Override.\nInput images1-2 govern Mac's exact SLIM wiry body, costume and face. Image3 governs the physical gate/control cabinet/red cable props and detailed comic style only, NOT its overly broad arm proportions. Image4 is approved slim Mac and neighborhood style.\nNarrative geography: ONLY MAC MODEM is physically at this wet street-access gate. Cache is back at the receiver and DJ is at studio on comms, so do NOT place them in the street. No other identifiable person. This is a presentation intrusion by 9Bit at the nonessential comic caption margin, NOT a broken world or new receiver evidence.\nScene: medium three-quarter view of slim Mac left-center beside the wired control cabinet, waist-up with relaxed shoulders. The yellow/black barrier remains CLOSED in the right midground, before he later opens it. Red connector cable stays attached/resting at the cabinet as in image3; it is not a weapon. Mac turns his head and RED eyes UP toward the upper-right edge of the illustrated scene with a dry irritated questioning look: somebody has meddled with his caption. Natural slender tattooed arms, one hand resting near cabinet with plausible fingers, other relaxed. Keep exact ginger beard, TWO THIN long braids, black MODEM cap and tee, burgundy open sleeveless vest, white face paint/fine red signal arcs and asymmetric black circuitry, pendant, no goggles and no bodybuilder build.\nFourth-wall composition: a SMALL blank torn-paper caption strip or removable sticker floats against the upper-right comic margin, clearly separate from every terminal and control display. ONE anonymous dark-gloved hand with plausible five-finger anatomy enters from OUTSIDE the top-right image edge as if pasting the blank strip, with only a tiny forearm sliver visible. This hand is a presentation-layer silhouette; reveal no face, body, costume or full new villain likeness. Do not attach this hand to Mac, do not let it touch real controls, do not copy any third arm. Keep the strip BLANK: runtime will render the prank text and dialogue. Make this one clean authored margin intrusion, no fake software error, no multicolor pixel corruption or scene-wide glitch.\nEnvironment: same rainy-night broadcast street-access cabinet, closed striped gate, amber lamps, cyan/plum distant skyline and magenta wet-road reflection as refs3-4. Match car/street world time and materials. High-detail confident comic ink contours, painted cel shadows, restrained halftone/grain, sharp and rich, not pixel art, not low-poly, not 3D/photo.\nNo speech bubbles, readable captions, HUD, numbers, scores, control labels, title or watermark. MODEM clothing mark alone may remain. Protected original tape is NOT at this gate and must NOT appear or be edited. Keep Mac face, hands and blank margin strip inside safe composition; leave quiet left/top margins for later dialogue overlays. Opaque background.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-body-red.png",
+          "sha256": "a6cd01603eef78213ce0ef366508920087ac06c996c6ca5775e6ea3c10f75fbc",
+          "bytes": 2658845,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/mac-face.png",
+          "sha256": "010a1144c9df34a7b88cd629f0d433a0ca18fd4b8b0ea2477dd7342ad9898367",
+          "bytes": 7759875,
+          "dimensions": {
+            "width": 1536,
+            "height": 2720,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "assets/cache-ending/ending-04-street-access.webp",
+          "sha256": "83f6f0db54ff13cf43c76488204b7fd09bb190078d4406c8dacbf7a6604557c1",
+          "bytes": 659830,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "WebP"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/mac-hero-concept-v2.png",
+          "sha256": "7a4ea32cc6842408a4a381ade72595fc8cb8cb3d738802c26597443c08609599",
+          "bytes": 3111148,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 2
+          }
+        }
+      ],
+      "status": "candidate-owner-review",
+      "acceptedForRuntime": false,
+      "visualReview": "Slim Mac stays at same closed street gate. Separate blank margin strip/anonymous glove; original cassette absent from street. Hand is baked static art, so dynamic withdrawal remains unresolved unless presentation masks/replaces that region. Runtime adds truthful text/status/cues.",
+      "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
+      "sha256": "a7da9e13bbf406915c00928868b0b78b3e9e4127d771bfd4a37f8c72b7f50a16",
+      "bytes": 2888147,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 2
+      },
+      "originalGeneratedSha256": "a7da9e13bbf406915c00928868b0b78b3e9e4127d771bfd4a37f8c72b7f50a16",
+      "originalGeneratedBytes": 2888147,
+      "originalCopyVerified": true
+    },
+    {
+      "id": "scene06-record-straight-v1",
+      "path": "assets/mac-street-review/scene06-record-straight-v1.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-57f91236-a328-41bd-a0b5-752f7f6291e4.png",
+      "tool": "image_gen.imagegen (built-in)",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story.\nAsset type: new wide 2.2:1 narrative illustration, scene6 KEEP THE RECORD STRAIGHT, BARCODE System Override, matching the existing full-bleed hand-inked comic.\nInput images1-3 govern exact Cache Back, receiving-bay geography, cassette/case props and wet-night style. Image4 governs DJ Floppydisc's exact HUMAN identity and comparison-console style only. DJ must NOT physically teleport into Cache's bay: he is remote at the studio, seen clearly ONLY on a framed video-comms screen.\nPrimary composition: Cache Back occupies left-center foreground at the same receiving console/counter from images2-3. He safeguards the ORIGINAL black archive cassette with its yellow hazard stripe and small red tabs, securely in its existing transparent protective case on the console. The cassette remains intact, exactly the same prop and never overwritten. Cache has a natural protective hand beside the case, and his other hand sets a separate blank purple-edged paper note/clipboard well AWAY from it. Show TWO comparison lanes on separate small amber/cyan display screens beside the original, distinct side-by-side trace shapes, no readable verdicts or labels. A plain dark cleaned-copy cartridge may sit in a separate small dock away from the protected original, visually distinct and NOT another yellow original. The present-time margin interruption is the separate NOTE only; it must not become a second recording or proof stamped onto the original.\nRemote DJ: a large framed cyan-edged monitor at upper-right shows a live waist-up studio view of living DJ Floppydisc, swept brown hair, narrow brown moustache, cyan waveform visor, rolled WHITE sleeves, BLACK waistcoat and bow tie, small floppy-disk pin and subtle metallic forearm seam. Behind him his original studio reel decks, warm pendant lamps and cyan/amber comparison console. His calm open-palmed explanatory gesture remains entirely within the video screen; no arm comes out of the monitor. Face and visor clear, same handsome mature human as image4, no robot head, no 6Bit face paint. No other crew physically present; Mac's comms dialogue remains offscreen.\nExact Cache: yellow cap with two rounded side protrusions, brown eyes through CLEAR black glasses, short dark hair, angular BLACK lower-face mask, dark mechanical collar with cyan trim, yellow short sleeves/black Greek-key borders and same circular shoulder emblem. Natural human anatomy and plausible connected five-finger hands. No unmasking or new costume.\nNarrative read: they deliberately separate protected original, cleaned comparison and the present interruption; not a villain reveal, not hidden-memory verdict, no fake real system error. Clearly distinguish remote studio screen from actual receiving bay room so settings stay coherent.\nWorld/time/light: same battered industrial receiver room with steel cable racks, warm amber practicals, cyan monitor light and visible wet night street through a narrow background aperture. Same cassette/case scale as refs2-3. High-detail sharp comic contours, painted cel shading, restrained halftone/grain, navy/plum shadows, amber/cyan accents. No pixelation, low-poly, 3D/photo, blur or random decorative gadgets.\nConstraints: no dialogue bubbles, captions, readable letters/numbers/labels, HUD, watermark or extra characters. No 9Bit face/body, no physical Mac/DJ standing beside Cache, no generic yellow car substitution. Keep original case, note, hands, Cache face and remote DJ clear and within safe image margins; leave quiet upper-left and lower-right pockets for runtime dialogue/evidence labels. Opaque background.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-ending/ending-01-delivered.webp",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-ending/ending-02-unverified.webp",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-ending/ending-03-held.webp"
+        ],
+        "transparent_background": false
+      },
+      "prompt": "Use case: illustration-story.\nAsset type: new wide 2.2:1 narrative illustration, scene6 KEEP THE RECORD STRAIGHT, BARCODE System Override, matching the existing full-bleed hand-inked comic.\nInput images1-3 govern exact Cache Back, receiving-bay geography, cassette/case props and wet-night style. Image4 governs DJ Floppydisc's exact HUMAN identity and comparison-console style only. DJ must NOT physically teleport into Cache's bay: he is remote at the studio, seen clearly ONLY on a framed video-comms screen.\nPrimary composition: Cache Back occupies left-center foreground at the same receiving console/counter from images2-3. He safeguards the ORIGINAL black archive cassette with its yellow hazard stripe and small red tabs, securely in its existing transparent protective case on the console. The cassette remains intact, exactly the same prop and never overwritten. Cache has a natural protective hand beside the case, and his other hand sets a separate blank purple-edged paper note/clipboard well AWAY from it. Show TWO comparison lanes on separate small amber/cyan display screens beside the original, distinct side-by-side trace shapes, no readable verdicts or labels. A plain dark cleaned-copy cartridge may sit in a separate small dock away from the protected original, visually distinct and NOT another yellow original. The present-time margin interruption is the separate NOTE only; it must not become a second recording or proof stamped onto the original.\nRemote DJ: a large framed cyan-edged monitor at upper-right shows a live waist-up studio view of living DJ Floppydisc, swept brown hair, narrow brown moustache, cyan waveform visor, rolled WHITE sleeves, BLACK waistcoat and bow tie, small floppy-disk pin and subtle metallic forearm seam. Behind him his original studio reel decks, warm pendant lamps and cyan/amber comparison console. His calm open-palmed explanatory gesture remains entirely within the video screen; no arm comes out of the monitor. Face and visor clear, same handsome mature human as image4, no robot head, no 6Bit face paint. No other crew physically present; Mac's comms dialogue remains offscreen.\nExact Cache: yellow cap with two rounded side protrusions, brown eyes through CLEAR black glasses, short dark hair, angular BLACK lower-face mask, dark mechanical collar with cyan trim, yellow short sleeves/black Greek-key borders and same circular shoulder emblem. Natural human anatomy and plausible connected five-finger hands. No unmasking or new costume.\nNarrative read: they deliberately separate protected original, cleaned comparison and the present interruption; not a villain reveal, not hidden-memory verdict, no fake real system error. Clearly distinguish remote studio screen from actual receiving bay room so settings stay coherent.\nWorld/time/light: same battered industrial receiver room with steel cable racks, warm amber practicals, cyan monitor light and visible wet night street through a narrow background aperture. Same cassette/case scale as refs2-3. High-detail sharp comic contours, painted cel shading, restrained halftone/grain, navy/plum shadows, amber/cyan accents. No pixelation, low-poly, 3D/photo, blur or random decorative gadgets.\nConstraints: no dialogue bubbles, captions, readable letters/numbers/labels, HUD, watermark or extra characters. No 9Bit face/body, no physical Mac/DJ standing beside Cache, no generic yellow car substitution. Keep original case, note, hands, Cache face and remote DJ clear and within safe image margins; leave quiet upper-left and lower-right pockets for runtime dialogue/evidence labels. Opaque background.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-level3-story/references/cache-model.png",
+          "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3",
+          "bytes": 7306986,
+          "dimensions": {
+            "width": 1600,
+            "height": 2848,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 6
+          }
+        },
+        {
+          "path": "assets/cache-ending/ending-01-delivered.webp",
+          "sha256": "d351494cc4f3918ebf80fc32e8f3a7f3d98f9cdb61ebce18ee7b520a5f1de35e",
+          "bytes": 541290,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "WebP"
+          }
+        },
+        {
+          "path": "assets/cache-ending/ending-02-unverified.webp",
+          "sha256": "98a771fe0497e1ebbf6002008b6d0894e22c38a778581ed49f1473e08f9d410b",
+          "bytes": 508898,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "WebP"
+          }
+        },
+        {
+          "path": "assets/cache-ending/ending-03-held.webp",
+          "sha256": "f864da0ac3acc3a2db7c6bb8b115be916208ee34369ca92adcc6180ae37800b4",
+          "bytes": 499532,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "WebP"
+          }
+        }
+      ],
+      "status": "candidate-owner-review",
+      "acceptedForRuntime": false,
+      "visualReview": "Cache at receiver, original protected in same clear case, separate cleaned cartridge/comparison traces/note. DJ appears only inside remote studio screen; visor/moustache/white sleeves/waistcoat/tie and plausible hands inspected.",
+      "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
+      "sha256": "ff127fe0bda0d0a9fdada2863b7f466eeb135e9f18e571cb7838f0ad68016d88",
+      "bytes": 2770208,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 2
+      },
+      "originalGeneratedSha256": "ff127fe0bda0d0a9fdada2863b7f466eeb135e9f18e571cb7838f0ad68016d88",
+      "originalGeneratedBytes": 2770208,
+      "originalCopyVerified": true
+    },
+    {
+      "id": "scene03-kave-dead-air-v1",
+      "path": "assets/mac-street-review/scene03-kave-dead-air-v1.png",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-a4a73dca-b7fc-451f-b215-0974a8861b43.png",
+      "tool": "image_gen.imagegen (built-in)",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story.\nAsset type: proposed KAVEMAN BROWN cameo narrative painting, scene3 KAVE'S DEAD AIR, full-bleed wide2.2:1 detailed comic. Private review candidate, not approved final likeness.\nInput images: 1 is VERIFIED artist-managed frontal face portrait, use his actual recognizable facial structure, full dark shaped beard, eyes/nose/mouth and warm brown skin; ignore its car/hood background. 2 is VERIFIED current official music-video frame of the SAME artist, use the black wide-brim cowboy-style hat, black top and open dark hooded outer layer, wristwatch/bracelet, confident performance persona. 3 is the exact game street architecture and room continuity: rightmost RED-BRICK radio review room with TEAL corrugated awning, MAGENTA light edge, round aerial, warm amber front window, microphone desk/chair/headphones/monitor/two speakers. 4 is previously verified public outfit gallery: use ONLY its wide-brim looks and long silver cross pendant for corroboration, do NOT reproduce gallery headings/UI/cards/casual cap outfit.\nPrimary request: Kave clearly recognizable from the first TWO stronger references, at a fictional independent Kaveman Radio MUSIC-REVIEW DESK in the same rightmost building of image3. He is a music-review host/artist keeping submissions and local monitoring alive while the OUTBOUND feed is held. This is a fictional cameo adaptation; do not depict him as an invented real venue owner.\nCamera: closer three-quarter front street-window/interior view, Kave center-left waist-up seated/leaning forward at the desk, face big and clearly legible beneath his wide black brim. Expression focused, slightly frustrated but active and capable, looking toward offscreen comms/near monitor. Exact real facial identity: warm brown skin, natural eyes, full shaped black beard joining moustache, lip/nose/eyebrow shapes from image1; current hat/outfit silhouette from image2. Plain black tee, open dark hooded layer, long silver cross necklace, bright wristwatch. No face paint, no mask, no fantasy armor, no DJ visor, no yellow Cache outfit, no caricature features. Natural body proportions and plausible human hands: one rests on desk near audio controls, the other makes a modest conversational open-palm gesture.\nRoom/prop continuity: same wooden desk directly behind broad street-front glass, black chair, microphone on adjustable arm, headphones, two small speakers, warm amber pendant practical, rear shelves and radio gear. Preserve visible red brick, teal metal awning/magenta strip glimpsed across upper-window edge, and same wet cyan/plum night street reflections from image3. Inside, one monitor has a clear CYAN local audio waveform, separate adjacent monitor has a flat AMBER outbound trace; do not invent readable statuses or labels, runtime will name them. A tidy physical submission queue of anonymous cassette sleeves/music folders sits at one side, waiting to be reviewed, no invented numbers or real artist names. No tape-evidence/protected-original prop here.\nGeography: Kave is the ONLY physically identifiable person. Mac and Cache speak on remote comms and must NOT be standing beside him; no patrons, crowd, audience faces, other musicians or portrait posters.\nStyle: translate real references into the established mature high-detail hand-inked cyberpunk comic; confident black contours, natural expressive face, painted cel shadows, subtle halftone/grain, rich navy/plum and amber/cyan/magenta light. Never photorealistic pasted photograph, low-poly, pixelated, plastic3D or blurry. Do not copy the daylight video arches into this night street room.\nConstraints: no captions, dialogue bubbles, artist name lettering, signage text, number labels, visible UI buttons, invented statistics, watermarks or frames. Scene is one coherent illustration, no gallery. Leave quiet upper-right space for runtime dialogue and two choices. Keep face/hat/hands readable and within safe image margins. Opaque background. Final cameo likeness remains pending owner review.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-mac-street-art/references/kave-slaps-frontal-600.jpg",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-mac-street-art/references/kave-succubus-30s-frame.jpg",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/street-panorama-v1.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-mac-street-art/references/kave-outfit-gallery.png"
+        ],
+        "transparent_background": false
+      },
+      "prompt": "Use case: illustration-story.\nAsset type: proposed KAVEMAN BROWN cameo narrative painting, scene3 KAVE'S DEAD AIR, full-bleed wide2.2:1 detailed comic. Private review candidate, not approved final likeness.\nInput images: 1 is VERIFIED artist-managed frontal face portrait, use his actual recognizable facial structure, full dark shaped beard, eyes/nose/mouth and warm brown skin; ignore its car/hood background. 2 is VERIFIED current official music-video frame of the SAME artist, use the black wide-brim cowboy-style hat, black top and open dark hooded outer layer, wristwatch/bracelet, confident performance persona. 3 is the exact game street architecture and room continuity: rightmost RED-BRICK radio review room with TEAL corrugated awning, MAGENTA light edge, round aerial, warm amber front window, microphone desk/chair/headphones/monitor/two speakers. 4 is previously verified public outfit gallery: use ONLY its wide-brim looks and long silver cross pendant for corroboration, do NOT reproduce gallery headings/UI/cards/casual cap outfit.\nPrimary request: Kave clearly recognizable from the first TWO stronger references, at a fictional independent Kaveman Radio MUSIC-REVIEW DESK in the same rightmost building of image3. He is a music-review host/artist keeping submissions and local monitoring alive while the OUTBOUND feed is held. This is a fictional cameo adaptation; do not depict him as an invented real venue owner.\nCamera: closer three-quarter front street-window/interior view, Kave center-left waist-up seated/leaning forward at the desk, face big and clearly legible beneath his wide black brim. Expression focused, slightly frustrated but active and capable, looking toward offscreen comms/near monitor. Exact real facial identity: warm brown skin, natural eyes, full shaped black beard joining moustache, lip/nose/eyebrow shapes from image1; current hat/outfit silhouette from image2. Plain black tee, open dark hooded layer, long silver cross necklace, bright wristwatch. No face paint, no mask, no fantasy armor, no DJ visor, no yellow Cache outfit, no caricature features. Natural body proportions and plausible human hands: one rests on desk near audio controls, the other makes a modest conversational open-palm gesture.\nRoom/prop continuity: same wooden desk directly behind broad street-front glass, black chair, microphone on adjustable arm, headphones, two small speakers, warm amber pendant practical, rear shelves and radio gear. Preserve visible red brick, teal metal awning/magenta strip glimpsed across upper-window edge, and same wet cyan/plum night street reflections from image3. Inside, one monitor has a clear CYAN local audio waveform, separate adjacent monitor has a flat AMBER outbound trace; do not invent readable statuses or labels, runtime will name them. A tidy physical submission queue of anonymous cassette sleeves/music folders sits at one side, waiting to be reviewed, no invented numbers or real artist names. No tape-evidence/protected-original prop here.\nGeography: Kave is the ONLY physically identifiable person. Mac and Cache speak on remote comms and must NOT be standing beside him; no patrons, crowd, audience faces, other musicians or portrait posters.\nStyle: translate real references into the established mature high-detail hand-inked cyberpunk comic; confident black contours, natural expressive face, painted cel shadows, subtle halftone/grain, rich navy/plum and amber/cyan/magenta light. Never photorealistic pasted photograph, low-poly, pixelated, plastic3D or blurry. Do not copy the daylight video arches into this night street room.\nConstraints: no captions, dialogue bubbles, artist name lettering, signage text, number labels, visible UI buttons, invented statistics, watermarks or frames. Scene is one coherent illustration, no gallery. Leave quiet upper-right space for runtime dialogue and two choices. Keep face/hat/hands readable and within safe image margins. Opaque background. Final cameo likeness remains pending owner review.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-street-art/references/kave-slaps-frontal-600.jpg",
+          "sha256": "c67313340b3ae09bc24b0fbeee7cd0e652bbb98505a122cb624bb8af1c78aa84",
+          "sourcePage": "https://slaps.com/user/KaveManBrown",
+          "capture": "Artist-managed public profile portrait, original downloaded bytes preserved by parent; visually inspected frontal face.",
+          "observedDimensions": [
+            600,
+            600
+          ],
+          "bytes": 67043,
+          "dimensions": {
+            "width": 600,
+            "height": 600,
+            "format": "JPEG"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-mac-street-art/references/kave-succubus-30s-frame.jpg",
+          "sha256": "027f5ed50a510aa8e0cea6959dc398012d6a1234c12b55b4460799ffc9019413",
+          "sourcePage": "https://www.youtube.com/watch?v=ibt4QBgZyoU",
+          "timestampUrl": "https://www.youtube.com/watch?v=ibt4QBgZyoU&t=30s",
+          "timestampSeconds": 30.336837,
+          "capture": "Cua browser screenshot of paused official upload; screenshot pixels copied unchanged. Decoded video1280x720; screenshot1413x795.",
+          "observedDimensions": [
+            1413,
+            795
+          ],
+          "bytes": 158098,
+          "dimensions": {
+            "width": 1413,
+            "height": 795,
+            "format": "JPEG"
+          }
+        },
+        {
+          "path": "assets/mac-street-review/street-panorama-v1.png",
+          "sha256": "c7766ad68ac4b82db7808370a84d47725d538216523cacb80a27c56193363d69",
+          "bytes": 3181059,
+          "dimensions": {
+            "width": 2167,
+            "height": 725,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 2
+          }
+        },
+        {
+          "path": "docs/source-pack/review-mac-street-art/references/kave-outfit-gallery.png",
+          "sha256": "5049dd9ad3cf37996bbb6e61779007c86689b8c7e5b9dcaebc4795c287845349",
+          "sourcePage": "docs/source-pack/KAVE_REFERENCE_REVIEW.html",
+          "capture": "Prior local browser screenshot of four verified own-channel/linktree public images; visually inspected wide-brim hat/beard/black outfit/cross/watch. No remote media downloaded to evade display restrictions.",
+          "observedDimensions": [
+            1440,
+            2952
+          ],
+          "bytes": 1266863,
+          "dimensions": {
+            "width": 1440,
+            "height": 2952,
+            "format": "PNG",
+            "bitDepth": 8,
+            "colorType": 2
+          }
+        }
+      ],
+      "status": "candidate-likeness-owner-review",
+      "acceptedForRuntime": false,
+      "visualReview": "Face follows verified artist-managed frontal photo and official video outfit. Same red-brick/teal-awning/magenta-edge review desk at night; Kave alone physically present. Fictional music-review host, no venue-ownership claim. Outbound amber trace is low activity rather than perfectly flat; runtime supplies held status. Final likeness/geography/prop review remains pending.",
+      "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
+      "sha256": "f74ac5197495069502f519f5ef46a916246b3f90e9baa7b6b80c415a85b19fb5",
+      "bytes": 2831184,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 2
+      },
+      "originalGeneratedSha256": "f74ac5197495069502f519f5ef46a916246b3f90e9baa7b6b80c415a85b19fb5",
+      "originalGeneratedBytes": 2831184,
+      "originalCopyVerified": true
+    }
+  ],
+  "rendererMetadataSha256": "c0ca5d04f98a7e9de420f65342fea64ac9277a5c020ae76999167e010bcf7841",
+  "reusedApprovedArt": [
+    {
+      "path": "assets/mac-street-review/mac-hero-v2.png",
+      "source": "docs/source-pack/review-level3-story/mac-hero-concept-v2.png",
+      "sha256": "7a4ea32cc6842408a4a381ade72595fc8cb8cb3d738802c26597443c08609599",
+      "bytes": 3111148,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 2
+      },
+      "status": "Existing Mac hero v2; owner approval relayed by root. No new generation or alteration."
+    }
+  ],
+  "runtimeAssetInventory": [
+    "cache-walk-to-car-v4.png",
+    "mac-hero-v2.png",
+    "mac-poses-v3-frames.json",
+    "mac-poses-v3.png",
+    "scene03-kave-dead-air-v1.png",
+    "scene05-margin-note-v1.png",
+    "scene06-record-straight-v1.png",
+    "street-panorama-v1.png"
+  ],
+  "runtimeInventoryContainsRejectedCandidates": false,
+  "sealedAtUtc": "2026-10-06T03:05:39.686Z",
+  "verification": {
+    "generatedImages": 9,
+    "exactGeneratedCopyHashesMatch": true,
+    "referenceHashRecords": 31,
+    "toolArgumentsPreserved": true,
+    "pixelsModified": false,
+    "rendererMetadataCopyMatches": true,
+    "rejectedCandidatesOnlyUnderDocumentation": true,
+    "scope": "Asset and provenance validation only; runtime registration, performance and owner acceptance are separate root-owned checks."
+  }
+}

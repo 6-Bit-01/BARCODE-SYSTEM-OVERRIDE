@@ -25,7 +25,7 @@ RETAINED_REVIEW_MEDIA = {
     "review-cache-visual-drive/Foreground-Pass.mp4",
     "review-cache-lamps-chip-sound/Chip-SFX-Audition.mp3",
 }
-CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/", "review-cache-drive-feedback/", "review-cache-visual-drive/", "review-level3-story/")
+CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/", "review-cache-drive-feedback/", "review-cache-visual-drive/", "review-level3-story/", "review-mac-street-art/")
 REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3", ".wav"}
 ROOT_DOCUMENT_SUFFIXES = {".md", ".json", ".txt"}
 
