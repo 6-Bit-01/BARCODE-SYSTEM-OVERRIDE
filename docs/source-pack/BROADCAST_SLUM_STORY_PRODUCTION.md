@@ -7,6 +7,26 @@ Kave's cowboy treatment and later v3 open street wall/room scale are rejected. H
 The expanded Level 3 requires at least six playable city zones, at least six new alien humanoid enemy types plus a distinct boss, new enemy artwork/animations, and green/purple blood. Runtime/enemy-art integration belongs to the parent task; this document does not establish gameplay acceptance, campaign completion or publication.
 The shipped Level 2 clear, Bass key and saves retain their existing behavior.
 
+## Current owner correction: fighting motion and damage presentation
+
+In response to the owner's rejection of the previous Mac/enemy motion, the private branch now implements continuous articulated animation using eight native actors and 126 registered parts: 15 for each ordinary actor and 21 for the Regent. The exact selected rig bank contains 17 files. Mac has jab, cross, finisher, step-strike, air-kick and counter moves, plus a contextual throw. Each ordinary enemy has two distinct tactics, with the Regent retaining its three-phase patterns. Real damage creates Mac's red blood or the alien's green/purple blood; blocks, misses and invulnerable contacts create none.
+
+Focused combat checks pass all 25 groups and the final native animation-math review passes all 14 groups, including interrupted movement handoff, planted recovery and all eight measured registrations. The previous 12 integration groups passed before the final foot-controller correction; the latest complete integrated suite is running. Final strict-package, CI and hosted-browser results for this implementation are pending. Evidence: `project-root/verification/mac-fluid-combat-20261005/combat-foot-controller-final-receipt.json` and `project-root/verification/mac-combat-overhaul-20261005/math-review-native-final/animation-math-receipt.json`.
+
+Visual acceptance requirements for this pass:
+
+- Show deliberate weight shifts through hips, shoulders and connected limbs. Keep the established character proportions and one body scale; avoid floating limbs, stretched crop boxes or sudden body-size changes.
+- Walking needs a readable contact, weight transfer and swing. Grounded support feet stay planted through attack recovery; takeoff and landing follow the simulated elevation instead of moving the floor beneath the actor.
+- Every move has a readable **windup → impact → recovery**. Motion continues between key positions without snapping, and the apparent strike/contact aligns with its actual active damage phase.
+- Give additional Mac attacks distinct silhouettes, reach, commitment and recovery. Reusing the same punch with another name or effect is not sufficient; guard, counter, jump, hit reaction and throw must also have coherent connected motion.
+- Vary enemy rhythm and body mechanics: Scuttler's close pressure, Lancer's committed lunge, Spitter's ranged preparation, Guard's braced defense, Stalker's lateral crossing, Mantid's planted pulse and Regent's heavier three-phase threat should be distinguishable in normal play.
+- Green/purple alien blood and Mac's own blood appear only when the relevant body actually takes damage. Blocks, misses and invulnerable contacts produce no blood; damage reactions must identify the struck body and direction.
+- Keep blood localized and finite, preserve readable attack tells, freeze effects with pause and clear them with retry. Effects do not add a second hit, alter health or substitute for the combat result.
+
+Review these requirements at normal gameplay speed across movement, attack chains, guard/counter, throw, damage and each enemy archetype. A still frame or successful automated route cannot accept motion that pops, slides, floats or has misleading contact. Owner review of the new rig art, animation and combat feel, physical-handset play and hardware FPS remain pending. The earlier `4cf1e1174905fafc1b6ecf3b606bc62a60abe2fb` automated/hosted proofs remain historical for the rejected-motion candidate and do not validate this implementation. No new production publication is claimed.
+
+This is a combat presentation correction. Preserve all eight stable intro IDs, the two Kave choices, the enclosed Kave v5 studio, Cache v6 approach and retained final car image, the current music and the existing story/award boundaries. Mac's approved hero v2 does not approve his current gameplay animations.
+
 ## Direction and authority
 
 The owner asks us to plan the wider story while building Level 3: purposeful cameos,

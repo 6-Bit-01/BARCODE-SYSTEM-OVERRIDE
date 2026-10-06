@@ -1,6 +1,16 @@
 # Decision Register
 
-## October 5, 2026 — current owner correction: full Mac city and two Kave conversations
+## October 5, 2026 — current decision: review implemented articulated combat
+
+The owner rejected the previous animations and requested better motion, more attacks, dynamic fighting styles between enemies, alien blood and Mac blood on damage. In response to the owner's rejection of the previous Mac/enemy motion, the private branch now implements continuous articulated animation using eight native actors and 126 registered parts: 15 for each ordinary actor and 21 for the Regent. The exact selected rig bank contains 17 files. Mac has jab, cross, finisher, step-strike, air-kick and counter moves, plus a contextual throw. Each ordinary enemy has two distinct tactics, with the Regent retaining its three-phase patterns. Real damage creates Mac's red blood or the alien's green/purple blood; blocks, misses and invulnerable contacts create none.
+
+Focused combat checks pass all 25 groups and the final native animation-math review passes all 14 groups, including interrupted movement handoff, planted recovery and all eight measured registrations. The previous 12 integration groups passed before the final foot-controller correction; the latest complete integrated suite is running. Final strict-package, CI and hosted-browser results for this implementation are pending. Evidence: `project-root/verification/mac-fluid-combat-20261005/combat-foot-controller-final-receipt.json` and `project-root/verification/mac-combat-overhaul-20261005/math-review-native-final/animation-math-receipt.json`.
+
+Use weight transfer, connected limbs, planted grounded recovery and readable windup/impact/recovery aligned with real combat phases as the acceptance standard. Mac's moves must differ in silhouette, reach and commitment; enemy tactics must differ in rhythm and body mechanics. Damage presentation cannot emit blood for blocked, missed or invulnerable contacts, create extra damage or hide attack tells. [The production guide](BROADCAST_SLUM_STORY_PRODUCTION.md) carries the review checklist.
+
+Preserve the six-district chapter, eight stable intro IDs, two optional Kave choices, enclosed Kave v5 studio, Cache v6 and the original final car shot, current music and existing campaign/save/award boundaries. Mac hero v2 remains approved artwork; that approval does not accept gameplay motion. The private chapter grants no canonical Drums reward or campaign clear. Owner review of the new rig art, animation and combat feel, physical-handset play and hardware FPS remain pending. The earlier `4cf1e1174905fafc1b6ecf3b606bc62a60abe2fb` automated/hosted proofs remain historical for the rejected-motion candidate and do not validate this implementation. No new production publication is claimed.
+
+## Historical checkpoint — October 5, 2026: full Mac city and two Kave conversations
 
 The private chapter now targets six city districts, 12 waves and 29 alien humanoid foes plus a distinct final boss, with seven dedicated enemy art/animation kinds and green/purple blood. The eight intro scene IDs remain stable. **Two optional choices remain:** Kave's main opening question and the in-person studio conversation earned after the final city encounter. Only the extra 9 Bit reply menu is removed; Continue keeps both opening core facts without inventing an answer.
 

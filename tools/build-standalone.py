@@ -9,8 +9,10 @@ tree so an uncommitted standalone adapter can be reviewed and tested.
 import argparse
 import hashlib
 import json
+import math
 import re
 import subprocess
+import zlib
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 
@@ -70,6 +72,17 @@ MAC_CITY_ASSETS = {"assets/mac-city-review/" + name for name in (
     "service-alley-v1.png", "night-market-v1.png", "transit-concourse-v1.png",
     "relay-canal-v1.png", "rooftop-relay-v1.png", "broadcast-plaza-v1.png",
     "mac-city-art-v1.json", "mac-attacks-v4.png", "mac-attacks-v4-frames.json")}
+MAC_RIG_ACTORS = ("mac", "chitin_scuttler", "psion_lancer", "bile_spitter", "prism_guard",
+                  "rift_stalker", "shock_mantid", "null_regent")
+MAC_RIG_ASSETS = {"assets/mac-combat-rigs/" + name for name in (
+    "mac-combat-art-v1.json", "mac-modem-v2.png", "mac-modem-v2-rig.json",
+    "chitin_scuttler-v1.png", "chitin_scuttler-v1-rig.json",
+    "psion_lancer-v1.png", "psion_lancer-v1-rig.json",
+    "bile_spitter-v1.png", "bile_spitter-v1-rig.json",
+    "prism_guard-v1.png", "prism_guard-v1-rig.json",
+    "rift_stalker-v1.png", "rift_stalker-v1-rig.json",
+    "shock_mantid-v1.png", "shock_mantid-v1-rig.json",
+    "null_regent-v1.png", "null_regent-v1-rig.json")}
 VIEWPORT_STYLE = """<style id="standalone-viewport-style">
 /* Fit the complete native backing image; runtime owners still control display. */
 .game-container {
@@ -247,6 +260,9 @@ def verify_runtime(payloads):
             all(scripts.count(name) == 1 and scripts.index(name) < scripts.index(TOUCH_SCRIPT)
                 for name in ("src/core/action-input.js", "src/core/input.js")),
             "Touch controls must launch once after the existing input owners")
+    require(scripts.count("src/game/mac-combat-animation.js") == 1 and
+            scripts.index("src/game/mac-combat-animation.js") < scripts.index("src/game/mac-combat-preview.js"),
+            "The articulated animation owner must launch once before the private Mac wrapper")
     gpu_scripts = [VENDOR_ROOT + "pixi.min.js", "src/engine/cache-road-texture-bank.js",
                    "src/engine/cache-road-gpu-renderer.js",
                    "src/engine/cache-road-gpu-context.js", "src/game/cache-road-proof.js"]
@@ -311,6 +327,196 @@ def verify_runtime(payloads):
                                    "license": "Apache-2.0", "runtimeSource": "local owned worker; no CDN loader"}}
 
 
+def native_rgba(data, name):
+    """Decode original PNG scanlines for measured alpha; never rewrite artwork."""
+    require(data[:8] == b"\x89PNG\r\n\x1a\n", f"Rig source is not a native PNG: {name}")
+    offset, chunks, width, height = 8, [], 0, 0
+    while offset + 12 <= len(data):
+        length = int.from_bytes(data[offset:offset + 4], "big")
+        kind, start = data[offset + 4:offset + 8], offset + 8
+        require(start + length + 4 <= len(data), f"Truncated PNG chunk: {name}")
+        content = data[start:start + length]
+        if kind == b"IHDR":
+            require(length == 13, f"Invalid PNG header: {name}")
+            width, height = int.from_bytes(content[:4], "big"), int.from_bytes(content[4:8], "big")
+            require(width > 0 and height > 0 and content[8:] == bytes((8, 6, 0, 0, 0)),
+                    f"Rig must retain noninterlaced native RGBA8: {name}")
+        if kind == b"IDAT": chunks.append(content)
+        offset = start + length + 4
+        if kind == b"IEND": break
+    require(width > 0 and height > 0 and chunks, f"Incomplete PNG: {name}")
+    stride = width * 4
+    raw = zlib.decompress(b"".join(chunks))
+    require(len(raw) == (stride + 1) * height, f"Invalid RGBA scanline size: {name}")
+    pixels = bytearray(stride * height)
+    for y in range(height):
+        row_start, target = y * (stride + 1), y * stride
+        mode = raw[row_start]
+        require(mode in range(5), f"Unsupported PNG filter: {name}")
+        for x in range(stride):
+            a = pixels[target + x - 4] if x >= 4 else 0
+            b = pixels[target + x - stride] if y else 0
+            c = pixels[target + x - stride - 4] if y and x >= 4 else 0
+            if mode == 0: predictor = 0
+            elif mode == 1: predictor = a
+            elif mode == 2: predictor = b
+            elif mode == 3: predictor = (a + b) // 2
+            else:
+                p = a + b - c
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                predictor = a if pa <= pb and pa <= pc else b if pb <= pc else c
+            pixels[target + x] = (raw[row_start + 1 + x] + predictor) & 255
+    require(any(value < 255 for value in pixels[3::4]), f"Rig lost native transparency: {name}")
+    return width, height, pixels
+
+
+def verify_combat_rigs(output, files):
+    prefix = "assets/mac-combat-rigs/"
+    require({name for name in files if name.startswith(prefix)} == MAC_RIG_ASSETS,
+            "Incomplete or unselected articulated combat asset set")
+    bank = json.loads(safe_path(output, prefix + "mac-combat-art-v1.json").read_text(encoding="utf-8"))
+    require(bank.get("schemaVersion") == 1 and sorted(bank.get("files", [])) == sorted(MAC_RIG_ASSETS),
+            "Rig manifest must declare the exact 17 selected files")
+    actors = bank.get("actors")
+    require(isinstance(actors, list) and len(actors) == 8 and
+            sorted(actor.get("kind") for actor in actors) == sorted(MAC_RIG_ACTORS),
+            "Rig manifest must select Mac and the exact seven alien kinds")
+    colors = dict(zip(MAC_RIG_ACTORS, ("red", "green", "purple", "green", "purple", "purple", "green", "purple")))
+    blood_hex = {"red": "#f04455", "green": "#78ea68", "purple": "#b374ed"}
+    base_parts = {"head", "torso", "pelvis"} | {side + "_" + part for side in ("rear", "front")
+                 for part in ("upper_arm", "forearm", "fist", "thigh", "shin", "shoe")}
+    chains = {side + "_" + part: (side + "_" + a, side + "_" + b) for side in ("rear", "front")
+              for part, a, b in (("upper_arm", "shoulder", "elbow"), ("forearm", "elbow", "wrist"),
+                                 ("thigh", "hip", "knee"), ("shin", "knee", "ankle"))}
+    for side in ("a", "b"):
+        chains["extra_upper_arm_" + side] = ("extra_shoulder_" + side, "extra_elbow_" + side)
+        chains["extra_forearm_" + side] = ("extra_elbow_" + side, "extra_wrist_" + side)
+    def finite_point(value):
+        return isinstance(value, dict) and all(isinstance(value.get(k), (int, float)) and
+               not isinstance(value.get(k), bool) and math.isfinite(value[k]) for k in ("x", "y"))
+    def close(a, b, label): require(abs(a - b) <= .001, f"Measured rig geometry differs: {label}")
+    results = []
+    for actor in actors:
+        kind = actor["kind"]
+        stem = "mac-modem-v2" if kind == "mac" else kind + "-v1"
+        image, rig_name = prefix + stem + ".png", prefix + stem + "-rig.json"
+        require(actor.get("image") == image and actor.get("rig") == rig_name and
+                actor.get("imageSHA256") == files[image]["sha256"] and
+                actor.get("rigSHA256") == files[rig_name]["sha256"], f"Unselected or changed rig identity: {kind}")
+        require(actor.get("bloodColor") == colors[kind] and actor.get("bloodHex") == blood_hex[colors[kind]]
+                and isinstance(actor.get("displayName"), str) and actor["displayName"].strip(), f"Invalid selected actor role: {kind}")
+        image_data = safe_path(output, image).read_bytes()
+        width, height, pixels = native_rgba(image_data, image)
+        rig = json.loads(safe_path(output, rig_name).read_text(encoding="utf-8"))
+        require(rig.get("schemaVersion") == 1 and rig.get("actor") == kind and rig.get("sourceImage") == image and
+                rig.get("sourceSHA256") == sha(image_data) and rig.get("sourceDimensions") == {"width": width, "height": height}
+                and rig.get("facing") == "right" and rig.get("commonScale") == 1 and
+                rig.get("groundOrigin") == {"x": 0, "y": 0}, f"Native rig contract changed: {kind}")
+        expected = base_parts | ({"extra_" + part + "_" + side for side in ("a", "b")
+                    for part in ("upper_arm", "forearm", "fist")} if kind == "null_regent" else set())
+        parts = rig.get("parts", [])
+        require(len(parts) == len(expected) and {part.get("id") for part in parts} == expected,
+                f"Rig must register exactly {len(expected)} anatomical pieces: {kind}")
+        by_id = {part["id"]: part for part in parts}
+        rest = rig.get("restSkeleton", {})
+        require(isinstance(rest, dict) and all(finite_point(point) for point in rest.values()), f"Invalid rest joints: {kind}")
+        assembled = {"left": math.inf, "top": math.inf, "right": -math.inf, "bottom": -math.inf}
+        for part in parts:
+            label = kind + "/" + part["id"]
+            source, visible = part.get("source", {}), part.get("visibleBounds", {})
+            for rect in (source, visible):
+                require(all(isinstance(rect.get(k), int) and not isinstance(rect.get(k), bool) and
+                            rect[k] >= (1 if k in ("width", "height") else 0) for k in ("x", "y", "width", "height")),
+                        f"Invalid measured source bounds: {label}")
+            require(source["x"] + source["width"] <= width and source["y"] + source["height"] <= height,
+                    f"Rig crop escapes native bitmap: {label}")
+            occupied = [(x, y) for y in range(source["height"]) for x in range(source["width"])
+                        if pixels[((source["y"] + y) * width + source["x"] + x) * 4 + 3] > 8]
+            require(occupied, f"Empty anatomical piece: {label}")
+            left, top = min(x for x, y in occupied), min(y for x, y in occupied)
+            right, bottom = max(x for x, y in occupied), max(y for x, y in occupied)
+            require(visible == {"x": left, "y": top, "width": right - left + 1, "height": bottom - top + 1},
+                    f"Visible bounds differ from actual native alpha>8: {label}")
+            points = [part.get("pivot")] + list(part.get("anchors", {}).values())
+            if part["id"] in chains: points.append(part.get("distal"))
+            for point in points:
+                require(finite_point(point) and all(point[k] == int(point[k]) and 0 <= point[k] < source[
+                        "width" if k == "x" else "height"] for k in ("x", "y")), f"Invalid native joint cap: {label}")
+                require(pixels[((source["y"] + int(point["y"])) * width + source["x"] + int(point["x"])) * 4 + 3] > 8,
+                        f"Joint cap lies outside actual opaque piece: {label}")
+            require(part.get("restScale", 1) == 1, f"Per-piece scale stretches anatomy: {label}")
+            if part["id"] in chains:
+                a, b = part["pivot"], part["distal"]
+                length = math.hypot(b["x"] - a["x"], b["y"] - a["y"])
+                require(isinstance(part.get("boneLength"), (int, float)) and part["boneLength"] > 0, f"Missing measured bone: {label}")
+                close(length, part["boneLength"], label + "/source length")
+                a, b = chains[part["id"]]
+                require(a in rest and b in rest, f"Missing rest bone joints: {label}")
+                close(math.hypot(rest[b]["x"] - rest[a]["x"], rest[b]["y"] - rest[a]["y"]), length, label + "/rest length")
+            angle = 0
+            if part["id"] in chains:
+                a, b = chains[part["id"]]
+                origin = rest[a]
+                angle = math.atan2(rest[b]["y"] - origin["y"], rest[b]["x"] - origin["x"]) - math.atan2(
+                        part["distal"]["y"] - part["pivot"]["y"], part["distal"]["x"] - part["pivot"]["x"])
+            else:
+                identifier = part["id"]
+                joint = ("neck" if identifier == "head" else "waist" if identifier in ("torso", "pelvis") else
+                         "extra_wrist_" + identifier[-1] if identifier.startswith("extra_fist_") else
+                         identifier.split("_")[0] + ("_wrist" if identifier.endswith("_fist") else "_ankle"))
+                require(joint in rest, f"Missing neutral attachment joint: {label}")
+                origin = rest[joint]
+            cosine, sine = math.cos(angle), math.sin(angle)
+            x_min, x_max = min(0, cosine) + min(0, -sine), max(0, cosine) + max(0, -sine)
+            y_min, y_max = min(0, sine) + min(0, cosine), max(0, sine) + max(0, cosine)
+            for x, y in occupied:
+                x, y = x - part["pivot"]["x"], y - part["pivot"]["y"]
+                tx, ty = origin["x"] + x * cosine - y * sine, origin["y"] + x * sine + y * cosine
+                assembled["left"], assembled["right"] = min(assembled["left"], tx + x_min), max(assembled["right"], tx + x_max)
+                assembled["top"], assembled["bottom"] = min(assembled["top"], ty + y_min), max(assembled["bottom"], ty + y_max)
+        for i, part in enumerate(parts):
+            a = part["source"]
+            for other in parts[i + 1:]:
+                b = other["source"]
+                require(min(a["x"] + a["width"], b["x"] + b["width"]) <= max(a["x"], b["x"]) or
+                        min(a["y"] + a["height"], b["y"] + b["height"]) <= max(a["y"], b["y"]),
+                        f"Anatomical source crops overlap: {kind}")
+        require(len({(p["source"]["width"], p["source"]["height"]) for p in parts}) > 1,
+                f"Rig cannot replace measured pieces with equal atlas cells: {kind}")
+        for part_id, required_anchors in (("torso", {"neck", "waist", "rear_shoulder", "front_shoulder"} |
+                     ({"extra_shoulder_a", "extra_shoulder_b"} if kind == "null_regent" else set())),
+                     ("pelvis", {"waist", "rear_hip", "front_hip"})):
+            part = by_id[part_id]
+            require(set(part.get("anchors", {})) == required_anchors and "waist" in rest, f"Missing attachment anchors: {kind}/{part_id}")
+            for joint, anchor in part["anchors"].items():
+                require(joint in rest, f"Missing attachment rest joint: {kind}/{joint}")
+                for coordinate in ("x", "y"):
+                    close(rest[joint][coordinate], rest["waist"][coordinate] + anchor[coordinate] - part["pivot"][coordinate], kind + "/" + joint)
+        for a, b in (("hip", "waist"), ("head", "neck"), ("rear_fist", "rear_wrist"), ("front_fist", "front_wrist")):
+            require(a in rest and b in rest, f"Missing rest alias: {kind}/{a}")
+            for coordinate in ("x", "y"): close(rest[a][coordinate], rest[b][coordinate], kind + "/" + a)
+        for side in ("rear", "front"):
+            shoe = by_id[side + "_shoe"]
+            require(set(shoe.get("anchors", {})) == {"ground_contact"}, f"Missing measured shoe contact: {kind}/{side}")
+            ankle, foot = side + "_ankle", side + "_foot_contact"
+            require(ankle in rest and foot in rest, f"Missing planted foot: {kind}/{side}")
+            for coordinate in ("x", "y"):
+                close(rest[foot][coordinate], rest[ankle][coordinate] + shoe["anchors"]["ground_contact"][coordinate] - shoe["pivot"][coordinate], kind + "/" + foot)
+            close(rest[foot]["y"], 0, kind + "/planted floor")
+        bounds = rig.get("restVisibleBounds", {})
+        require(all(isinstance(bounds.get(k), (int, float)) and math.isfinite(bounds[k]) for k in ("left", "top", "right", "bottom"))
+                and bounds["right"] > bounds["left"] and bounds["bottom"] > bounds["top"], f"Invalid rest alpha extent: {kind}")
+        close(rig.get("pixelScale", {}).get("standingVisibleHeight", 0), bounds["bottom"] - bounds["top"], kind + "/native standing height")
+        for coordinate in ("left", "top", "right", "bottom"):
+            close(bounds[coordinate], assembled[coordinate], kind + "/transformed native alpha " + coordinate)
+        close(rig["pixelScale"]["standingVisibleHeight"], assembled["bottom"] - assembled["top"], kind + "/actual native standing height")
+        results.append({"kind": kind, "pieces": len(parts), "nativePNG_SHA256": sha(image_data),
+                        "decodedRGBA_SHA256": sha(pixels), "rigSHA256": files[rig_name]["sha256"],
+                        "restNativeAlphaExtent": {key: round(value, 6) for key, value in assembled.items()}})
+    return {"selectedActors": 8, "assetCount": 17, "nativeAlphaThreshold": 8, "registrations": results,
+            "runtimeAcceptance": "not established by packaging"}
+
+
 def verify_texture_bank(output, files):
     prefix = "assets/cache-road/gpu-textures/"
     manifest_name = prefix + "manifest.json"
@@ -352,9 +558,13 @@ def verify_texture_bank(output, files):
     require(len(MAC_CITY_ASSETS) == 23 and
             {name for name in files if name.startswith("assets/mac-city-review/")} == MAC_CITY_ASSETS,
             "The private Mac city must include exactly its 23 registered runtime assets")
+    require(len(MAC_RIG_ASSETS) == 17 and
+            {name for name in files if name.startswith("assets/mac-combat-rigs/")} == MAC_RIG_ASSETS,
+            "The articulated Mac combat bank must include exactly its 17 selected runtime assets")
     originals = sorted([name, record["bytes"], record["sha256"]]
                        for name, record in files.items() if name.startswith("assets/")
-                       and name not in derivatives and name not in MAC_REVIEW_ASSETS and name not in MAC_CITY_ASSETS)
+                       and name not in derivatives and name not in MAC_REVIEW_ASSETS and name not in MAC_CITY_ASSETS
+                       and name not in MAC_RIG_ASSETS)
     require(len(originals) == 624 and sha(json.dumps(originals, separators=(",", ":")).encode("utf-8")) ==
             "0b2ac58dc88ddb68b595fb8592d242d8478c426d78309fe4ff45b88c04027f56",
             "Original 624 artwork/audio identities or bytes changed")
@@ -362,6 +572,7 @@ def verify_texture_bank(output, files):
             "derivativeCount": len(derivatives), "unchangedOriginalCount": len(originals),
             "macReviewAssetCount": len(MAC_REVIEW_ASSETS),
             "macCityAssetCount": len(MAC_CITY_ASSETS),
+            "macRigAssetCount": len(MAC_RIG_ASSETS),
             "gpuMipBytes": bank.get("allGpuMipBytes"), "runtimeAcceptance": "not established by packaging"}
 
 
@@ -467,6 +678,7 @@ def build(output, receipt):
                        for record in sources})
     require(set(file_hashes) == names - {OWNER_FILE}, "Public hash manifest is incomplete")
     checks["compressedTextureBank"] = verify_texture_bank(output, file_hashes)
+    checks["articulatedCombatRigs"] = verify_combat_rigs(output, file_hashes)
     public = {"builder": TOOL_ID, "status": "complete", "sourceCommit": head, "sourceTree": tree,
               "builderSHA256": sha(Path(__file__).read_bytes()), "files": file_hashes,
               "sourceMode": "working-tree runtime scripts; exact HEAD canonical asset blobs",

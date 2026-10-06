@@ -83,6 +83,7 @@
     "src/game/broadcast-slum-proof.js",
     "src/game/mac-street-combat.js",
     "src/game/mac-street-story.js",
+    "src/game/mac-combat-animation.js",
     "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
@@ -178,6 +179,7 @@
     "src/game/broadcast-slum-proof.js",
     "src/game/mac-street-combat.js",
     "src/game/mac-street-story.js",
+    "src/game/mac-combat-animation.js",
     "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
@@ -576,6 +578,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/mac-combat-animation.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/mac-combat-preview.js",
         "status": "pass"
       },
@@ -634,11 +640,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 92,
+        "index": 93,
         "status": "pass"
       },
       {
-        "index": 94,
+        "index": 95,
         "status": "pass"
       }
     ]
@@ -1095,6 +1101,7 @@
     "src/game/broadcast-slum-proof.js",
     "src/game/mac-street-combat.js",
     "src/game/mac-street-story.js",
+    "src/game/mac-combat-animation.js",
     "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",

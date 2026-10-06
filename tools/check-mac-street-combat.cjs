@@ -131,6 +131,38 @@ check('three-step combo queues only during recovery and then resets', () => {
   r.run(400); r.step(press('strike')); assert.equal(r.view().player.attack.step, 1);
 });
 
+check('moving Strike commits a directional step attack rather than sliding a jab',()=>{
+  const r=rig();engage(r);const start=r.view().player.x,hp=r.view().enemies[0].hp;
+  r.step({move_x:1,...press('strike')});
+  const first=r.view().player.attack;assert.equal(first.kind,'step-strike');
+  assert.equal(first.facing,1);assert.equal(first.timing.windupMs,110);
+  r.run(130,{move_x:-1,strike:{held:true}});
+  const p=r.view().player;
+  assert(p.x>start+25,'committed forward root motion is actual world movement');
+  assert.equal(p.facing,1,'opposite input cannot twist a committed attack');
+  assert.equal(p.attack.kind,'step-strike');assert(p.attack.rootShift>25);
+  assert.equal(r.view().enemies[0].hp,hp-15);
+  assert(r.events.some(e=>e.type==='enemy-hit'&&e.cause==='step-strike'));
+  assert(p.attack.phaseProgress>=0&&p.attack.phaseProgress<=1);
+  r.run(700,{strike:{held:true}});assert.equal(r.events.filter(e=>e.type==='strike').length,1);
+});
+
+check('Jump plus Strike performs a real aerial kick above the ground-punch limit',()=>{
+  const r=rig();engage(r);const hp=r.view().enemies[0].hp;
+  r.step(press('jump'));r.run(80);
+  assert.equal(r.game.getControlState().strike.label,'Air Kick');
+  r.step(press('strike'));assert.equal(r.view().player.attack.kind,'air-kick');
+  r.run(100);
+  assert(r.view().player.elevation>C.constants.hitHeight,'the kick lands while actually airborne');
+  assert.equal(r.view().enemies[0].hp,hp-18);
+  assert(r.events.some(e=>e.type==='enemy-hit'&&e.cause==='air-kick'));
+  assert.equal(r.view().player.attack.airborne,true);
+  r.run(800,{strike:{held:true}});
+  assert.equal(r.events.filter(e=>e.type==='strike').length,1);assert.equal(r.view().player.comboNext,1);
+  const together=rig();together.step({...press('jump'),...press('strike')});
+  assert.equal(together.view().player.attack.kind,'air-kick','simultaneous inputs use the same accessible attack');
+});
+
 check('lane dodge preserves locked tells and lane-separated strikes miss', () => {
   const r = rig(); const s = engage(r), locked = s.enemies[0].attackLaneY;
   r.run(450, {move_y: -1});
@@ -156,7 +188,7 @@ check('fresh parry opens one counter; holding guard cannot renew it', () => {
   assert.equal(r.events.filter(e => e.type === 'parry').length, 1);
   assert.equal(r.view().player.hp, 100); assert(r.view().player.counterMs > 0);
   assert.equal(r.game.getControlState().strike.label, 'Counter');
-  r.step(press('strike')); r.run(150);
+  r.step(press('strike'));assert.equal(r.view().player.attack.kind,'counter');r.run(150);
   assert(r.events.some(e => e.type === 'enemy-hit' && e.cause === 'counter' && e.damage === 22));
   assert.equal(r.view().player.counterMs, 0);
   const held = rig(); engage(held); held.step({guard: {held: true}});
@@ -172,7 +204,16 @@ check('contextual nearby throw has commitment, cooldown and one held activation'
   near(r); const id = r.game.getControlState().throw.targetId;
   assert.equal(id, 'service-alley-w1-0-chitin_scuttler'); const hp = r.view().enemies[0].hp;
   r.step(press('throw')); assert.equal(r.view().player.mode, 'throw');
+  assert.equal(r.view().enemies[0].hp,hp,'grab is visibly committed before it deals damage');
+  assert.equal(r.view().player.grapple.phase,'grab');assert.equal(r.view().enemies[0].phase,'grappled');
+  assert(Math.abs(r.view().enemies[0].animation.motion.vx)>0,'grab reports its actual pulling motion');
+  const committedX=r.view().player.x;
+  r.run(100,{move_x:-1,throw:{held:true}});
+  assert.equal(r.view().player.x,committedX,'throw cannot slide or reverse during the grab');
+  assert.equal(r.view().enemies[0].hp,hp,'damage is not applied before the140ms release');
+  r.until(s=>s.player.grapple?.released,{throw:{held:true}},100);
   assert.equal(r.view().enemies[0].hp, hp - 28);
+  assert(r.events.some(e=>e.type==='throw-release'&&e.damage===28));
   assert.equal(r.game.getControlState().throw.ready, false);
   r.run(1000, {throw: {held: true}});
   assert.equal(r.events.filter(e => e.type === 'throw').length, 1);
@@ -349,11 +390,194 @@ check('animation, hit feedback, boss tell and bounded effects are renderable sna
   const copy=s.enemies[0];copy.animation.ageMs=99999;copy.bloodColor='red';
   assert.notEqual(r.view().enemies[0].animation.ageMs,99999);
   assert.equal(r.view().enemies[0].bloodColor,'green');
+  const beforeMotion=r.view().player.animation.motion.stridePhase;r.run(60,{move_y:1});
+  assert.notEqual(r.view().player.animation.motion.stridePhase,beforeMotion,'stride is driven by actual travel');
+  const particles=r.view().hitFx.find(fx=>fx.bloodColor==='green');assert(particles);
+  const particleX=particles.particles[0].x;particles.particles[0].x=999999;
+  assert.equal(r.view().hitFx.find(fx=>fx.id===particles.id).particles[0].x,particleX,'blood snapshots cannot mutate combat');
   for(const sample of [r.view(),route.view()]){
     assert(sample.enemies.length<=C.constants.maxEnemies);
     assert(sample.projectiles.length<=C.constants.maxProjectiles);
     assert(sample.hitFx.length<=C.constants.maxHitFx);
     for(const enemy of sample.enemies){assert(Number.isFinite(enemy.ageMs));assert(Number.isFinite(enemy.animation.frame));}
+  }
+});
+
+check('all six aliens execute two different physical tactics through public play',()=>{
+  const r=rig(),evidence={};
+  const order=['chitin_scuttler','psion_lancer','prism_guard','bile_spitter','rift_stalker','shock_mantid'];
+  for(const kind of order){
+    fight(r,480000,s=>s.enemies.some(e=>e.kind===kind&&e.hp>0&&e.phase!=='dormant')||s.status==='defeated');
+    assert.notEqual(r.view().status,'defeated');
+    const required=Array.from(C.tactics[kind]),start=r.events.length,samples=[];
+    r.until(s=>{
+      const e=s.enemies.find(item=>item.kind===kind&&item.hp>0);
+      if(e)samples.push({phase:e.phase,age:e.phaseMs,type:e.attackSpec?.attackType,x:e.x,
+        origin:e.attackOriginX,facing:e.attackFacing,elevation:e.elevation,spec:e.attackSpec,
+        projectiles:s.projectiles.filter(item=>item.ownerId===e.id).map(item=>({kind:item.kind,laneY:item.laneY}))});
+      const performed=new Set(r.events.slice(start).filter(event=>event.type==='enemy-attack'&&event.kind===kind).map(event=>event.attackType));
+      return s.status==='defeated'||required.every(type=>performed.has(type))&&e?.phase==='recovery'&&e.phaseMs>420;
+    },s=>{
+      const p=s.player,e=s.enemies.find(item=>item.kind===kind&&item.hp>0);
+      if(!e)return {};
+      const dx=e.x-p.x,direction=Math.sign(dx)||p.facing;
+      const input={move_x:Math.abs(dx)>105||p.facing!==direction?direction:0,
+        move_y:Math.abs(e.laneY-p.laneY)>6?Math.sign(e.laneY-p.laneY):0};
+      if(['windup','active'].includes(e.phase)){
+        const reach=e.attackSpec.laneReach??C.constants.laneReach;
+        input.move_y=Math.abs(p.laneY-e.attackLaneY)<=reach+32
+          ?Math.abs(C.constants.laneMin-e.attackLaneY)>Math.abs(C.constants.laneMax-e.attackLaneY)?-1:1:0;
+      }
+      const incoming=s.projectiles.some(item=>(item.x-p.x)*item.facing<0&&Math.abs(item.x-p.x)<145&&Math.abs(item.laneY-p.laneY)<=item.laneReach+10);
+      if(incoming&&r.game.getControlState().jump.ready)input.jump={pressed:true,held:true};
+      return input;
+    },24000);
+    assert.notEqual(r.view().status,'defeated',kind+' observation uses actual lane dodges');
+    const events=r.events.slice(start).filter(e=>e.kind===kind);
+    for(const type of required)assert(events.some(e=>e.type==='enemy-attack'&&e.attackType===type),kind+' actually attacks with '+type);
+    evidence[kind]={samples,events};
+  }
+  const sc=evidence.chitin_scuttler.samples;
+  assert(sc.some(s=>s.type==='rush-jab'&&s.phase==='windup'&&(s.x-s.origin)*s.facing< -8),'scuttler physically feints backward');
+  assert(sc.some(s=>s.type==='rush-jab'&&s.phase==='active'&&(s.x-s.origin)*s.facing>35),'rush advances through world space');
+  const lancer=evidence.psion_lancer.samples;
+  assert(lancer.some(s=>s.type==='lunge'&&s.phase==='active'&&Math.abs(s.x-s.origin)>60));
+  assert(lancer.some(s=>s.type==='lancer-sweep'&&s.phase==='active'&&s.spec.laneReach>=65&&s.spec.reach>=145));
+  const spitter=evidence.bile_spitter.samples;
+  assert(spitter.some(s=>s.type==='bile'&&s.projectiles.filter(p=>p.kind==='bile').length===1));
+  assert(spitter.some(s=>s.type==='bile-spread'&&new Set(s.projectiles.filter(p=>p.kind==='bile-spread').map(p=>p.laneY)).size===3),'spread creates three actual lane bolts');
+  assert(spitter.some(s=>s.phase==='recovery'&&(s.x-s.origin)*s.facing< -12),'spitter physically recoils');
+  const guard=evidence.prism_guard.samples;
+  assert(guard.some(s=>s.type==='shield-bash'&&s.phase==='active'&&Math.abs(s.x-s.origin)>8));
+  assert(guard.some(s=>s.type==='shield-heavy'&&s.phase==='active'&&!s.spec.guardable&&s.spec.damage>14));
+  const stalker=evidence.rift_stalker.samples;
+  assert(stalker.some(s=>s.type==='rift-cross'&&s.phase==='active'&&Math.abs(s.x-s.origin)>60));
+  assert(stalker.some(s=>s.type==='retreat-slash'&&s.phase==='active'&&(s.x-s.origin)*s.facing< -20));
+  assert(stalker.some(s=>s.type==='retreat-slash'&&s.phase==='active'&&(s.x-s.origin)*s.facing>35),'backstep returns with a committed slash');
+  const mantid=evidence.shock_mantid.samples;
+  assert(mantid.some(s=>s.type==='ground-wave'&&s.projectiles.some(p=>p.kind==='ground-wave')));
+  assert(mantid.some(s=>s.type==='mantid-leap'&&s.phase==='active'&&s.elevation>70&&Math.abs(s.x-s.origin)>45));
+  assert(mantid.some(s=>s.type==='mantid-leap'&&s.spec.canJump===false&&s.spec.guardable),'air-reaching leap honestly tells guard/lane dodge');
+});
+
+check('actual alien damage emits colored moving blood; Mac damage emits red blood only',()=>{
+  const r=rig();engage(r);assert.equal(r.view().hitFx.length,0,'approach/contact never invents blood');
+  r.step(press('strike'));r.run(110);
+  const green=r.view().hitFx.find(fx=>fx.bloodColor==='green');assert(green);
+  assert.equal(green.bloodHex,'#78ea68');assert.equal(green.particles.length,8);
+  const before=green.particles[0];r.run(80);
+  const moved=r.view().hitFx.find(fx=>fx.id===green.id).particles[0];
+  assert(moved.x!==before.x&&moved.elevation!==before.elevation,'blood follows real deterministic ballistic motion');
+  r.until(s=>s.player.hp<100,{},12000);
+  const red=r.view().hitFx.find(fx=>fx.bloodColor==='red');assert(red);assert.equal(red.particles.length,8);
+  assert.equal(red.bloodHex,'#f04455');assert.equal(r.view().player.hitFeedback.bloodColor,'red');
+  assert(r.events.some(e=>e.type==='player-hit'&&e.bloodColor==='red'));
+  const purpleRig=rig();
+  fight(purpleRig,20000,s=>s.hitFx.some(fx=>fx.bloodColor==='purple')||s.status==='defeated');
+  assert.notEqual(purpleRig.view().status,'defeated');
+  const purple=purpleRig.view().hitFx.find(fx=>fx.bloodColor==='purple');assert(purple);
+  assert.equal(purple.bloodHex,'#b374ed');assert.equal(purple.particles.length,8);
+  const guarded=rig();engage(guarded);guarded.run(1000,{guard:{held:true}});
+  assert.equal(guarded.view().player.hp,100);
+  assert(!guarded.events.some(e=>e.type==='player-hit'));
+  assert(!guarded.view().hitFx.some(fx=>fx.bloodColor==='red'),'blocks and parries do not pretend to bleed');
+  for(const fx of r.view().hitFx)for(const particle of fx.particles){
+    assert(Number.isFinite(particle.x)&&Number.isFinite(particle.laneY)&&particle.elevation>=0);
+  }
+});
+
+check('actual stride direction and stationary age survive stops, hurt and defensive reads',()=>{
+  const r=rig(120),motion=()=>r.view().player.animation.motion;
+  const fresh=motion();assert.equal(fresh.wasMoving,false);assert.equal(fresh.strideRatio,0);
+  assert.equal(fresh.settleAgeMs,0);
+  assert.deepEqual(plain(fresh.feet),{front:{x:25,y:0},rear:{x:-23,y:0}});
+  assert(r.view().enemies.every(e=>!e.animation.motion.wasMoving));
+  r.run(100);assert.equal(motion().settleAgeMs,0,'never-moving actors have no invented stop');
+  r.run(100,{move_x:1});assert.equal(motion().strideRatio,1);assert(motion().wasMoving);
+  r.run(50,{move_x:-1,guard:{held:true}});
+  assert.equal(r.view().player.facing,-1,'guard retains the existing facing-follow-input behavior');
+  assert.equal(motion().strideRatio,1,'reduced guard mobility records its actual local direction');
+  r.run(50,{move_x:-1});assert.equal(r.view().player.facing,-1);
+  assert.equal(motion().strideRatio,1,'normal reversal follows the new local forward axis');
+  r.run(50,{move_x:1,move_y:1});
+  const diagonal=motion(),expected=diagonal.vx*r.view().player.facing/Math.hypot(diagonal.vx,diagonal.laneVelocity*.75);
+  assert(Math.abs(diagonal.strideRatio-expected)<1e-12&&diagonal.strideRatio<1);
+  const phase=diagonal.stridePhase,ratio=diagonal.strideRatio;
+  r.step();assert.equal(motion().settleAgeMs,0,'first actual stationary tick is the stop origin');
+  r.run(100);assert(Math.abs(motion().settleAgeMs-100)<1e-8);
+  assert.equal(motion().stridePhase,phase);assert.equal(motion().strideRatio,ratio);
+  const snapshot=r.view();snapshot.player.animation.motion.strideRatio=999;
+  snapshot.player.animation.motion.settleAgeMs=-999;snapshot.player.animation.motion.wasMoving=false;
+  const frontX=motion().feet.front.x;snapshot.player.animation.motion.feet.front.x=999;
+  assert.equal(motion().feet.front.x,frontX,'rendered foot targets are defensive snapshots');
+  assert.equal(motion().strideRatio,ratio);assert(motion().wasMoving);assert(motion().settleAgeMs>=100-1e-8);
+  r.run(50,{move_y:-1});assert.equal(motion().strideRatio,0,'lane-only stepping is real travel with zero horizontal ratio');
+  assert.equal(motion().settleAgeMs,0);assert(motion().wasMoving);
+  const lanePhase=motion().stridePhase;r.step();r.step();
+  assert.equal(motion().stridePhase,lanePhase);assert(Math.abs(motion().settleAgeMs-r.dt)<1e-8);
+
+  const hurt=rig(120);engage(hurt);
+  assert(hurt.view().enemies.some(e=>e.animation.motion.wasMoving),'approaching aliens report actual movement');
+  hurt.until(s=>s.player.hp<100,{},12000);
+  hurt.until(s=>Math.abs(s.player.animation.motion.vx)>.01,{},100);
+  let hm=hurt.view().player.animation.motion;
+  assert(hm.wasMoving&&hm.strideRatio<0,'actual knockback records a backward local stride');
+  assert.equal(hm.settleAgeMs,0);
+  hurt.until(s=>s.player.animation.motion.speed<=.01,{},500);
+  hm=hurt.view().player.animation.motion;assert.equal(hm.settleAgeMs,0);
+  hurt.run(50);assert(Math.abs(hurt.view().player.animation.motion.settleAgeMs-50)<1e-8);
+  const reset=hurt.game.retry();
+  assert.equal(reset.player.animation.motion.wasMoving,false);assert.equal(reset.player.animation.motion.strideRatio,0);
+  assert.equal(reset.player.animation.motion.settleAgeMs,0);
+  assert.deepEqual(plain(reset.player.animation.motion.feet),{front:{x:25,y:0},rear:{x:-23,y:0}});
+  assert(reset.enemies.every(e=>!e.animation.motion.wasMoving&&e.animation.motion.settleAgeMs===0));
+});
+
+check('resume and real reversal capture the previous fixed motion sample at multiple phases',()=>{
+  for(const duration of [50,100,175,225])for(const direction of [{move_x:1},{move_y:1},{move_x:1,move_y:-1}]){
+    const r=rig(120),read=()=>r.view().player.animation.motion;
+    const initial=read();assert.equal(initial.moveAgeMs,0);assert.equal(initial.fromMoving,false);
+    assert.equal(initial.fromStopAgeMs,240,'never-moved source is the neutral pose');
+    r.game.handleInput(direction);assert.deepEqual(plain(read()),plain(initial),'input setters do not invent a motion transition');
+    r.game.update(r.dt);r.events.push(...r.game.drainEvents());
+    assert.equal(read().moveAgeMs,0);assert.equal(read().fromMoving,false);assert.equal(read().fromStopAgeMs,240);
+    assert.deepEqual(plain(read().feet),plain(initial.feet),'start begins at the actual standing targets');
+    r.run(duration,direction);assert(read().moveAgeMs>0);
+    const forward=read(),back=Object.fromEntries(Object.entries(direction).map(([key,value])=>[key,-value]));
+    r.step(back);let changed=read();
+    assert.equal(changed.moveAgeMs,0);assert.equal(changed.fromMoving,true);
+    assert.equal(changed.fromStridePhase,forward.stridePhase);assert.equal(changed.fromStrideRatio,forward.strideRatio);
+    assert.deepEqual(plain(changed.feet),plain(forward.feet),'reversal begins at current blended targets');
+    r.step(back);assert(Math.abs(read().moveAgeMs-r.dt)<1e-8);
+    const lastMove=read();r.step();assert.equal(read().settleAgeMs,0);
+    assert.deepEqual(plain(read().feet),plain(lastMove.feet),'first stop retains exact targets even within a start blend');
+    r.run(50);const stopped=read();assert.equal(stopped.stridePhase,lastMove.stridePhase);
+    r.step(direction);changed=read();
+    assert.equal(changed.moveAgeMs,0);assert.equal(changed.fromMoving,false);
+    assert.equal(changed.fromStopAgeMs,stopped.settleAgeMs);
+    assert.equal(changed.fromStridePhase,stopped.stridePhase);assert.equal(changed.fromStrideRatio,stopped.strideRatio);
+    assert.deepEqual(plain(changed.feet),plain(stopped.feet),'interrupted settle resumes from its current two vectors');
+    const copy=r.view();copy.player.animation.motion.fromStridePhase=999;copy.player.animation.motion.fromStopAgeMs=-999;
+    assert.equal(read().fromStridePhase,stopped.stridePhase);assert.equal(read().fromStopAgeMs,stopped.settleAgeMs);
+    r.step();r.run(275);const settled=read();r.step(direction);
+    assert.equal(read().moveAgeMs,0);assert.equal(read().fromMoving,false);
+    assert.equal(read().fromStopAgeMs,settled.settleAgeMs);assert(read().fromStopAgeMs>240);
+    assert.deepEqual(plain(read().feet),plain(settled.feet),'fully settled resume retains standing targets');
+    const reset=r.game.retry().player.animation.motion;
+    assert.equal(reset.moveAgeMs,0);assert.equal(reset.fromMoving,false);assert.equal(reset.fromStopAgeMs,240);
+    assert.equal(reset.fromStridePhase,0);assert.equal(reset.fromStrideRatio,0);
+    assert.deepEqual(plain(reset.feet),{front:{x:25,y:0},rear:{x:-23,y:0}});
+    for(const side of ['front','rear'])assert(Number.isFinite(changed.feet[side].x)&&Number.isFinite(changed.feet[side].y));
+  }
+  const interrupted=rig(120);
+  for(let n=0;n<180;n++){
+    const before=interrupted.view().player.animation.motion;
+    interrupted.step(n%6<3?{move_x:n%12<6?1:-1,move_y:n%12<6?1:-1}:{});
+    const now=interrupted.view().player.animation.motion;
+    if(now.moveAgeMs===0&&now.speed>.01||now.settleAgeMs===0&&now.speed<=.01)
+      assert.deepEqual(plain(now.feet),plain(before.feet),'arbitrary repeated interrupts preserve the immediate previous targets');
+    assert.deepEqual(Object.keys(now.feet).sort(),['front','rear']);
+    for(const p of Object.values(now.feet))assert(Number.isFinite(p.x)&&Number.isFinite(p.y)&&Math.abs(p.x)<=33.01&&p.y<=1e-7&&p.y>=-13.01,'repeated interrupts never accumulate foot lift');
   }
 });
 

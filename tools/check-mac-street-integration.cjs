@@ -56,10 +56,11 @@ class Element extends EventTarget {
   getBoundingClientRect() { return {left: 20, top: 600, width: 140, height: 140, right: 160, bottom: 740}; }
 }
 function rig({touch = false, initAudio} = {}) {
-  const work = {raf: 0, timers: 0, intervals: 0, canvases: 0, writes: [], profiles: [], audio: []};
+  const work = {raf: 0, timers: 0, intervals: 0, canvases: 0, writes: [], profiles: [], audio: [], decoded: [], partDraws: {}};
   let now = 1000, nextRaf = 0; const scheduled = new Map(), pads = [];
   const doc = new EventTarget(); doc.readyState = 'loading'; doc.hidden = false;
   const ctx = canvas => new Proxy({canvas, measureText: text => ({width: String(text).length * 12}),
+    drawImage(image, ...args) { if (args.length === 8 && image.src?.startsWith('assets/mac-combat-rigs/')) work.partDraws[image.src] = (work.partDraws[image.src] || 0) + 1; },
     getTransform: () => ({a: 1, b: 0, c: 0, d: 1, e: 0, f: 0})}, {get(obj, key) { return key in obj ? obj[key] : () => {}; }});
   doc.createElement = tag => { const e = new Element(tag, doc); if (tag === 'canvas') { work.canvases++; e.getContext = () => e.context ||= ctx(e); } return e; };
   doc.documentElement = doc.createElement('html'); doc.body = doc.createElement('body'); doc.body.parentNode = doc;
@@ -82,6 +83,7 @@ function rig({touch = false, initAudio} = {}) {
     setTimeout() { work.timers++; throw Error('Unexpected timer owner in preview integration'); }, clearTimeout() {},
     setInterval() { work.intervals++; throw Error('Unexpected interval owner in preview integration'); }, clearInterval() {},
     Image: class {async decode() {
+      work.decoded.push(this.src);
       const data = fs.readFileSync(path.join(root, this.src));
       if (data.subarray(1, 4).toString() === 'PNG') {
         this.width = data.readUInt32BE(16); this.height = data.readUInt32BE(20); return;
@@ -116,7 +118,7 @@ function rig({touch = false, initAudio} = {}) {
   B.Campaign = {resetSession() { assert.fail('Private preview must not initialize a campaign'); }, syncTitleButton() {}};
   B.LoreRecords = {catalog: [], getCatalog: () => [], chapters: () => []};
   load('src/game/pause-menu.js'); load('src/core/runtime-lifecycle.js'); load('src/core/loop.js');
-  load('src/game/mac-street-combat.js'); load('src/game/mac-street-story.js'); load('src/game/mac-combat-preview.js');
+  load('src/game/mac-street-combat.js'); load('src/game/mac-street-story.js'); load('src/game/mac-combat-animation.js'); load('src/game/mac-combat-preview.js');
   const manager = win.inputManager = new win.InputManager();
   doc.readyState = 'complete'; load('src/core/touch-controls.js');
   const globalListeners = () => [...win.listeners.values(), ...doc.listeners.values()].reduce((sum, items) => sum + items.length, 0);
@@ -138,6 +140,7 @@ function rig({touch = false, initAudio} = {}) {
   return r;
 }
 const settle = async () => { for (let n = 0; n < 12; n++) await Promise.resolve(); };
+const workUnusedAtlases = paths => paths.every(file => !/mac-poses-v3\.png|mac-attacks-v4\.png|mac-city-review\/(?:chitin_scuttler|psion_lancer|bile_spitter|prism_guard|rift_stalker|shock_mantid|null_regent)-.*\.png/.test(file));
 const pressKey = (r, key) => { r.key('keydown', key); r.frame(); r.key('keyup', key); };
 async function fightRoute(r) {
   const actionInput = r.manager.actionInput;
@@ -191,6 +194,8 @@ async function run() {
     assert.equal(r.scheduled.size, 1); assert.deepEqual(plain(input.keyboardBindings.jump), [' ']);
     assert.equal(r.work.canvases, 1, 'Mac prepare/enter creates no canvas'); assert.equal(r.work.timers, 0); assert.equal(r.work.intervals, 0);
     r.run(200); assert.equal(r.globalListeners(), listeners);
+    assert.equal(r.B.MacCombatPreview.rigArt.size, 8, 'Exactly one native articulated sheet per character is resident');
+    assert(workUnusedAtlases(r.work.decoded), 'Retained historical pose atlases are not decoded by the new combat renderer');
     await r.B.MacCombatPreview.exit(); assert.equal(r.scheduled.size, 0); assert.equal(r.B.RuntimeLifecycle.getState(), 'idle');
     assert.equal(r.B.MacCombatPreview.active, false); assert.deepEqual(plain(input.keyboardBindings), original);
     assert.deepEqual(r.work.writes, []); assert.equal(r.doc.getElementById('startOverlay').classList.contains('hidden'), false);
@@ -222,6 +227,22 @@ async function run() {
     r.key('keydown', 'ArrowUp'); r.run(150); r.key('keyup', 'ArrowUp'); assert(p().laneY < lane); assert.equal(p().elevation, 0);
     pressKey(r, ' '); assert(p().elevation > 0); r.run(800); pressKey(r, 'j'); assert.equal(p().attack.step, 1);
     await r.B.MacCombatPreview.exit(); assert(r.manager.actionInput.keyboardBindings.jump.includes('w'));
+  });
+  await check('phone Strike advertises and performs moving and aerial attacks through shared controls', async () => {
+    const r = rig({touch: true}); await r.start(); r.manager.touchCommand('mac:skip');
+    const t=r.B.TouchControls,stick=t.joystick;
+    r.pointer(stick,'pointerdown',11);r.pointer(stick,'pointermove',11,130,670);r.run(50);
+    assert.match(r.button('road_attack').textContent,/Step Strike/);
+    r.pointer(r.button('road_attack'),'pointerdown',12);r.frame();
+    assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.attack.kind,'step-strike');
+    r.pointer(r.button('road_attack'),'pointerup',12);r.pointer(stick,'pointercancel',11);r.run(650);
+    r.pointer(r.button('jump'),'pointerdown',13);r.frame();r.pointer(r.button('jump'),'pointerup',13);r.run(50);
+    assert.match(r.button('road_attack').textContent,/Air Kick/);
+    r.pointer(r.button('road_attack'),'pointerdown',14);r.frame();
+    assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.attack.kind,'air-kick');
+    r.pointer(r.button('road_attack'),'pointerup',14);r.run(150);
+    assert(r.work.partDraws['assets/mac-combat-rigs/mac-modem-v2.png']>0,'Actual shared frame draws articulated Mac parts');
+    await r.B.MacCombatPreview.exit();assert.equal(r.B.MacCombatPreview.rigArt.size,0);assert.deepEqual(r.work.writes,[]);
   });
   await check('optional opening choice has explicit keyboard and remapped controller Continue without selecting an answer', async () => {
     const r = rig(); await r.start(); const mac = r.B.MacCombatPreview;
