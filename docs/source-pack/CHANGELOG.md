@@ -1,5 +1,9 @@
 # Changelog
 
+## October 5, 2026 — owner likeness and whole-pose corrections
+
+Replaced the selected Cache walking artwork with full-pose v6 after arm placement and incompatible torso/feet rejections. Replaced the selected Kave scene with no-hat v3 and a fuller rounded beard; the everyday casual reference direction supersedes the cowboy costume. Preserved rejected images, intermediate v2/v5 and exact generation/reference chains. Updated only runtime art path strings, exact-eight builder/checker asset lists, gallery/manifest/status records, and narrowly scoped recovery reference retention for JPEG/AVIF. No combat, input, story text, save behavior, original asset or derivative texture changes.
+
 ## October 5, 2026 — approved story and private Mac street slice
 
 The owner approved the eight-scene Level 2-to-3 script and Mac's recovered-model v2 hero. The owner requested clearer Kave photographs and replaced Cache's cockpit proposal with a confident walk toward the yellow car, keys in hand, immediately before the preserved final car shot. New reference photos come from Kave's artist-managed profile and his own official performance video; the sources and unmodified images are in the reference gallery.

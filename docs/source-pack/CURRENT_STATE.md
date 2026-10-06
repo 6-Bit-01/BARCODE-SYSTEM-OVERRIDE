@@ -1,5 +1,9 @@
 # Current State
 
+## October 5, 2026 — owner likeness and whole-pose corrections
+
+The owner rejected the earlier Kave likeness/cowboy styling, Cache v4 arm placement, and Cache v5 body/foot direction mismatch. The private branch now selects hat-free Kave v3 with the fuller rounded beard and whole-pose Cache v6, whose head, torso, pelvis, knees and shoe toes share a rightward walk. Both hands are visible. New paintings remain review candidates; the eight-scene script and Mac hero v2 remain approved. Gameplay, dialogue, saves, final Cache car shot, original bank and derivative bank are unchanged. Owner acceptance of these two paintings remains pending. The exact source export, private hosted revision and focused checks are recorded in the external correction receipts and source PR189 / website PR485.
+
 ## October 5, 2026 — approved story and private Mac street slice
 
 The owner approved the eight-scene Level 2-to-3 script and Mac's recovered-model v2 hero. The owner requested clearer Kave photographs and replaced Cache's cockpit proposal with a confident walk toward the yellow car, keys in hand, immediately before the preserved final car shot. New reference photos come from Kave's artist-managed profile and his own official performance video; the sources and unmodified images are in the reference gallery.

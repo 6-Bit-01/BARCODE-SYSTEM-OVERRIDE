@@ -10,16 +10,16 @@
   "originalsPreserved": true,
   "candidateIds": [
     "mac-poses-v3",
-    "cache-walk-to-car-v4",
     "street-panorama-v1",
-    "scene03-kave-dead-air-v1",
     "scene05-margin-note-v1",
     "scene06-record-straight-v1"
   ],
   "rejectedOrSupersededIds": [
     "mac-poses-v1",
     "mac-poses-v2",
-    "cache-walk-to-car-v3"
+    "cache-walk-to-car-v3",
+    "cache-walk-to-car-v4",
+    "scene03-kave-dead-air-v1"
   ],
   "rendererMetadata": "docs/source-pack/review-mac-street-art/mac-poses-v3-frames.json",
   "referencePrinciple": "Supplied canonical character models govern identity; current art governs style/location/props. Kave final likeness pending owner review, based on verified first-party photos/video. No inference of real venue ownership.",
@@ -346,7 +346,7 @@
     },
     {
       "id": "cache-walk-to-car-v4",
-      "path": "assets/mac-street-review/cache-walk-to-car-v4.png",
+      "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v4.png",
       "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-66461160-06f6-48d3-a44f-edeaaeb6d849.png",
       "tool": "image_gen.imagegen (built-in)",
       "toolArguments": {
@@ -385,7 +385,7 @@
           }
         }
       ],
-      "status": "candidate-owner-review",
+      "status": "owner-rejected-arm-behind-back",
       "acceptedForRuntime": false,
       "visualReview": "Three-quarter stride toward left driver door, confident glance back, visible key ring leading hand, original cassette secured under opposite arm. Same parked yellow archive hatchback/recorder/two rear reels and wet garage street. Candidate replaces old ignition illustration; original final car shot unchanged.",
       "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
@@ -400,7 +400,9 @@
       },
       "originalGeneratedSha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe",
       "originalGeneratedBytes": 2812836,
-      "originalCopyVerified": true
+      "originalCopyVerified": true,
+      "originalProjectPathAtGeneration": "assets/mac-street-review/cache-walk-to-car-v4.png",
+      "relocation": "Moved unchanged out of runtime assets after explicit owner rejection."
     },
     {
       "id": "street-panorama-v1",
@@ -617,7 +619,7 @@
     },
     {
       "id": "scene03-kave-dead-air-v1",
-      "path": "assets/mac-street-review/scene03-kave-dead-air-v1.png",
+      "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v1.png",
       "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-a4a73dca-b7fc-451f-b215-0974a8861b43.png",
       "tool": "image_gen.imagegen (built-in)",
       "toolArguments": {
@@ -697,7 +699,7 @@
           }
         }
       ],
-      "status": "candidate-likeness-owner-review",
+      "status": "owner-rejected-incorrect-likeness-and-costume",
       "acceptedForRuntime": false,
       "visualReview": "Face follows verified artist-managed frontal photo and official video outfit. Same red-brick/teal-awning/magenta-edge review desk at night; Kave alone physically present. Fictional music-review host, no venue-ownership claim. Outbound amber trace is low activity rather than perfectly flat; runtime supplies held status. Final likeness/geography/prop review remains pending.",
       "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
@@ -712,7 +714,9 @@
       },
       "originalGeneratedSha256": "f74ac5197495069502f519f5ef46a916246b3f90e9baa7b6b80c415a85b19fb5",
       "originalGeneratedBytes": 2831184,
-      "originalCopyVerified": true
+      "originalCopyVerified": true,
+      "originalProjectPathAtGeneration": "assets/mac-street-review/scene03-kave-dead-air-v1.png",
+      "relocation": "Moved unchanged out of runtime assets after explicit owner rejection."
     }
   ],
   "rendererMetadataSha256": "c0ca5d04f98a7e9de420f65342fea64ac9277a5c020ae76999167e010bcf7841",
@@ -733,11 +737,11 @@
     }
   ],
   "runtimeAssetInventory": [
-    "cache-walk-to-car-v4.png",
+    "cache-walk-to-car-v6.png",
     "mac-hero-v2.png",
     "mac-poses-v3-frames.json",
     "mac-poses-v3.png",
-    "scene03-kave-dead-air-v1.png",
+    "scene03-kave-dead-air-v3.png",
     "scene05-margin-note-v1.png",
     "scene06-record-straight-v1.png",
     "street-panorama-v1.png"
@@ -753,5 +757,7 @@
     "rendererMetadataCopyMatches": true,
     "rejectedCandidatesOnlyUnderDocumentation": true,
     "scope": "Asset and provenance validation only; runtime registration, performance and owner acceptance are separate root-owned checks."
-  }
+  },
+  "ownerCorrectionsAddendum": "docs/source-pack/review-mac-street-art/owner-corrections-provenance.json",
+  "updatedForOwnerCorrectionsAtUtc": "2026-10-06T03:59:31.116Z"
 }

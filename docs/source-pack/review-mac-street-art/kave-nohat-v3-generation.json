@@ -1,0 +1,15 @@
+{
+  "tool": "image_gen.imagegen",
+  "intent": "reference-grounded lower beard silhouette refinement",
+  "prompt": "Edit image 1 only with a precise likeness correction. Image 1 is the new hat-free KaveMan Brown game panel; images 2, 3, 4 are his REAL first-party face references. Preserve the face, short fade/hairline, eyebrows, eyelids, nose, mouth, skin tone, clothing, pose, hands, chain and triangle pendant, room and wide composition. Change ONLY the lower beard silhouette and density so it matches the real Kave. The current drawing narrows into a pointed triangular chin beard; his real beard in the sharp selfie image 2, the RIGHT portrait in Instagram image 3, and frontal image 4 is fuller across the bottom and lower jaw, with a broad rounded lower edge. Give the lower beard that broader, denser, softly rounded rectangular shape, following his real cheek/jaw growth and with natural black textured hair; avoid a long narrow point, stylized goatee or exaggerated width. Keep it clearly the same real person, with no other facial change. NO HAT, no cowboy clothing. Hood stays down, cropped black hair stays visible. Everything else in image 1 remains unchanged, especially the exact room, monitor waveforms, microphone, desk, hands, light and inky comic detail. Same wide landscape panel.",
+  "referenced_image_paths": [
+    "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/kave-nohat/scene03-kave-dead-air-v2.png",
+    "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/instagram-candidates/linktree-tiktok-feature-source.jpg",
+    "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/instagram-candidates/public-browser-0-image-6.jpg",
+    "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/root-candidates/kave-soundcloud-profile-1080.jpg"
+  ],
+  "transparent_background": false,
+  "original_output": "C:/Users/jondh/.codex/generated_images/01a1033a-c1a6-7aa0-9ce9-295e72ae3419/exec-138771b2-3787-4cbf-b787-d9fcfc4b6c38.png",
+  "workspace_output": "verification/kave-likeness-20261005/kave-nohat/scene03-kave-dead-air-v3.png",
+  "ownerAccepted": false
+}

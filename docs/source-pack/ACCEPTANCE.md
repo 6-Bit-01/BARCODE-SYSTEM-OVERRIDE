@@ -1,5 +1,9 @@
 # Acceptance and Test Status
 
+## October 5, 2026 — owner likeness and whole-pose corrections
+
+Cache v4 and v5 and Kave v1 are explicitly owner-rejected and preserved under review-mac-street-art/candidates. Independent visual audit supports Cache v6 direction/hands and Kave v3 hat-free face/beard, but new artwork and gameplay still await owner review. The prior 57f6698 local/full/browser/hosted passes describe the previous snapshot, not these uncommitted artwork bytes. This correction receives focused story/integration/bridge/syntax and exact file/policy checks; physical-device performance, new full browser playthrough and final soundtrack acceptance are not claimed.
+
 ## October 5, 2026 — approved story and private Mac street slice
 
 The owner approved the eight-scene Level 2-to-3 script and Mac's recovered-model v2 hero. The owner requested clearer Kave photographs and replaced Cache's cockpit proposal with a confident walk toward the yellow car, keys in hand, immediately before the preserved final car shot. New reference photos come from Kave's artist-managed profile and his own official performance video; the sources and unmodified images are in the reference gallery.

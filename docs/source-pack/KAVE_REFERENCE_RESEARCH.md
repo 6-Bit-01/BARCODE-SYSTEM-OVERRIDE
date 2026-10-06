@@ -1,4 +1,46 @@
-# Kaveman Brown — public reference research
+# Kaveman Brown — current real-photo reference set
+
+Research date: October 5, 2026. The owner rejected the previous cowboy/wide-brim likeness and requested clear real TikTok/Instagram references with no hat. That illustration direction is retired. The eight-scene writing is approved separately; the replacement Kave illustration remains a candidate awaiting owner likeness review. No outreach or account sign-in occurred.
+
+## Current selection after the owner's correction
+
+The [reference gallery](KAVE_REFERENCE_REVIEW.html) now leads with actual inspected photos/post frames, not a generated character model. Use the sharp Linktree selfie and current frontal TikTok face for identity, then the uncovered head and broader beard in the exact Instagram post. The source selfie has a baseball cap: it is a facial/jewelry input, not a hat or costume recommendation.
+
+The requested cameo has **no hat, short fade, hood down, a black short-sleeved top, a broader shaped beard, triangular pendant and small ear stud**. Those art decisions are adapted from complementary references; no single photo establishes an approved complete costume. Do not narrow the beard into a different facial model.
+
+| Input | Preserved dimensions / format | Primary source and inspected purpose |
+|---|---|---|
+| [Sharp facial selfie](review-kave-likeness/references/kave-linktree-selfie-990.jpg) | 990 × 990 JPEG, native bytes | [Own Linktree](https://linktr.ee/kavemanbrown), TikTok-feature card. Clear eyes, brows, nose, broad shaped beard and triangular pendant. Baseball cap present; exclude it from the cameo. |
+| [Frontal TikTok expression](review-kave-likeness/references/kave-7688807440946580749-decoded.png) | 405 × 720 PNG; paired native AVIF | [Actual own post](https://www.tiktok.com/@kavemanbrown/video/7688807440946580749). No hat, exposed forehead/hairline, black short-sleeved hooded top and open-mouth speaking expression. Hood is raised in source, lowered in the requested game look. |
+| [Uncovered-head Instagram poster](review-kave-likeness/references/kave-instagram-nohat-two-panel-361.jpg) | 361 × 640 JPEG, native reel poster | [Own reel, July 13, 2026](https://www.instagram.com/kavemanbrown/reel/Dawa0xbRk1y/). Both panels show Kave; uncovered hairline and beard breadth, especially the right panel. Exact permalink observed on the public profile DOM. Small poster, not a full-resolution portrait. |
+| [Daylight three-quarter TikTok view](review-kave-likeness/references/kave-7638429516762778894-decoded.png) | 540 × 720 PNG; paired native AVIF | [Actual own post](https://www.tiktok.com/@kavemanbrown/video/7638429516762778894). **Kave is left in red**, no hat, exposed scalp and daylight facial angle. Right participant Seth Anthony is excluded. |
+| [Supplementary TikTok expression](review-kave-likeness/references/kave-7689561967853358350-decoded.png) | 405 × 720 PNG; paired native AVIF | [Actual own post](https://www.tiktok.com/@kavemanbrown/video/7689561967853358350). **Kave is left in blue**, no hat, exposed scalp and low facial angle. Right participant Ekoh is excluded. Smaller face; supporting input only. |
+| [Black KAVEMAN tee frame](review-kave-likeness/references/kave-instagram-kaveman-tee-frame-480.png) | 480 × 854 PNG, native decoded video frame at 3.381517 s | [Own reel](https://www.instagram.com/reel/DaN-ArkxYCl/). Foreground Kave's tee and arm proportions only. Baseball cap present; exclude cap and different background person. This is a frame, not an original photo. |
+| [Secondary car portrait](review-kave-likeness/references/kave-soundcloud-face-1080.jpg) | 1080 × 1080 JPEG, native bytes | [Own SoundCloud](https://soundcloud.com/kaveman-brown). Higher-resolution version of the same car photograph as the old 600-pixel Slaps portrait. Adds resolution, not an independent angle; hood up is not a costume lock. |
+
+## Identity, preservation and limits
+
+- [His own Linktree](https://linktr.ee/kavemanbrown) links [TikTok @kavemanbrown](https://www.tiktok.com/@kavemanbrown) and [Instagram @kavemanbrown](https://www.instagram.com/kavemanbrown/). The live TikTok profile links back to the same hub and advertises daily live music reviews. Generic same-name search results and unrelated people are excluded.
+- The exact Instagram two-panel poster permalink and July 13, 2026 attribution were observed in the public profile DOM. This corrects the earlier temporary feed-only attribution; there is no invented post URL.
+- The new [reference manifest](review-kave-likeness/references/reference-provenance.json) records all **ten image files**: seven displayed references and the three original TikTok AVIFs, including source pages, observed asset URLs, dimensions, byte counts, SHA-256, capture types and exclusions. Originals were copied byte-for-byte from inspected research evidence.
+- The three TikTok PNGs are lossless decodes of their paired AVIFs. Dimensions, image mode and decoded pixel bytes match exactly; file hashes differ by encoding. No resizing, cropping, retouching, color change or upscaling was performed.
+- The Instagram clothing PNG is an unedited native decoded video frame at the stated timestamp. Native Instagram poster and Linktree/SoundCloud JPEGs are retained unchanged. A browser screenshot is not described as a native photo.
+- Selected public profile images and own posts were inspected. This is **not complete Instagram or TikTok coverage**, a verified photo-shoot date, a current everyday clothing claim, or acceptance of the generated likeness.
+- TikTok's web fetch was blocked by robots; its public browser profile/posts were available. A welcome overlay and terms bar remained untouched after an automatic approval-review rejection of a coordinate close. No terms agreement or sign-in was performed. Public observed cover assets were preserved read-only; browser blobs or hidden APIs were not extracted.
+
+Working receipts, preserved in the project root: `verification/kave-likeness-20261005/tiktok-candidates/native-asset-provenance.json`, `instagram-candidates/secondary-retrieval-receipt.json`, `instagram-candidates/native-frame-receipt.json`, and `instagram-candidates/profile-links-browser-receipt.json`. The portable selected manifest carries their source facts beside the retained images.
+
+## Current story/art distinction
+
+Kave remains the helpful Kaveman Radio music-review desk cameo in the approved transition writing: the submission queue is full, local monitoring works, and the outbound feed is blocked. Mac restores that street distribution route. This is a fictional adaptation of Kave's public music-review role, not a claim of real venue ownership. See [BROADCAST_SLUM_STORY_PRODUCTION.md](BROADCAST_SLUM_STORY_PRODUCTION.md).
+
+`assets/mac-street-review/scene03-kave-dead-air-v3.png` is the proposed no-hat replacement being integrated by the parent task. Its final face, beard, desk staging and props require owner review. Reference discovery, approved writing, private gameplay implementation and illustrated likeness acceptance are separate states.
+
+## Retired research history — superseded direction
+
+**Everything below is retained as historical evidence from the earlier passes. Its wide-brim/cowboy production recommendations are rejected and must not guide current artwork.** Earlier statements that no individual Instagram/TikTok posts had been inspected describe those earlier passes only; the current selection above supersedes them. Historical source links/receipts are preserved, while the main gallery contains no cowboy images.
+
+### Earlier research text (unchanged historical record)
 
 Research date: October 5, 2026. This is a production reference sheet, not an approved game model or a shipped cameo. No person was contacted. The owner requested better photographs after the first pass; the second pass preserves two inspected production references for illustration input, with source provenance below. Final Kave likeness remains pending owner art review.
 

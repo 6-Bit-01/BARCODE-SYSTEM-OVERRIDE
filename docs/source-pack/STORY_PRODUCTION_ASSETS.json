@@ -119,18 +119,19 @@
       ],
       "existingPainting": null,
       "productionArt": {
-        "status": "new-art-candidate-installed-private-review",
-        "path": "assets/mac-street-review/scene03-kave-dead-air-v1.png",
-        "sha256": "f74ac5197495069502f519f5ef46a916246b3f90e9baa7b6b80c415a85b19fb5",
-        "runtimePath": "assets/mac-street-review/scene03-kave-dead-air-v1.png",
+        "status": "corrected-no-hat-v3-installed-private-art-review",
+        "path": "assets/mac-street-review/scene03-kave-dead-air-v3.png",
+        "sha256": "babff824674c90b76fb08a0bfe3cfb5720bc314d1dd391fbc4e5ba84dea7b738",
+        "runtimePath": "assets/mac-street-review/scene03-kave-dead-air-v3.png",
         "acceptedForRuntime": false,
-        "bytes": 2831184,
-        "dimensions": [
-          1860,
-          845
-        ],
+        "bytes": 2516405,
+        "dimensions": {
+          "width": 1860,
+          "height": 845,
+          "format": "PNG"
+        },
         "integrationStatus": "private-preview-implemented",
-        "generationProvenance": "docs/source-pack/review-mac-street-art/generation-provenance.json"
+        "generationProvenance": "docs/source-pack/review-mac-street-art/owner-corrections-provenance.json"
       },
       "dependencyIds": [
         "kave-venue-scene",
@@ -597,7 +598,7 @@
       "requiredFinalScene": false,
       "currentRuntimePath": "assets/cache-bridge/bridge-07-ignition.webp",
       "currentLimitation": "Replace the current already-inside ignition art with Cache approaching the car; preserve the separate current final rear-car shot.",
-      "assetId": "cache-hero-approach-v4",
+      "assetId": "cache-hero-approach-v6",
       "requiredHeroScene": true,
       "placement": "penultimate",
       "plannedSceneCount": 8,
@@ -605,7 +606,7 @@
       "preserveCurrentFinalArtwork": true,
       "retainedFinalRuntimePath": "assets/cache-bridge/bridge-08-cache-line.webp",
       "legacyPageIndex": 6,
-      "privatePreviewRuntimePath": "assets/mac-street-review/cache-walk-to-car-v4.png",
+      "privatePreviewRuntimePath": "assets/mac-street-review/cache-walk-to-car-v6.png",
       "integrationStatus": "private-preview-implemented"
     },
     {
@@ -649,7 +650,7 @@
       "generationProvenance": "docs/source-pack/review-level3-story/generation-provenance.json",
       "generator": "image_gen.imagegen (built-in)",
       "generationProvenanceEntryId": "hero.cache.v2",
-      "supersededByAssetId": "cache-hero-approach-v4",
+      "supersededByAssetId": "cache-hero-approach-v6",
       "ownerArtApproved": false
     },
     {
@@ -685,11 +686,11 @@
       "runtimePath": "assets/mac-street-review/mac-hero-v2.png"
     },
     {
-      "assetId": "cache-hero-approach-v4",
+      "assetId": "cache-hero-approach-v6",
       "sceneId": "cutscene.cache-bridge.ignition",
       "purpose": "Owner-directed visible Cache hero panel immediately before the preserved cache-line final car shot.",
-      "shot": "Cache walking toward the established yellow car with keys visibly and naturally held; confident mission-ready presence.",
-      "poseAction": "Distinct badass walking approach; retain supplied Cache identity and established costume.",
+      "shot": "Natural near-profile walk toward the established yellow driver door; head, torso, pelvis, knees and both shoe toes align right. Both hands visible; keys forward and protected original across front abdomen.",
+      "poseAction": "Entire pose replaced after arm-placement and direction rejections; no look-back twist or preserved mismatched legs.",
       "placement": "revised-penultimate-panel-of-eight",
       "continuityBefore": "Cache approaches the established car with keys and the protected original; replaces the prior already-inside ignition beat.",
       "continuityAfter": "Stable cache-line final remains page index 7 with its current rear-car artwork and existing dialogue.",
@@ -699,14 +700,15 @@
         "cacheCar",
         "sixHero"
       ],
-      "originalSourcePath": "assets/mac-street-review/cache-walk-to-car-v4.png",
-      "sha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe",
-      "bytes": 2812836,
-      "dimensions": [
-        1860,
-        845
-      ],
-      "status": "new-walking-v4-installed-private-art-review",
+      "originalSourcePath": "assets/mac-street-review/cache-walk-to-car-v6.png",
+      "sha256": "dfd8d743acc68ffaf0c410a8a9397c3799ef2351b546a0e109b2a15e2cfaca8b",
+      "bytes": 2781221,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG"
+      },
+      "status": "coherent-walking-v6-installed-private-art-review",
       "contributor": null,
       "credit": "Generated scene artwork; image_gen.imagegen; reference and exact prompt provenance retained",
       "approvedForRuntime": false,
@@ -714,10 +716,22 @@
       "displayTitle": "KEYS TO THE LINE",
       "legacyPageIndex": 6,
       "audioRequirement": "No engine ignition on the walking panel; place only at the final car cue if needed.",
-      "path": "assets/mac-street-review/cache-walk-to-car-v4.png",
-      "runtimePath": "assets/mac-street-review/cache-walk-to-car-v4.png",
-      "generationProvenance": "docs/source-pack/review-mac-street-art/generation-provenance.json",
-      "integrationStatus": "private-preview-implemented"
+      "path": "assets/mac-street-review/cache-walk-to-car-v6.png",
+      "runtimePath": "assets/mac-street-review/cache-walk-to-car-v6.png",
+      "generationProvenance": "docs/source-pack/review-mac-street-art/owner-corrections-provenance.json",
+      "integrationStatus": "private-preview-implemented",
+      "supersededCandidates": [
+        {
+          "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v4.png",
+          "reason": "owner-rejected-arm-behind-back",
+          "sha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe"
+        },
+        {
+          "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v5.png",
+          "reason": "owner-rejected-body-foot-direction-mismatch",
+          "sha256": "305c89ad1eb0145e3befa8cccadab21a56350f2b808c47097e607f193fb1b6b6"
+        }
+      ]
     }
   ],
   "assetBriefTemplate": {
@@ -1079,10 +1093,72 @@
     "officialHub": "https://linktr.ee/kavemanbrown",
     "officialChannel": "https://www.youtube.com/@KaveManBrown",
     "performanceVideo": "https://www.youtube.com/watch?v=ibt4QBgZyoU",
-    "recommendedLook": "Use the clear Slaps face and actual own-video frame at 00:30, complemented by the 900-pixel channel profile; wide-brim costume and final likeness remain subject to owner art review.",
+    "recommendedLook": "Owner-directed everyday artist/music-review look: no hat, cropped fade, fuller rounded lower beard, black casual short-sleeved hoodie with hood down and geometric pendant. Selected current references are preserved locally; likeness approval remains pending.",
     "cameoProposal": "Kaveman Radio music-review host with a held outbound feed",
     "finalIllustratedModelSelected": false,
     "productionInputs": [
+      {
+        "path": "docs/source-pack/review-mac-street-art/references/kave-linktree-sharp-selfie.jpg",
+        "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/instagram-candidates/linktree-tiktok-feature-source.jpg",
+        "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+        "sha256": "5cda4f4c2836e07b3bd233d3cfd3c2017970a05e1c4f2ae5accce46bd49f6c83",
+        "bytes": 116947,
+        "dimensions": {
+          "width": 990,
+          "height": 990,
+          "format": "JPEG"
+        }
+      },
+      {
+        "path": "docs/source-pack/review-mac-street-art/references/kave-own-tiktok-frontal-inspection.png",
+        "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/tiktok-candidates/kave-7688807440946580749-inspection.png",
+        "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+        "sha256": "bf7e02847a256057ffaa64969b9f9db537d0cccc06dc9cd1e849184c6cb9994b",
+        "bytes": 197033,
+        "dimensions": {
+          "width": 405,
+          "height": 720,
+          "format": "PNG"
+        }
+      },
+      {
+        "path": "docs/source-pack/review-mac-street-art/references/kave-own-tiktok-profile-inspection.png",
+        "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/tiktok-candidates/kave-7688852422864866574-inspection.png",
+        "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+        "sha256": "85215b8aeb1eab0c56d3858b54b28ddfb1f4467abf408aaf0576ff1d49cd8c7d",
+        "bytes": 298479,
+        "dimensions": {
+          "width": 405,
+          "height": 720,
+          "format": "PNG"
+        }
+      },
+      {
+        "path": "docs/source-pack/review-mac-street-art/references/kave-soundcloud-profile-1080.jpg",
+        "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/root-candidates/kave-soundcloud-profile-1080.jpg",
+        "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+        "sha256": "aa177988d38db7dbd4cca7fbf998d8c8a1a1568525d4759152c15caf42bf15c3",
+        "bytes": 156083,
+        "dimensions": {
+          "width": 1080,
+          "height": 1080,
+          "format": "JPEG"
+        }
+      },
+      {
+        "path": "docs/source-pack/review-mac-street-art/references/kave-own-instagram-body-beard-reference.jpg",
+        "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/instagram-candidates/public-browser-0-image-6.jpg",
+        "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+        "sha256": "5d0ad098947abe3411fd6aab1d790b4e09b1410ee8deface7cf3551dd66f3144",
+        "bytes": 23270,
+        "dimensions": {
+          "width": 361,
+          "height": 640,
+          "format": "JPEG"
+        }
+      }
+    ],
+    "historicalProductionInputs": [
       {
         "id": "kave-slaps-frontal-600",
         "sourcePage": "https://slaps.com/user/KaveManBrown",
@@ -1115,12 +1191,14 @@
     "macHeroV2": "owner-approved-artwork",
     "cacheHeroV2": "not-selected-preserved-historical-candidate",
     "cacheWalkingHeroV3": "superseded-stride-candidate-preserved-in-provenance",
-    "kaveLikeness": "improved-first-party-inputs-used-new-illustration-pending-owner-art-review",
+    "kaveLikeness": "no-hat-casual-v3-with-rounded-beard-pending-owner-likeness-review",
     "privatePreviewImplementation": "implemented-validation-and-owner-playtest-pending",
     "gameplayAcceptance": "pending-owner-playtest",
     "fullLevel3CampaignIntegration": "future-work",
     "newPreviewPublished": false,
-    "cacheWalkingHeroV4": "new-owner-directed-candidate-pending-art-review"
+    "cacheWalkingHeroV4": "owner-rejected-arm-placement-preserved-as-history",
+    "cacheWalkingHeroV5": "owner-rejected-body-foot-direction-preserved-as-history",
+    "cacheWalkingHeroV6": "whole-pose-candidate-pending-owner-art-review"
   },
   "cacheBridgePlan": {
     "currentPublishedSceneCount": 8,
@@ -1148,7 +1226,7 @@
     "chronologyConstraint": "Replace the already-inside ignition beat with the walking approach. The cassette and keys remain with Cache until he reaches the established car.",
     "ignitionAudio": "Remove page-6 ignition sound; engine ignition only at the final car cue if needed.",
     "saveCompatibility": "Keep eight panels, legacy ignition page index 6, and stable cache-line final index 7 and cues; no final-page renumbering.",
-    "privatePreviewRuntimePath": "assets/mac-street-review/cache-walk-to-car-v4.png",
+    "privatePreviewRuntimePath": "assets/mac-street-review/cache-walk-to-car-v6.png",
     "integrationStatus": "private-preview-implemented"
   },
   "sceneConsistencyChecklist": [
@@ -1176,6 +1254,7 @@
       "src/game/mac-combat-preview.js"
     ],
     "provenance": "docs/source-pack/review-mac-street-art/generation-provenance.json",
-    "poseRegistration": "assets/mac-street-review/mac-poses-v3-frames.json"
+    "poseRegistration": "assets/mac-street-review/mac-poses-v3-frames.json",
+    "artCorrectionProvenance": "docs/source-pack/review-mac-street-art/owner-corrections-provenance.json"
   }
 }

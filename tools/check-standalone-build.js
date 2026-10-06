@@ -31,8 +31,8 @@ const originalAssetInventorySHA256 = '0b2ac58dc88ddb68b595fb8592d242d8478c426d78
 // These eight siblings extend the package; they never replace the sealed bank.
 const macReviewRoot = 'assets/mac-street-review/';
 const macReviewAssets = new Set([
-  'cache-walk-to-car-v4.png', 'mac-hero-v2.png', 'mac-poses-v3-frames.json', 'mac-poses-v3.png',
-  'scene03-kave-dead-air-v1.png', 'scene05-margin-note-v1.png',
+  'cache-walk-to-car-v6.png', 'mac-hero-v2.png', 'mac-poses-v3-frames.json', 'mac-poses-v3.png',
+  'scene03-kave-dead-air-v3.png', 'scene05-margin-note-v1.png',
   'scene06-record-straight-v1.png', 'street-panorama-v1.png'
 ].map(name => macReviewRoot + name));
 const encoderCommit = '4d6fc70eaf62ad0558e63e8d97eb9766118327a6';

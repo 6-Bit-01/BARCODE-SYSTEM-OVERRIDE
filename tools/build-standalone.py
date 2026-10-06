@@ -56,8 +56,8 @@ VENDOR_REFERENCES = {
 OWNER_FILE = ".standalone-build.json"
 TOOL_ID = "barcode-system-override-standalone-v1"
 MAC_REVIEW_ASSETS = {"assets/mac-street-review/" + name for name in (
-    "cache-walk-to-car-v4.png", "mac-hero-v2.png", "mac-poses-v3-frames.json", "mac-poses-v3.png",
-    "scene03-kave-dead-air-v1.png", "scene05-margin-note-v1.png", "scene06-record-straight-v1.png",
+    "cache-walk-to-car-v6.png", "mac-hero-v2.png", "mac-poses-v3-frames.json", "mac-poses-v3.png",
+    "scene03-kave-dead-air-v3.png", "scene05-margin-note-v1.png", "scene06-record-straight-v1.png",
     "street-panorama-v1.png")}
 VIEWPORT_STYLE = """<style id="standalone-viewport-style">
 /* Fit the complete native backing image; runtime owners still control display. */

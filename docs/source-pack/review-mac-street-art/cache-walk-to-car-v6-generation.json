@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "id": "cache-walk-to-car-v6",
+  "status": "whole-pose-candidate-pending-independent-and-owner-review",
+  "createdAtUtc": "2026-10-06T03:48:13.833Z",
+  "generator": "image_gen.imagegen (built-in)",
+  "callCount": 1,
+  "classification": "identity-preserve whole character pose replacement",
+  "previousCandidateRejection": {
+    "id": "cache-walk-to-car-v5",
+    "reason": "Owner rejected incompatible body and foot directions; old legs retained by the prior upper-body edit."
+  },
+  "acceptedForRuntime": false,
+  "repositoryEdited": false,
+  "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-869c6f82-3478-40a4-be3d-50079ed14167.png",
+  "projectCandidatePath": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/cache-arm-fix/cache-walk-to-car-v6.png",
+  "toolArguments": {
+    "prompt": "Use case: identity-preserve.\nAsset type: revised detailed comic game cutscene, wide landscape 1860x845 composition.\nPrimary request: In IMAGE 1, REPLACE THE ENTIRE CACHE CHARACTER from cap to both shoes with a NEW, SINGLE anatomically coherent rightward walking pose. Keep the background and yellow car unchanged. The old legs/feet and the last torso edit were rejected for pointing in different directions. DO NOT preserve any of the old character pose, limbs or shoes' angles. This must be a full character-pose replacement, not an upper-body patch.\nInput images: Image 1 is BACKGROUND/VEHICLE/STYLE only, not a pose reference. It locks the same wet avenue, left garage, night skyline, yellow car position/camera, roof recorder, two rear-window reels, stripes/emblem/tow hook/exhaust. Image 2 supplies Cache's facial identity, yellow cap, dark glasses, black tech mask/collar and yellow shirt trim only; do not copy its torso twist or camera glance.\nNEW coherent pose: Cache occupies the left foreground and walks unmistakably toward screen RIGHT, toward the visible driver door of the same car. Near SIDE PROFILE of the WHOLE body, with only slight front-quarter visibility (about 10-15 degrees) for the carried case. His cap brim, nose/mask, gaze, chest/shoulders, pelvis/hips, BOTH knees and BOTH shoe toes all point along the SAME direction to the RIGHT. Chin confidently up, eyes looking FORWARD to the car, no look-back or face turned toward the camera. Shoulder girdle and pelvis aligned along the same forward axis; no twisting between ribs and hips. Natural relaxed male walking gait, connected joints, clean full-body silhouette.\nLegs/feet are critical: construct BOTH LEGS anew. Leading leg steps gently toward screen-right, leading knee and shoe toe point RIGHT, leading heel makes grounded contact on the wet pavement. Rear leg trails to screen-left, with heel raised naturally while its forefoot remains on pavement and its toes also point RIGHT. Two realistic sneakers, same scale and correct left/right anatomy, neither foot points left, toward the viewer, or across the other leg. Both knees bend along the rightward walking direction; no crossed or reversed knees/ankles, no pigeon toes, no outward splayed soles. The whole figure could take its next step to the RIGHT naturally without rotating or untwisting.\nBoth hands and forearms must remain readable on the front/rightward side of the silhouette: one forward hand at waist level carries a small metal key ring with visible keys dangling. The other arm bends naturally across the FRONT of his abdomen to support the protected black original-recording case with yellow hazard band. Both shoulder-to-elbow-to-wrist paths plausible; forearms/hands visible, not hidden behind back, hip or torso. Case stays in front of the abdomen, never behind his back. No forceful backward elbows. Keep the arms compact enough that they do not obscure the hips or direction of the gait.\nIdentity/style invariants: same Cache in yellow cap with side flaps, dark glasses, black mechanical mask/collar, yellow short-sleeve Greek-key-trim shirt, black pants, yellow/black sneakers, protected original case. Detailed sharp painted comic ink matching IMAGE 1. Same car/garage/avenue props and wet amber/cyan/plum night lighting. No extra people, no scene redesign.\nAvoid: preserving old legs, hybrid front torso/rear legs, a front-facing chest, backward head glance, opposite-pointing feet, extreme perspective foreshortening, torso twist, extra limbs, floating/disconnected hands, impossible wrists, hidden case-holding forearm, changed vehicle geometry, mirrored car, added props, captions/text or watermarks.",
+    "referenced_image_paths": [
+      "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/cache-arm-fix/cache-walk-to-car-v5.png",
+      "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png"
+    ],
+    "transparent_background": false
+  },
+  "references": [
+    {
+      "index": 1,
+      "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/cache-arm-fix/cache-walk-to-car-v5.png",
+      "role": "Background, vehicle and style edit target only; all existing character pose expressly rejected",
+      "sha256": "305c89ad1eb0145e3befa8cccadab21a56350f2b808c47097e607f193fb1b6b6",
+      "bytes": 2778409,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 2
+      }
+    },
+    {
+      "index": 2,
+      "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png",
+      "role": "Canonical Cache identity only; torso twist and camera glance expressly excluded",
+      "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3",
+      "bytes": 7306986,
+      "dimensions": {
+        "width": 1600,
+        "height": 2848,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 6
+      }
+    }
+  ],
+  "toolOutputMetadata": {
+    "returnedFields": [
+      "image_url",
+      "output_hint"
+    ],
+    "outputHint": "Generated images are saved to C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-3f02-7590-ae8e-79bf5b15e439 as C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-3f02-7590-ae8e-79bf5b15e439\\exec-869c6f82-3478-40a4-be3d-50079ed14167.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+    "imagePayloadPreservedAs": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-869c6f82-3478-40a4-be3d-50079ed14167.png"
+  },
+  "pixelDerivation": "Original built-in generated PNG copied unchanged to versioned verification candidate; no cropping, re-encoding, pixel editing or CLI/API generation.",
+  "visualInspection": {
+    "method": "Inspected actual local output at original resolution, tracing joint connections and comparing both feet with the head/torso/pelvis heading.",
+    "entirePoseChanged": true,
+    "directionObservations": [
+      {
+        "part": "cap brim, mask/nose and gaze",
+        "finding": "Rightward near-profile, without a camera look-back"
+      },
+      {
+        "part": "shoulders/chest and pelvis",
+        "finding": "Coherent rightward side orientation; no apparent front torso attached to rear legs"
+      },
+      {
+        "part": "leading hip/knee/ankle",
+        "finding": "Leading leg reaches right in a connected stride"
+      },
+      {
+        "part": "leading shoe",
+        "finding": "Toe points right; heel-strike angle with toe slightly raised"
+      },
+      {
+        "part": "rear hip/knee/ankle",
+        "finding": "Rear leg trails left; connected at pelvis with mild natural knee flexion"
+      },
+      {
+        "part": "rear shoe",
+        "finding": "Toe points right; heel raised relative to forefoot"
+      },
+      {
+        "part": "case arm",
+        "finding": "Visible shoulder/elbow/forearm/wrist; bent forward with hand supporting case across front/near abdomen"
+      },
+      {
+        "part": "keys arm",
+        "finding": "Visible connected forearm and forward hand with keys dangling ahead at waist level"
+      }
+    ],
+    "criticalPriorMismatch": "No opposite-pointing feet or evident upper/lower body heading conflict is apparent in this static pose.",
+    "scene": "Same yellow car and rear-left geometry, rooftop recorder, rear-window reels, garage, wet avenue and amber/cyan/plum night setting remain visually consistent.",
+    "limitations": [
+      "This is a static illustrated stride, not an animation or motion study.",
+      "Independent visual audit and owner acceptance remain required; no automated anatomical validity claim.",
+      "Background preservation is visual, not a claim of bit-for-bit identity with the edit target."
+    ]
+  },
+  "sha256": "dfd8d743acc68ffaf0c410a8a9397c3799ef2351b546a0e109b2a15e2cfaca8b",
+  "bytes": 2781221,
+  "dimensions": {
+    "width": 1860,
+    "height": 845,
+    "format": "PNG",
+    "bitDepth": 8,
+    "colorType": 2
+  },
+  "originalGeneratedSha256": "dfd8d743acc68ffaf0c410a8a9397c3799ef2351b546a0e109b2a15e2cfaca8b",
+  "originalGeneratedBytes": 2781221,
+  "originalCopyVerified": true,
+  "sealedAtUtc": "2026-10-06T03:48:15.689Z"
+}

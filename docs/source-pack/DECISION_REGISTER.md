@@ -1,5 +1,9 @@
 # Decision Register
 
+## October 5, 2026 — owner likeness and whole-pose corrections
+
+Latest owner corrections supersede the earlier selected artwork: no cowboy look for Kave; use his selected everyday artist/music-review reference and fuller rounded beard. Cache must carry the recording in front with both hands visible and walk coherently toward the car with head, shoulders, hips, knees and shoe toes following the same direction; replace the whole pose when direction differs. Cache v6 and Kave v3 are new private-review candidates, not owner-approved art. Keep the approved script and Mac hero v2, final car shot, scene indices and existing gameplay/save/audio owners. Preserve all rejected candidates and source references; committing and publication remain separate from this uncommitted correction.
+
 ## October 5 — current owner direction: story approval and continuity
 
 - Approve the eight-scene Level 2-to-3 script and Mac v2 hero; continue the first street-brawler slice as a private playable review.
