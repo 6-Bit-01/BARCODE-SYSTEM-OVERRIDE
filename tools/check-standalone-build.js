@@ -56,11 +56,28 @@ const macRigStem = kind => kind === 'mac' ? 'mac-modem-v2' : kind + '-v1';
 const macRigAssets = new Set(['mac-combat-art-v1.json', ...macRigActors.flatMap(kind => [macRigStem(kind) + '.png', macRigStem(kind) + '-rig.json'])].map(name => macRigRoot + name));
 const macFrameRoot = 'assets/mac-combat-frames/';
 const macDynamicRoot = 'assets/mac-street-dynamic/';
-const macDynamicSheets = {dyn_guard:'mac-guard-v1.png',dyn_run:'mac-run-v1.png',
-  dyn_hold:'mac-hold-carry-v1.png',dyn_weapon:'mac-weapon-poses-v1.png'};
+const macDynamicSheets = {dyn_guard:'mac-guard-two-braids-v1.png',dyn_run:'mac-run-two-braids-v1.png',
+  dyn_hold:'mac-hold-carry-two-braids-v1.png',dyn_weapon:'mac-weapon-poses-two-braids-v1.png',
+  dyn_pipe_swing:'mac-pipe-swing-two-braids-v1.png'};
+const macDynamicImageHashes = {
+  dyn_guard:'2a6ed176b8cefba33793f1d6633671322afc8555c01c725cbe8a9ca306e3ed85',
+  dyn_run:'b78e958967d49d32eccb85a19594691e244e6023c34371a002099f3ec0cc4a23',
+  dyn_hold:'c832b0a3cdfd58ce9c117beb9160c876b3df1d6cd4aa92cdb436e16527c916c9',
+  dyn_weapon:'f4d2a4c8d5f602691fa787c08b01680ab1bc19461a035cf0789a336c4969ec93',
+  dyn_pipe_swing:'a22a5f4787d339614af5c2fc51a548affe55628e057bb54cdeffbdb1e21c83af'};
+const macDynamicHistoricalImages = {
+  'mac-guard-v1.png':'f3410efa856aa1ea7fcedf69bd1e37f8c259af8cfb315282fc81f08b235ca0ee',
+  'mac-run-v1.png':'711c9993b6d39b0ce1fbc49897f154618c9d0baafad796a4bb236b2f6d9d4378',
+  'mac-hold-carry-v1.png':'e40c210ed47efb4453d7add6d42250e766715825ff3943727203667d9939861c',
+  'mac-weapon-poses-v1.png':'e59a6f8716d6d5b8fc3f4789dbc96cde64c94f186d99f6b2d8640f8033e4fba3'};
 const macDynamicFrames = ['guard_brace','guard_step_a','guard_step_b','guard_impact',
   'run_contact_a','run_pass_a','run_contact_b','run_pass_b','grab_reach','grab_hold','pummel_load','pummel_contact',
   'pickup_load','carry_hold','carry_step_a','carry_step_b','melee_load','melee_contact','melee_follow','fire_aim','fire_recoil','fire_ready'];
+const macPipeSwingPhases = {
+  windup:[{frame:'pipe_swing_load',holdMs:50},{frame:'pipe_swing_uncoil',holdMs:50}],
+  active:[{frame:'pipe_swing_contact',holdMs:95}],
+  recovery:[{frame:'pipe_swing_through',holdMs:50},{frame:'pipe_swing_finish',holdMs:70},{frame:'pipe_swing_recover',holdMs:50}]};
+const macPipeSwingFrames = new Set(Object.values(macPipeSwingPhases).flat().map(entry=>entry.frame));
 const heldWeaponKinds = ['pipe','crowbar','shock-baton','energy-blade','gravity-hammer','scatter-blaster','coil-rifle','plasma-disc'];
 function checkNativePolygons(polygons, rect) {
   assert(Array.isArray(polygons), 'Native overlap regions must be polygon arrays');
@@ -100,20 +117,38 @@ function supplementalFrameFiles(actor, baseRegistration) {
   assert.equal(registration.baseRegistration, actor.registration);
   assert.equal(registration.baseRegistrationSHA256, actor.registrationSHA256, 'Supplemental poses must preserve the accepted base');
   assert.equal(registration.actor, 'mac'); assert.equal(registration.schemaVersion, 1); assert.equal(registration.facing, 'right');
-  assert.equal(registration.sheets.length, 4);
+  assert.equal(registration.sheets.length, 5);
   assert.deepEqual(registration.sheets.map(sheet => sheet.id).sort(), Object.keys(macDynamicSheets).sort());
-  assert.equal(registration.frames.length, 22);
-  assert.deepEqual(registration.frames.map(frame => frame.id).sort(), [...macDynamicFrames].sort());
+  assert.equal(registration.frames.length, 28);
+  assert.deepEqual(registration.frames.map(frame => frame.id).sort(), [...macDynamicFrames,...macPipeSwingFrames].sort());
   // Validate the actual packaged loader and registrations, never source-tree substitutes.
   const context = makeContext(); load(context, 'src/game/mac-combat-frames.js');
   const frames = context.window.BARCODE.MacCombatFrames;
   const compiled = frames.compileSupplemental(registration, {baseCompiled:frames.compile(baseRegistration,{complete:true}),complete:true});
-  for (const frame of registration.frames) checkItemBindings(frame, frame.source);
+  for (const frame of registration.frames) {
+    if(macPipeSwingFrames.has(frame.id)) {
+      assert.equal(frame.sheet,'dyn_pipe_swing');assert.equal(frame.embeddedWeapon,'pipe');
+      for(const key of ['gripAnchor','weaponAngle','itemBindings','handOcclusion'])
+        assert(!Object.hasOwn(frame,key),'Complete embedded pipe cels must not attach a second item');
+    } else {
+      assert.notEqual(frame.sheet,'dyn_pipe_swing');assert(!Object.hasOwn(frame,'embeddedWeapon'));
+      checkItemBindings(frame, frame.source);
+    }
+  }
+  const pipeClips=new Set(Object.keys(macPipeSwingPhases).map(phase=>'pipe-swing.'+phase));
+  for(const [key,clip]of Object.entries(registration.clips))for(const entry of clip.frames)
+    assert.equal(macPipeSwingFrames.has(entry.frame),pipeClips.has(key),
+      'Embedded pipe cels may only belong to their committed pipe phases');
+  for(const [phase,sequence]of Object.entries(macPipeSwingPhases))
+    assert.deepEqual(registration.clips['pipe-swing.'+phase],{loop:false,frames:sequence},
+      'Pipe swing must preserve its exact six-cel phase order and bounded holds');
   const baseFrames = new Map(baseRegistration.frames.map(frame => [frame.id, frame]));
   for (const [frame, entry] of Object.entries(registration.baseGripAnchors)) checkItemBindings(entry, baseFrames.get(frame).source);
   const selected = new Set([name]);
   for (const sheet of registration.sheets) {
     assert.equal(sheet.sourceImage, macDynamicRoot + macDynamicSheets[sheet.id]);
+    assert.equal(sheet.sourceSHA256,macDynamicImageHashes[sheet.id],
+      'Selected supplemental PNG differs from the pinned native candidate');
     const data = fs.readFileSync(localFile(sheet.sourceImage)), hash = createPowerHash(data);
     assert.equal(hash, sheet.sourceSHA256); assert.equal(owner.files[sheet.sourceImage].sha256, hash);
     const image = nativeRigRGBA(data, sheet.sourceImage);
@@ -130,7 +165,14 @@ function supplementalFrameFiles(actor, baseRegistration) {
       assert(!clipped,'Supplemental body ink clipped: '+frame.id);
     }
   }
-  assert.equal(selected.size, 5);
+  assert.equal(selected.size, 6);
+  // Keep the four historical source sheets byte-identical while selecting only the replacements.
+  for(const [filename,digest]of Object.entries(macDynamicHistoricalImages)) {
+    const imageName=macDynamicRoot+filename,data=fs.readFileSync(localFile(imageName));
+    assert.equal(createPowerHash(data),digest,'Historical supplemental source PNG changed');
+    assert.equal(owner.files[imageName]?.sha256,digest);selected.add(imageName);
+  }
+  assert.equal(selected.size,10);
   return selected;
 }
 function combatFrameFiles() {
@@ -736,7 +778,8 @@ async function main() {
     '--manifest', macFrameRoot + 'mac-combat-frames-v1.json'], {encoding: 'utf8', timeout: 120000});
   assert.match(frameCheck, /native actors checked: 8/, 'Native complete-character cels must pass actual hash, crop, alpha and action checks');
   const macFrames = {selectedActors: 8, assetCount: frameFiles.size, nativeCelsChecked: true,
-    supplementalSheetsChecked: 4, supplementalCelsChecked: 22, supplementalPackagedLoaderChecked: true,
+    supplementalSheetsChecked: 5, supplementalCelsChecked: 28, embeddedPipeCelsChecked: 6,
+    historicalSupplementalSheetsChecked: 4, supplementalPackagedLoaderChecked: true,
     runtimeAcceptance: 'not established by packaging'};
   const vendorRoot = 'src/vendor/pixi-8.22.0/';
   const vendorHashes = {

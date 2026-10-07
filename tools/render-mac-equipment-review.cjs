@@ -28,8 +28,8 @@ async function run(){
     ctx.save();ctx.beginPath();ctx.rect(left,top,cellWidth,rowHeight);ctx.clip();ctx.translate(left,top);R.floor(ctx,cellWidth,rowHeight,390);
     ctx.fillStyle='#e9d8b5';ctx.font='18px sans-serif';ctx.fillText(B.MacStreetCombat.weapons[kind].name+' · '+scene.title+' · '+(facing<0?'left':'right'),14,28);
     const placement=R.drawWeapon(ctx,kind,scene,facing,{x:cellWidth/2,feet:390,height:260});ctx.restore();
-    assert(placement.pose.gripAnchor,'Native weapon has a registered grip');
-    return {weapon:kind,scene:id,facing,frame:placement.pose.frame.id,gripAnchor:placement.pose.gripAnchor,weaponAngle:placement.pose.weaponAngle,itemLayer:placement.pose.itemLayer,handOcclusion:placement.pose.handOcclusion};
+    assert(placement.pose.gripAnchor||placement.pose.frame.embeddedWeapon===kind,'Native weapon has a registered grip or complete embedded cel');
+    return {weapon:kind,scene:id,facing,frame:placement.pose.frame.id,embeddedWeapon:placement.pose.frame.embeddedWeapon||null,gripAnchor:placement.pose.gripAnchor,weaponAngle:placement.pose.weaponAngle,itemLayer:placement.pose.itemLayer,handOcclusion:placement.pose.handOcclusion};
   }
   for(const [row,kind]of R.weapons.entries())for(const [column,entry]of contactScenes.entries())placements.push(drawCard(ctx,kind,entry,column*cellWidth,80+row*rowHeight));
   fs.mkdirSync(out,{recursive:true});const imagePath=path.join(out,'equipment-contact-sheet.png');fs.writeFileSync(imagePath,canvas.toBuffer('image/png'));
@@ -39,6 +39,7 @@ async function run(){
   const guardRunPath=path.join(out,'equipment-guard-run.png');fs.writeFileSync(guardRunPath,guardRun.toBuffer('image/png'));
   const individual=[];
   for(const kind of R.weapons){const panel=createCanvas(cellWidth*2,rowHeight*2),pctx=panel.getContext('2d');for(const[index,entry]of contactScenes.entries())drawCard(pctx,kind,entry,(index%2)*cellWidth,Math.floor(index/2)*rowHeight);const file=path.join(out,'equipment-'+kind+'.png');fs.writeFileSync(file,panel.toBuffer('image/png'));individual.push(file);}
+  for(const kind of R.weapons){const panel=createCanvas(cellWidth*2,rowHeight*2),pctx=panel.getContext('2d');for(const[index,entry]of[{id:'guard',facing:-1},{id:'guard',facing:1},{id:'run-0',facing:-1},{id:'run-0',facing:1}].entries())drawCard(pctx,kind,entry,(index%2)*cellWidth,Math.floor(index/2)*rowHeight);const file=path.join(out,'guard-run-'+kind+'.png');fs.writeFileSync(file,panel.toBuffer('image/png'));individual.push(file);}
   const eligibleCanvas=createCanvas(840,720),eligibleContext=eligibleCanvas.getContext('2d');let eligiblePoseCount=0;
   for(const kind of R.weapons)for(const scene of R.scenes)for(const facing of [-1,1]){R.floor(eligibleContext,840,720,600);const placed=R.drawWeapon(eligibleContext,kind,scene,facing,{x:420,feet:600,height:260});assert(Number.isFinite(placed.handX)&&Number.isFinite(placed.handY));eligiblePoseCount++;}
   const props=['car_intact','car_van_intact','crate_intact','barrel_intact','fixture_terminal_intact','fixture_streetlight_intact'];

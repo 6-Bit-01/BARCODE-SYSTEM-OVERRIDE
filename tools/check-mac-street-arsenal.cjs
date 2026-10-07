@@ -192,7 +192,7 @@ check('calibrated long rifle muzzle still hits a point-blank opponent in its fir
   const shot=r.events.slice(eventStart).find(e=>e.type==='weapon-fired'),hit=r.events.slice(eventStart).find(e=>e.type==='enemy-hit'&&e.cause==='coil-rifle');
   assert(shot&&hit);assert.equal(hit.atMs,shot.atMs,'first physical sweep includes chest-to-muzzle segment');
   assert((hit.x-shot.x)*shot.facing>0&&(hit.x-shot.muzzleX)*shot.facing<0,'contact really was closer than the drawn barrel tip');
-  assert.equal(shot.elevation,223.345);assert(Math.abs((shot.muzzleX-shot.x)*shot.facing-169.160)<.001);
+  assert.equal(shot.elevation,222.909454413);assert(Math.abs((shot.muzzleX-shot.x)*shot.facing-169.159868331)<.001);
 });
 let street;
 check('a box carries beyond3s, pause drops safely, and a real throw hits a car once',()=>{

@@ -343,6 +343,12 @@ async function run() {
     for(const kind of R.weapons)for(const scene of R.scenes)for(const facing of [-1,1]){
       r.work.lastCels=[];r.work.lastDraws=[];
       const placed=R.drawWeapon(ctx,kind,scene,facing,{x:420,feet:390,height:260}),pose=placed.pose;
+      if(pose.frame.embeddedWeapon){
+        assert.equal(pose.frame.embeddedWeapon,kind);assert.equal(placed.item,null,'Painted-in weapon has no external overlay');
+        assert.equal(r.work.lastCels.length,1,'Embedded weapon and actor draw as one complete authored cel');
+        assert.equal(r.work.lastDraws.length,1);assert.equal(r.work.lastCels[0].clipRegion,null);
+        assert.equal(r.work.lastCels[0].rotation,0);painted++;continue;
+      }
       const anchor=pose.supplemental?art.supplemental.frames[pose.frame.id]:art.supplemental.baseGripAnchors[pose.frame.id];
       assert(anchor.itemBindings[kind],'Each weapon has a calibrated binding on '+pose.frame.id);
       assert.deepEqual(plain(pose.gripAnchor),plain(anchor.itemBindings[kind].gripAnchor));
@@ -360,7 +366,7 @@ async function run() {
       assert.equal(palm.clipRegion.length,expected.length);
       for(let index=0;index<expected.length;index++){const point=palm.clipRegion[index],target=expected[index];assert.equal(!!point.move,!!target.move);assert(Math.abs(point.x-target.x)<1e-8&&Math.abs(point.y-target.y)<1e-8,'Registered palm polygons mirror with the complete cel');}painted++;
     }
-    assert.equal(painted,432);assert.deepEqual(plain(mac.combat.getSnapshot()),before,'Visual review does not mutate the playable simulation');assert.equal(r.scheduled.size,1);assert.equal(r.work.canvases,1);assert.equal(r.work.timers,0);await mac.exit();
+    assert.equal(painted,R.weapons.length*R.scenes.length*2);assert(painted>=432);assert.deepEqual(plain(mac.combat.getSnapshot()),before,'Visual review does not mutate the playable simulation');assert.equal(r.scheduled.size,1);assert.equal(r.work.canvases,1);assert.equal(r.work.timers,0);await mac.exit();
   });
   await check('hands-on lessons use real movement, combo and air-kick receipts; Pause and direct Skip preserve control ownership', async () => {
     const r=rig();await r.start();const mac=r.B.MacCombatPreview;r.manager.touchCommand('mac:skip');r.frame();assert.equal(mac.tutorial.index,0);assert.equal(mac.tutorialReadout.hidden,false);
@@ -404,7 +410,10 @@ async function run() {
     r.pointer(T.joystick,'pointercancel',63);r.pointer(r.button('jump'),'pointerdown',64);r.frame();r.pointer(r.button('jump'),'pointerup',64);r.run(50);
     p=mac.combat.getSnapshot().player;pose=r.B.MacCombatFrames.sample(p,{player:true,compiled:art.compiled,supplemental:art.supplemental});assert.equal(pose.supplemental,false);assert(pose.gripAnchor);assertWholeFrame(r);assert(matching().length>0,'Weapon stays visible in the accepted jump');
     r.run(850);r.pointer(r.button('road_attack'),'pointerdown',65);r.frame();r.pointer(r.button('road_attack'),'pointerup',65);r.run(150);
-    assert.equal(mac.combat.getSnapshot().player.attack.weaponKind,'pipe');assert.equal(mac.combat.getSnapshot().player.weapon.charges,13);assertWholeFrame(r);
+    p=mac.combat.getSnapshot().player;assert.equal(p.attack.weaponKind,'pipe');assert.equal(p.weapon.charges,13);assertWholeFrame(r);
+    pose=r.B.MacCombatFrames.sample(p,{player:true,compiled:art.compiled,supplemental:art.supplemental});
+    assert.equal(pose.clipKey,'pipe-swing.active');assert.equal(pose.frame.embeddedWeapon,'pipe');
+    assert.equal(pose.phaseProgress,p.attack.phaseProgress);assert.equal(matching().length,0,'Real equipped pipe swing uses its painted-in bat exactly once');
     await mac.exit();assert.equal(T.pointers.size,0);assert.equal(r.scheduled.size,0);assert.deepEqual(r.work.writes,[]);
   });
   await check('real Mac outer stick runs through both lane axes while Guard creeps and pause clears the run request', async () => {

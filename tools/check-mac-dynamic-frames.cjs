@@ -73,6 +73,27 @@ check('melee heavy firearm and disc styles retain actual weapon identity and nor
     }
   }
 });
+check('pipe-specific complete swings follow the committed weapon and phase without replacing other melee cels',()=>{
+  const r=plain(registration);r.sheets[0].dimensions.width=1320;
+  for(const [index,phase] of ['windup','active','recovery'].entries()){
+    const id='pipe_swing_'+phase;
+    r.frames.push({id,sheet:'dyn_test',source:{x:(19+index)*60,y:0,width:60,height:80},
+      feetPivot:{x:30,y:75},baselineLift:0,embeddedWeapon:'pipe'});
+    r.clips['pipe-swing.'+phase]={loop:false,frames:[{frame:id,holdMs:200}]};
+  }
+  const bank=F.compileSupplemental(r,{baseCompiled:base});
+  for(const phase of ['windup','active','recovery']){
+    const attack={kind:'pipe',weaponKind:'pipe',phase,phaseProgress:.65};
+    const result=pose(actor('weapon-melee',{weapon:{kind:'crowbar'},attack}),{supplemental:bank});
+    assert.equal(result.clipKey,'pipe-swing.'+phase);assert.equal(result.frame.embeddedWeapon,'pipe');
+    assert.equal(result.phaseProgress,.65);assert.equal(result.clipTimeMs,130);assert.equal(result.gripAnchor,null);
+    const other=pose(actor('weapon-melee',{weapon:{kind:'pipe'},attack:{...attack,kind:'crowbar',weaponKind:'crowbar'}}),{supplemental:bank});
+    assert.equal(other.clipKey,'melee.'+phase);assert.equal(other.frame.embeddedWeapon,undefined);
+    assert.equal(pose(actor('weapon-melee',{weapon:{kind:'pipe'},attack}),{supplemental}).clipKey,'melee.'+phase);
+  }
+  const invalid=plain(r);invalid.frames.at(-1).embeddedWeapon='unregistered-weapon';
+  assert.throws(()=>F.compileSupplemental(invalid,{baseCompiled:base}),/unknown embedded weapon/);
+});
 check('air kick and flight retain accepted complete cels with supplemental item anchors only',()=>{
   const result=pose(actor('strike',{weapon:{kind:'pipe'},attack:{kind:'air-kick',phase:'active',phaseProgress:.5}}));
   assert.equal(result.committedKey,'air-kick.active');assert.equal(result.supplemental,false);
@@ -210,7 +231,8 @@ if(options.registration)check('actual supplemental registration matches native h
     assert(ink>0&&transparent>0,'Empty or opaque-background cel '+frame.id);
     assert(bottom<=frame.feetPivot.y+2,'Feet anchor above actual ground '+frame.id);
     measurements.push({id:frame.id,sheet:frame.sheet,visibleBounds:{x:left,y:top,width:right-left+1,height:bottom-top+1},
-      inkPixels:ink,transparentPixels:transparent,gripAnchor:plain(frame.gripAnchor||null),worldScale:260/frame.standingHeight});
+      inkPixels:ink,transparentPixels:transparent,gripAnchor:plain(frame.gripAnchor||null),
+      embeddedWeapon:frame.embeddedWeapon||null,worldScale:260/frame.standingHeight});
   }
   for(const sheet of Object.values(compiled.sheets)){
     const image=images.get(sheet.id),covered=coverage.get(sheet.id),reference=measurements.find(f=>f.id===sheet.referenceFrame&&f.sheet===sheet.id);
@@ -242,6 +264,7 @@ if(options.registration)check('actual supplemental registration matches native h
   let individualBindings=0,occlusionPolygons=0;
   for(const [frame,metadata] of [...Object.values(compiled.frames).map(f=>[f,f]),
     ...Object.entries(compiled.baseGripAnchors).map(([id,a])=>[base.frames[id],a])]) {
+    if(frame.embeddedWeapon)continue;
     assert.deepEqual(Object.keys(metadata.itemBindings).sort(),[...F.weapons].sort(),'Every native cel records all eight ergonomic bindings '+frame.id);
     for(const kind of F.weapons) {
       const binding=metadata.itemBindings[kind];individualBindings++;

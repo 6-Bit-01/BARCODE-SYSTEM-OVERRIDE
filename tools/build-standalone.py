@@ -86,14 +86,31 @@ MAC_RIG_ASSETS = {"assets/mac-combat-rigs/" + name for name in (
 MAC_FRAME_ROOT = "assets/mac-combat-frames/"
 MAC_DYNAMIC_ROOT = "assets/mac-street-dynamic/"
 MAC_DYNAMIC_SHEETS = {
-    "dyn_guard": "mac-guard-v1.png", "dyn_run": "mac-run-v1.png",
-    "dyn_hold": "mac-hold-carry-v1.png", "dyn_weapon": "mac-weapon-poses-v1.png"}
+    "dyn_guard": "mac-guard-two-braids-v1.png", "dyn_run": "mac-run-two-braids-v1.png",
+    "dyn_hold": "mac-hold-carry-two-braids-v1.png", "dyn_weapon": "mac-weapon-poses-two-braids-v1.png",
+    "dyn_pipe_swing": "mac-pipe-swing-two-braids-v1.png"}
+MAC_DYNAMIC_IMAGE_HASHES = {
+    "dyn_guard": "2a6ed176b8cefba33793f1d6633671322afc8555c01c725cbe8a9ca306e3ed85",
+    "dyn_run": "b78e958967d49d32eccb85a19594691e244e6023c34371a002099f3ec0cc4a23",
+    "dyn_hold": "c832b0a3cdfd58ce9c117beb9160c876b3df1d6cd4aa92cdb436e16527c916c9",
+    "dyn_weapon": "f4d2a4c8d5f602691fa787c08b01680ab1bc19461a035cf0789a336c4969ec93",
+    "dyn_pipe_swing": "a22a5f4787d339614af5c2fc51a548affe55628e057bb54cdeffbdb1e21c83af"}
+MAC_DYNAMIC_HISTORICAL_IMAGES = {
+    "mac-guard-v1.png": "f3410efa856aa1ea7fcedf69bd1e37f8c259af8cfb315282fc81f08b235ca0ee",
+    "mac-run-v1.png": "711c9993b6d39b0ce1fbc49897f154618c9d0baafad796a4bb236b2f6d9d4378",
+    "mac-hold-carry-v1.png": "e40c210ed47efb4453d7add6d42250e766715825ff3943727203667d9939861c",
+    "mac-weapon-poses-v1.png": "e59a6f8716d6d5b8fc3f4789dbc96cde64c94f186d99f6b2d8640f8033e4fba3"}
 MAC_DYNAMIC_FRAMES = {
     "guard_brace", "guard_step_a", "guard_step_b", "guard_impact",
     "run_contact_a", "run_pass_a", "run_contact_b", "run_pass_b",
     "grab_reach", "grab_hold", "pummel_load", "pummel_contact",
     "pickup_load", "carry_hold", "carry_step_a", "carry_step_b",
     "melee_load", "melee_contact", "melee_follow", "fire_aim", "fire_recoil", "fire_ready"}
+MAC_PIPE_SWING_PHASES = {
+    "windup": (("pipe_swing_load", 50), ("pipe_swing_uncoil", 50)),
+    "active": (("pipe_swing_contact", 95),),
+    "recovery": (("pipe_swing_through", 50), ("pipe_swing_finish", 70), ("pipe_swing_recover", 50))}
+MAC_PIPE_SWING_FRAMES = {frame for sequence in MAC_PIPE_SWING_PHASES.values() for frame, _ in sequence}
 MAC_DYNAMIC_CLIPS = {"guard", "guard-walk", "run", "grab-start", "grab-hold", "carry", "carry-walk"} | {
     f"{action}.{phase}" for action in ("pummel", "melee", "fire") for phase in ("windup", "active", "recovery")}
 MAC_DYNAMIC_LOOPS = {"guard", "guard-walk", "run", "grab-hold", "carry", "carry-walk"}
@@ -183,28 +200,36 @@ def supplemental_frame_files(output, actor, base):
             registration.get("baseRegistrationSHA256") == actor["registrationSHA256"],
             "Supplemental poses must use the selected unchanged Mac base registration")
     sheets = registration.get("sheets", [])
-    require(len(sheets) == 4 and {sheet.get("id") for sheet in sheets} == set(MAC_DYNAMIC_SHEETS),
-            "Supplemental poses require exactly four selected native sheets")
+    require(len(sheets) == 5 and {sheet.get("id") for sheet in sheets} == set(MAC_DYNAMIC_SHEETS),
+            "Supplemental poses require exactly five selected native sheets")
     selected, dimensions, crops = {name}, {}, {}
     for sheet in sheets:
         image_name = MAC_DYNAMIC_ROOT + MAC_DYNAMIC_SHEETS[sheet["id"]]
         require(sheet.get("sourceImage") == image_name, "Unselected supplemental native PNG")
+        require(sheet.get("sourceSHA256") == MAC_DYNAMIC_IMAGE_HASHES[sheet["id"]],
+                "Selected supplemental PNG differs from the pinned native candidate")
         dimensions[sheet["id"]] = native_frame_image(output, sheet, image_name)
         selected.add(image_name)
     frames = registration.get("frames", [])
-    require(len(frames) == 22 and {frame.get("id") for frame in frames} == MAC_DYNAMIC_FRAMES,
-            "Supplemental poses require all 22 selected whole-body cels")
+    require(len(frames) == 28 and {frame.get("id") for frame in frames} == MAC_DYNAMIC_FRAMES | MAC_PIPE_SWING_FRAMES,
+            "Supplemental poses require 22 attachment cels and six complete pipe swing cels")
     by_id = {frame["id"]: frame for frame in frames}
     for frame in frames:
         sheet, rect = frame.get("sheet"), frame.get("source", {})
         require(sheet in dimensions and native_rect(rect, dimensions[sheet]), "Invalid supplemental native crop")
-        require(native_anchor(frame.get("feetPivot", {}), rect) and
-                native_anchor(frame.get("gripAnchor", {}), rect) and frame.get("baselineLift") == 0,
-                "Supplemental complete-body cel must retain grounded feet and registered grip")
-        angle = frame.get("weaponAngle")
-        require(type(angle) in (int, float) and math.isfinite(angle) and abs(angle) <= math.pi,
-                "Invalid native weapon angle")
-        native_item_bindings(frame, rect, weapon_cells)
+        require(native_anchor(frame.get("feetPivot", {}), rect) and frame.get("baselineLift") == 0,
+                "Supplemental complete-body cel must retain grounded feet")
+        if frame["id"] in MAC_PIPE_SWING_FRAMES:
+            require(sheet == "dyn_pipe_swing" and frame.get("embeddedWeapon") == "pipe" and
+                    not any(key in frame for key in ("gripAnchor", "weaponAngle", "itemBindings", "handOcclusion")),
+                    "Only the six complete pipe cels may suppress the external pipe")
+        else:
+            require(sheet != "dyn_pipe_swing" and "embeddedWeapon" not in frame and
+                    native_anchor(frame.get("gripAnchor", {}), rect), "Attachment cel must retain its registered grip")
+            angle = frame.get("weaponAngle")
+            require(type(angle) in (int, float) and math.isfinite(angle) and abs(angle) <= math.pi,
+                    "Invalid native weapon angle")
+            native_item_bindings(frame, rect, weapon_cells)
         require(not any(crops_overlap(rect, old) for old in crops.get(sheet, [])), "Supplemental crops overlap")
         crops.setdefault(sheet, []).append(rect)
     for sheet in sheets:
@@ -222,7 +247,8 @@ def supplemental_frame_files(output, actor, base):
                     "Excluded supplemental region overlaps a selected cel")
             excluded.append(rect)
     clips = registration.get("clips", {})
-    require(MAC_DYNAMIC_CLIPS <= set(clips) <= MAC_DYNAMIC_CLIPS | {"pickup", "guard-impact", "carry-throw"},
+    pipe_clips = {"pipe-swing." + phase for phase in MAC_PIPE_SWING_PHASES}
+    require(MAC_DYNAMIC_CLIPS | pipe_clips <= set(clips) <= MAC_DYNAMIC_CLIPS | pipe_clips | {"pickup", "guard-impact", "carry-throw"},
             "Unselected or missing supplemental animation clip")
     for key, clip in clips.items():
         require(clip.get("loop") is (key in MAC_DYNAMIC_LOOPS) and isinstance(clip.get("frames"), list) and
@@ -230,6 +256,12 @@ def supplemental_frame_files(output, actor, base):
         for entry in clip["frames"]:
             require(entry.get("frame") in by_id and type(entry.get("holdMs")) in (int, float) and
                     math.isfinite(entry["holdMs"]) and entry["holdMs"] > 0, "Invalid supplemental clip timing")
+            require((entry["frame"] in MAC_PIPE_SWING_FRAMES) is (key in pipe_clips),
+                    "Embedded pipe cels may only belong to their committed pipe phases")
+    for phase, sequence in MAC_PIPE_SWING_PHASES.items():
+        require(clips["pipe-swing." + phase] == {"loop": False,
+                "frames": [{"frame": frame, "holdMs": hold} for frame, hold in sequence]},
+                "Pipe swing must preserve its exact six-cel phase order and bounded holds")
     base_frames = {frame["id"]: frame for frame in base.get("frames", [])}
     anchors = registration.get("baseGripAnchors", {})
     require(isinstance(anchors, dict) and anchors, "Missing selected base-cel weapon grips")
@@ -239,6 +271,12 @@ def supplemental_frame_files(output, actor, base):
                 type(angle) in (int, float) and math.isfinite(angle) and abs(angle) <= math.pi,
                 "Invalid base-cel weapon grip")
         native_item_bindings(anchor, base_frames[frame_id]["source"], weapon_cells)
+    # Preserve the exact old sheets in the source package without selecting them for play.
+    for filename, digest in MAC_DYNAMIC_HISTORICAL_IMAGES.items():
+        image_name = MAC_DYNAMIC_ROOT + filename
+        require(sha(safe_path(output, image_name).read_bytes()) == digest,
+                "Historical supplemental source PNG changed")
+        selected.add(image_name)
     return selected
 
 
