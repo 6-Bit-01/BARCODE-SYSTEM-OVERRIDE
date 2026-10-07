@@ -1,3 +1,9 @@
+## October 7, 2026 — guard attachment follow-up
+
+The grips4 source8768b318/site625c866e recovery and full source archive are complete. This follow-up corrects five melee weapons across brace, both slow guard steps and guard impact, preserving every native bitmap and all embedded gun/disc cels. The public review uses real walking cels. Fresh normal/responsive gameplay fits the window; the prior off-center black area did not reproduce, and its cause is not established.
+
+Fresh exact-head evidence belongs to project-root/verification/mac-guard-fit-20261007. Prior grips4 receipts apply only to the preserved8768b318/625c866e baseline. The private preview revision is guardfit5; both PRs remain drafts. Owner visual/playtest, fullscreen and physical-device performance acceptance remain pending. Historical preparation states below do not supersede the completed grips4 checkpoint.
+
 ## October 7, 2026 — saved grips4 working source, payload pending
 
 The current refinement addresses the owner's gun hand/occlusion and disc grip objections with 27 native complete character-and-weapon cels: nine each for scatter blaster, coil rifle and plasma disc. The selected supplemental registration now contains 55 cels on eight sheets, preserving the preceding 28 cels, bat3 ready grips and six bat swing cels. Native PNGs are unchanged from generation. The sampler selects each weapon's own ready, walk, run, guard and committed attack drawings; disc release/followthrough uses empty hands, and unsupported acrobatics temporarily stow inventory art. Physical shot origins derive from the selected active cel's native anchor. Existing gameplay commitments and shared owners remain.

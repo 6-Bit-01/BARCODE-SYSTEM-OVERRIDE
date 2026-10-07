@@ -1,3 +1,9 @@
+## October 7, 2026 — guard attachment follow-up
+
+The owner rejected the five reused sideways melee guard holds. Each corrected attachment uses the measured bare-fist contact, its own defensive angle/layer and original whole-cel palm overlap, across all four guard cels in both directions. Existing gun/disc guard contact and all native bitmaps remain. Fresh responsive gameplay fits the window; the earlier off-center black area did not reproduce, and its cause remains unproven.
+
+Fresh exact-head evidence belongs to project-root/verification/mac-guard-fit-20261007. Prior grips4 receipts apply only to the completed8768b318/625c866e baseline and its preserved full source archive. The private preview revision is guardfit5; both PRs remain drafts. Owner visual/playtest, fullscreen and physical-device performance acceptance remain pending. Historical preparation states below do not supersede the completed grips4 checkpoint.
+
 ## October 7, 2026 — grips4 recovery checkpoint
 
 Saved candidate evidence in project-root/verification/mac-weapon-grips-20261007 remains current: `strict-registration-probes.json` passes 16 groups with all 19 recorded input hashes matching; `native-packaging-candidate.json` passes the selected 55 cels/eight sheets with all 18 recorded inputs matching; `strict-tools-final.json` matches both frozen packaging tool hashes. `whole-weapon-render-review.json` records 54 production-rendered placements of the 27 new cels in both facings; its ten input hashes and nine image hashes match. These checks and renders must be reused within their recorded scope.

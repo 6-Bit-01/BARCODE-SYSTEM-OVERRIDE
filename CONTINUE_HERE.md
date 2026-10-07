@@ -1,3 +1,13 @@
+## October 7, 2026 — guard hand placement follow-up
+
+The grips4 recovery is complete at source8768b318/site625c866e. Its native sheets, six bat swing cels, 27 gun/disc cels, strict package, hosted preview and full source archive are preserved. Do not resume the old pending steps below.
+
+The owner then rejected the five melee guard holds and reported a large black area beside/below the game. Correct only the four guard attachment cels for each melee weapon using the actual closed fist, separate defensive angles and original palm pixels. Preserve all bitmap bytes. The equipment review must show actual guard-walk step_a/step_b and guard impact. Current follow-up evidence belongs to project-root/verification/mac-guard-fit-20261007; review revision guardfit5. Source PR189 and site PR485 remain private drafts.
+
+Fresh native browser gameplay fills1280x720, the reported1066x587 size, and an actual861.538x646.154 window with centered16:9 fitting. The earlier large off-center black area did not reproduce after fresh preview/resize reinitialization; its cause remains unproven. No speculative game sizing change or permanent-fix claim is warranted. Fullscreen and hardware FPS are not established by these observations.
+
+## Historical preparation notes before completed grips4
+
 ## October 7, 2026 — resume saved grips4 refinement
 
 Continue the existing work; do not regenerate the saved native sheets or repeat matching completed checks. The working source selects **55 supplemental complete-character cels on eight sheets**: the previous 22 attachment cels, six bat3 pipe swing cels, and 27 new scatter-blaster, coil-rifle and plasma-disc cels. The bat3 measured ready grips and six-cel swing remain. The three new native PNGs, registration, production sampler/renderer, calibrated shot origins, updated review page and strict packaging pins are saved. See `docs/source-pack/MAC_WEAPON_GRIP_PROVENANCE_20261007.md`.

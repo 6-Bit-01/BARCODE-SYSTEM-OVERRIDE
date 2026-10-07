@@ -1,3 +1,9 @@
+## October 7, 2026 — guard attachment follow-up
+
+The owner rejected the five reused sideways melee guard holds. Each corrected attachment uses the measured bare-fist contact, its own defensive angle/layer and original whole-cel palm overlap, across all four guard cels in both directions. Existing gun/disc guard contact and all native bitmaps remain. Fresh responsive gameplay fits the window; the earlier off-center black area did not reproduce, and its cause remains unproven.
+
+Fresh exact-head evidence belongs to project-root/verification/mac-guard-fit-20261007. Prior grips4 receipts apply only to the completed8768b318/625c866e baseline and its preserved full source archive. The private preview revision is guardfit5; both PRs remain drafts. Owner visual/playtest, fullscreen and physical-device performance acceptance remain pending. Historical preparation states below do not supersede the completed grips4 checkpoint.
+
 ## October 7, 2026 — grips4 complete gun/disc cels
 
 The owner's floating-gun, incorrect hand-layering and two-handed disc objections require authored complete character-and-weapon drawings for scatter blaster, coil rifle and plasma disc. Each receives nine native cels; the registration expands from 28/five to 55/eight while preserving bat3's ready grips and six embedded pipe swing cels. A selected embedded cel suppresses only its matching external weapon overlay. Empty-hand disc release/followthrough remains tagged to the committed disc attack so no stationary duplicate disc appears. Unsupported jump/kick/counter/carry/grapple states temporarily stow these weapons without discarding charges or inventory. Shot origins follow crop-local active-cel anchors through the same character scale and feet transform.
