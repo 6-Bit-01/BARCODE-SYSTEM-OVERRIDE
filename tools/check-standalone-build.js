@@ -61,6 +61,36 @@ const macDynamicSheets = {dyn_guard:'mac-guard-v1.png',dyn_run:'mac-run-v1.png',
 const macDynamicFrames = ['guard_brace','guard_step_a','guard_step_b','guard_impact',
   'run_contact_a','run_pass_a','run_contact_b','run_pass_b','grab_reach','grab_hold','pummel_load','pummel_contact',
   'pickup_load','carry_hold','carry_step_a','carry_step_b','melee_load','melee_contact','melee_follow','fire_aim','fire_recoil','fire_ready'];
+const heldWeaponKinds = ['pipe','crowbar','shock-baton','energy-blade','gravity-hammer','scatter-blaster','coil-rifle','plasma-disc'];
+function checkNativePolygons(polygons, rect) {
+  assert(Array.isArray(polygons), 'Native overlap regions must be polygon arrays');
+  for (const polygon of polygons) {
+    assert(Array.isArray(polygon) && polygon.length >= 3, 'Native overlap polygon needs an area');
+    let area = 0;
+    for (let i = 0; i < polygon.length; i++) {
+      const point = polygon[i], next = polygon[(i + 1) % polygon.length];
+      assert(Number.isFinite(point?.x) && Number.isFinite(point?.y) &&
+        point.x >= 0 && point.y >= 0 && point.x <= rect.width && point.y <= rect.height,
+        'Native overlap polygon escapes its complete source crop');
+      area += point.x * next.y - next.x * point.y;
+    }
+    assert(Math.abs(area) > .01, 'Native overlap polygon has no area');
+  }
+}
+function checkItemBindings(entry, rect) {
+  assert.deepEqual(Object.keys(entry.itemBindings || {}).sort(), [...heldWeaponKinds].sort(),
+    'Each equipped character cel must register all eight weapons');
+  const power = JSON.parse(read('assets/mac-street-power/mac-street-power-v1.json'));
+  for (const [kind, binding] of Object.entries(entry.itemBindings)) {
+    assert(Number.isFinite(binding.gripAnchor?.x) && Number.isFinite(binding.gripAnchor?.y) &&
+      binding.gripAnchor.x >= 0 && binding.gripAnchor.x <= rect.width &&
+      binding.gripAnchor.y >= 0 && binding.gripAnchor.y <= rect.height, 'Invalid native weapon grip');
+    assert(Number.isFinite(binding.weaponAngle) && Math.abs(binding.weaponAngle) <= Math.PI);
+    assert(['front','behind'].includes(binding.itemLayer), 'Invalid held item layer');
+    checkNativePolygons(binding.handOcclusion, rect);
+    if (Object.hasOwn(binding, 'itemFrontRegions')) checkNativePolygons(binding.itemFrontRegions, power.cells['weapon_' + kind].source);
+  }
+}
 function supplementalFrameFiles(actor, baseRegistration) {
   const name = macDynamicRoot + 'mac-modem-actions-v1.json', selection = actor.supplemental;
   assert.equal(selection?.registration, name, 'Only the selected Mac supplemental registration enters the game');
@@ -78,6 +108,9 @@ function supplementalFrameFiles(actor, baseRegistration) {
   const context = makeContext(); load(context, 'src/game/mac-combat-frames.js');
   const frames = context.window.BARCODE.MacCombatFrames;
   const compiled = frames.compileSupplemental(registration, {baseCompiled:frames.compile(baseRegistration,{complete:true}),complete:true});
+  for (const frame of registration.frames) checkItemBindings(frame, frame.source);
+  const baseFrames = new Map(baseRegistration.frames.map(frame => [frame.id, frame]));
+  for (const [frame, entry] of Object.entries(registration.baseGripAnchors)) checkItemBindings(entry, baseFrames.get(frame).source);
   const selected = new Set([name]);
   for (const sheet of registration.sheets) {
     assert.equal(sheet.sourceImage, macDynamicRoot + macDynamicSheets[sheet.id]);
@@ -129,7 +162,7 @@ function combatFrameFiles() {
 const createPowerHash = data => crypto.createHash('sha256').update(data).digest('hex');
 const macPowerRoot = 'assets/mac-street-power/';
 const macPowerSheets = {props:'street-props-v1.png',blood:'street-blood-v1.png',equipment:'street-weapons-v1.png',
-  cars:'street-cars-v1.png',fixtures:'street-fixtures-v1.png',cores:'street-powerups-v1.png'};
+  cars:'street-cars-side-v2.png',fixtures:'street-fixtures-v1.png',cores:'street-powerups-v1.png'};
 const macPowerCells = ['crate_intact','crate_cracked','crate_broken','stall_intact','stall_cracked','stall_broken','relay_off','relay_on','pickup_health',
   ...['red','green','purple'].flatMap(color => ['impact','heavy','floor'].map(kind => 'blood_' + color + '_' + kind)),
   ...['pipe','crowbar','shock-baton','energy-blade','gravity-hammer','scatter-blaster','coil-rifle','plasma-disc'].map(kind=>'weapon_'+kind),
@@ -157,12 +190,13 @@ function powerArtFiles(bytes, files) {
     assert(r.x+r.width<=image.width && r.y+r.height<=image.height, 'Native power crop escapes atlas: '+id);
     assert(Number.isFinite(cell.pivot.x) && cell.pivot.x>=0 && cell.pivot.x<=r.width);
     assert(Number.isFinite(cell.pivot.y) && cell.pivot.y>=0 && cell.pivot.y<=r.height);
-    // The 500-world streetlight includes <=20 world units of native clear crop padding.
-    assert(Number.isFinite(cell.displayHeight) && cell.displayHeight>0 && cell.displayHeight<=(id.startsWith('fixture_streetlight_')?520:500));
+    // The enlarged 550-world streetlight retains its native clear crop padding.
+    assert(Number.isFinite(cell.displayHeight) && cell.displayHeight>0 && cell.displayHeight<=(id.startsWith('fixture_streetlight_')?580:500));
     for(const key of ['grip','muzzle']) if(Object.hasOwn(cell,key)) {
       assert(Number.isFinite(cell[key]?.x)&&cell[key].x>=0&&cell[key].x<=r.width,'Invalid native weapon '+key+': '+id);
       assert(Number.isFinite(cell[key]?.y)&&cell[key].y>=0&&cell[key].y<=r.height,'Invalid native weapon '+key+': '+id);
     }
+    if (Object.hasOwn(cell, 'itemFrontRegions')) checkNativePolygons(cell.itemFrontRegions, r);
     let visible=0, clear=0, clipped=false;
     for(let y=0;y<r.height;y++) for(let x=0;x<r.width;x++) {
       const alpha=image.pixels[((r.y+y)*image.width+r.x+x)*4+3];
@@ -176,6 +210,10 @@ function powerArtFiles(bytes, files) {
       Math.min(r.y+r.height,old.source.y+old.source.height)<=Math.max(r.y,old.source.y),'Power crops overlap: '+id);
     crops.push(cell);
   }
+  const historicalCar = macPowerRoot + 'street-cars-v1.png';
+  assert.equal(createPowerHash(bytes(historicalCar)), '8a4bb7d98147fdf88b7cafe39ba268af7b557e601abad24015b3922a4b6d7224',
+    'Historical car PNG must remain unchanged');
+  selected.add(historicalCar);
   assert.deepEqual(Object.keys(files).filter(name=>name.startsWith(macPowerRoot)).sort(),[...selected].sort());
   return selected;
 }
@@ -642,6 +680,13 @@ async function checkRoadTextureBank() {
 
 async function main() {
   const index = read('index.html');
+  const equipmentReview = read('mac-equipment-review.html');
+  localFile('mac-equipment-review.html');
+  for (const match of equipmentReview.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+    const source = match[1].match(/\bsrc=["']([^"']+)/i)?.[1];
+    if (source) localAsset(source);
+    else new vm.Script(match[2], {filename:'mac-equipment-review.html inline script'});
+  }
   const localIndexLinks = [];
   for (const match of index.matchAll(/<link\b[^>]*>/gi)) {
     const href = match[0].match(/\bhref=["']([^"']+)/i)?.[1];

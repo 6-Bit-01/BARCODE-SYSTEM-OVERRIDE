@@ -69,12 +69,13 @@ function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementa
   }
   let now = 1000, nextRaf = 0; const scheduled = new Map(), pads = [];
   const doc = new EventTarget(); doc.readyState = 'loading'; doc.hidden = false;
-  const ctx = canvas => new Proxy({canvas, stack:[], rotation:0, lastTranslate:null, measureText: text => ({width: String(text).length * 12}),
-    save() { (this.stack ||= []).push({position:this.lastTranslate,rotation:this.rotation || 0}); },
-    restore() { const saved=this.stack?.pop();if(saved){this.lastTranslate=saved.position;this.rotation=saved.rotation;} },
+  const ctx = canvas => new Proxy({canvas, stack:[], rotation:0, lastTranslate:null,clipRegion:null,currentPath:[], measureText: text => ({width: String(text).length * 12}),
+    save() { (this.stack ||= []).push({position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion}); },
+    restore() { const saved=this.stack?.pop();if(saved){this.lastTranslate=saved.position;this.rotation=saved.rotation;this.clipRegion=saved.clipRegion;} },
+    beginPath(){this.currentPath=[];},moveTo(x,y){this.currentPath.push({move:true,x,y});},lineTo(x,y){this.currentPath.push({x,y});},clip(){this.clipRegion=this.currentPath.map(point=>({...point}));},
     drawImage(image, ...args) { if (args.length === 8 && /assets\/mac-(?:combat-frames|street-dynamic)\//.test(image.src || '')) {
-      const call={path:image.src,args,position:this.lastTranslate,rotation:this.rotation || 0};work.celDraws[image.src] = (work.celDraws[image.src] || 0) + 1;work.lastCels.push(call);work.lastDraws.push(call);
-    } else if (args.length === 8 && image.src?.startsWith('assets/mac-street-power/')) {const call={path:image.src,args,position:this.lastTranslate};work.powerDraws.push(call);work.lastDraws.push(call);} }, translate(x,y) { this.lastTranslate=[x,y]; }, rotate(angle) { this.rotation=(this.rotation || 0)+angle;work.lastRotations.push(angle); },
+      const call={path:image.src,args,position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion};work.celDraws[image.src] = (work.celDraws[image.src] || 0) + 1;work.lastCels.push(call);work.lastDraws.push(call);
+    } else if (args.length === 8 && image.src?.startsWith('assets/mac-street-power/')) {const call={path:image.src,args,position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion};work.powerDraws.push(call);work.lastDraws.push(call);} }, translate(x,y) { this.lastTranslate=[x,y]; }, rotate(angle) { this.rotation=(this.rotation || 0)+angle;work.lastRotations.push(angle); },
     getTransform: () => ({a: 1, b: 0, c: 0, d: 1, e: 0, f: 0})}, {get(obj, key) { return key in obj ? obj[key] : () => {}; }});
   doc.createElement = tag => { const e = new Element(tag, doc); if (tag === 'canvas') { work.canvases++; e.getContext = () => e.context ||= ctx(e); } return e; };
   doc.documentElement = doc.createElement('html'); doc.body = doc.createElement('body'); doc.body.parentNode = doc;
@@ -171,7 +172,8 @@ function assertWholeFrame(r) {
   const mac=r.B.MacCombatPreview,s=mac.combat.getSnapshot(),camera=mac.cameraX;
   const actors=[{kind:'mac',actor:s.player},...s.enemies.filter(e=>(e.hp>0||e.launched||e.knockdownMs>0||e.phase==='defeated'&&e.animation.ageMs<600)&&e.x-camera>-220&&e.x-camera<1920/1.35+220).map(actor=>({kind:actor.kind,actor}))]
     .sort((a,b)=>a.actor.laneY-b.actor.laneY);
-  assert.equal(r.work.lastCels.length,actors.length,'One complete cel per actual visible actor');
+  const wholeCels=r.work.lastCels.filter(call=>!call.clipRegion);
+  assert.equal(wholeCels.length,actors.length,'One complete cel per actual visible actor; a palm mask may redraw that exact same native cel');
   assert(r.work.lastCels.every(call=>call.rotation===0),'Complete actor cels never rotate; whole held items may turn');
   for(let i=0;i<actors.length;i++) {
     const {kind,actor}=actors[i],art=mac.frameArt.get(kind),height=kind==='null_regent'?335:260;
@@ -179,12 +181,16 @@ function assertWholeFrame(r) {
     const landingAgeMs=kind==='mac'&&mac.playerLandedAtMs!==null?s.elapsedMs-mac.playerLandedAtMs:undefined;
     const guardImpactAgeMs=kind==='mac'&&mac.guardBlockedAtMs!==null?s.elapsedMs-mac.guardBlockedAtMs:undefined;
     const pose=r.B.MacCombatFrames.sample(actor,{compiled:art.compiled,supplemental:art.supplemental,player:kind==='mac',stateAgeMs,landingAgeMs,guardImpactAgeMs}),frame=pose.frame,scale=height/frame.standingHeight;
-    assert.equal(r.work.lastCels[i].path,frame.sourceImage,'Exact selected native sheet');
-    assert.deepEqual(r.work.lastCels[i].args,[frame.source.x,frame.source.y,frame.source.width,frame.source.height,
+    assert.equal(wholeCels[i].path,frame.sourceImage,'Exact selected native sheet');
+    assert.deepEqual(wholeCels[i].args,[frame.source.x,frame.source.y,frame.source.width,frame.source.height,
       -frame.feetPivot.x*scale,-frame.feetPivot.y*scale,frame.source.width*scale,frame.source.height*scale],'Exact authored crop, uniform scale and pivot');
     const downStartsMs=art.compiled.clips.defeat.frames.at(-1).startMs;
     const elevation=kind==='mac'&&pose.action==='defeat'?(actor.elevation||0)*(1-Math.max(0,Math.min(1,pose.clipTimeMs/Math.max(1,downStartsMs)))):actor.elevation||0;
-    assert.deepEqual(r.work.lastCels[i].position,[actor.x-camera,actor.laneY-elevation-frame.baselineLift*height/260],'Whole-cel registration follows actual flight and grounds finite defeat');
+    assert.deepEqual(wholeCels[i].position,[actor.x-camera,actor.laneY-elevation-frame.baselineLift*height/260],'Whole-cel registration follows actual flight and grounds finite defeat');
+    for(const palm of r.work.lastCels.filter(call=>call.clipRegion&&call.path===frame.sourceImage&&call.args[0]===frame.source.x&&call.args[1]===frame.source.y)) {
+      assert.deepEqual(palm.args,wholeCels[i].args,'Palm overdraw retains the full exact authored crop and pixel density');
+      assert.deepEqual(palm.position,wholeCels[i].position,'Palm overdraw retains the same complete actor transform');
+    }
   }
 }
 const pressKey = (r, key) => { r.key('keydown', key); r.frame(); r.key('keyup', key); };
@@ -323,8 +329,38 @@ async function run() {
       [manifest=>{manifest.sheets[0].dimensions.width++;},/mac-street-power-native-dimensions-mismatch/],
       [manifest=>{delete manifest.cells['projectile_coil-bolt'];},/mac-street-power-registration-invalid/],
       [manifest=>{manifest.cells['weapon_pipe'].grip={x:Infinity,y:0};},/mac-street-power-grip-invalid/],
-      [manifest=>{manifest.sheets=Array.from({length:9},()=>manifest.sheets[0]);},/mac-street-power-registration-invalid/]
+      [manifest=>{manifest.sheets=Array.from({length:9},()=>manifest.sheets[0]);},/mac-street-power-registration-invalid/],
+      [manifest=>{manifest.cells.weapon_pipe.itemFrontRegions=[[{x:0,y:0},{x:1,y:1},{x:2,y:2}]];},/mac-street-power-item-region-invalid/],
+      [manifest=>{manifest.cells.weapon_pipe.itemFrontRegions=[[{x:0,y:0},{x:99999,y:0},{x:1,y:1}]];},/mac-street-power-item-region-invalid/]
     ]) {const r=rig({powerMutation});await assert.rejects(r.B.MacCombatPreview.prepare(),error);assert.equal(r.B.MacCombatPreview.active,false);assert.equal(r.scheduled.size,0);assert.deepEqual(r.work.audio,[]);r.B.MacCombatPreview.dispose();}
+  });
+  await check('private review paints every weapon and eligible pose in both directions through native body, item and palm layers', async () => {
+    const r=rig();await r.start();
+    const html=fs.readFileSync(path.join(root,'mac-equipment-review.html'),'utf8'),script=html.match(/<script id="equipment-review">([\s\S]*?)<\/script>/);
+    assert(script);vm.runInNewContext(script[1],{window:r.w});
+    const mac=r.B.MacCombatPreview,R=r.B.MacEquipmentReview,art=mac.frameArt.get('mac'),ctx=r.doc.getElementById('gameCanvas').getContext('2d');
+    const before=plain(mac.combat.getSnapshot());let painted=0;
+    for(const kind of R.weapons)for(const scene of R.scenes)for(const facing of [-1,1]){
+      r.work.lastCels=[];r.work.lastDraws=[];
+      const placed=R.drawWeapon(ctx,kind,scene,facing,{x:420,feet:390,height:260}),pose=placed.pose;
+      const anchor=pose.supplemental?art.supplemental.frames[pose.frame.id]:art.supplemental.baseGripAnchors[pose.frame.id];
+      assert(anchor.itemBindings[kind],'Each weapon has a calibrated binding on '+pose.frame.id);
+      assert.deepEqual(plain(pose.gripAnchor),plain(anchor.itemBindings[kind].gripAnchor));
+      assert(pose.handOcclusion?.length,'Native palm mask exists for '+kind+'/'+scene.id);
+      const body=r.work.lastCels.find(call=>!call.clipRegion),palm=r.work.lastCels.find(call=>call.clipRegion);
+      assert(body&&palm);assert.equal(body.rotation,0);assert.equal(palm.rotation,0);
+      assert.deepEqual(palm.args,body.args);assert.deepEqual(palm.position,body.position,'Palm remains in the original complete actor transform');
+      const cell=mac.powerArt.cells['weapon_'+kind],sheet=mac.powerArt.sheets.get(cell.sheet),items=r.work.lastDraws.filter(call=>call.path===sheet.sourceImage&&call.args[0]===cell.source.x&&call.args[1]===cell.source.y);
+      assert(items.length);assert(items.every(call=>call.rotation===pose.weaponAngle));
+      assert.deepEqual(items[0].position,[placed.handX,placed.handY]);
+      if(pose.itemLayer==='behind')assert(r.work.lastDraws.indexOf(items[0])<r.work.lastDraws.indexOf(body),'Body occludes the item handle');
+      else assert(r.work.lastDraws.indexOf(items[0])>r.work.lastDraws.indexOf(body));
+      assert(r.work.lastDraws.indexOf(palm)>r.work.lastDraws.indexOf(items.at(-1)),'Native palm closes over the actual handle');
+      const expected=pose.handOcclusion.flatMap(polygon=>polygon.map((point,index)=>({...(index?{}:{move:true}),x:420+facing*(point.x-pose.frame.feetPivot.x)*260/pose.standingHeight,y:390-(scene.action==='air-kick'?100:scene.elevation||0)-pose.frame.baselineLift+(point.y-pose.frame.feetPivot.y)*260/pose.standingHeight})));
+      assert.equal(palm.clipRegion.length,expected.length);
+      for(let index=0;index<expected.length;index++){const point=palm.clipRegion[index],target=expected[index];assert.equal(!!point.move,!!target.move);assert(Math.abs(point.x-target.x)<1e-8&&Math.abs(point.y-target.y)<1e-8,'Registered palm polygons mirror with the complete cel');}painted++;
+    }
+    assert.equal(painted,432);assert.deepEqual(plain(mac.combat.getSnapshot()),before,'Visual review does not mutate the playable simulation');assert.equal(r.scheduled.size,1);assert.equal(r.work.canvases,1);assert.equal(r.work.timers,0);await mac.exit();
   });
   await check('hands-on lessons use real movement, combo and air-kick receipts; Pause and direct Skip preserve control ownership', async () => {
     const r=rig();await r.start();const mac=r.B.MacCombatPreview;r.manager.touchCommand('mac:skip');r.frame();assert.equal(mac.tutorial.index,0);assert.equal(mac.tutorialReadout.hidden,false);
@@ -382,6 +418,18 @@ async function run() {
     const frozen=plain(mac.combat.getSnapshot());r.run(100);assert.deepEqual(plain(mac.combat.getSnapshot()),frozen);
     await r.B.RuntimeLifecycle.resume();r.frame();assert(!mac.combat.getSnapshot().player.running);assert.equal(r.scheduled.size,1);assert.equal(r.work.timers,0);assert.equal(r.work.intervals,0);await mac.exit();
   });
+  await check('phone outer-stick Run Kick uses the real native kick phases, preserves equipped charges and cancels safely at Pause', async () => {
+    const r=rig({touch:true});await r.start();r.manager.touchCommand('mac:skip');r.frame();const mac=r.B.MacCombatPreview,T=r.B.TouchControls;
+    r.key('keydown','d');r.until(()=>mac.getControlState().throw.ready&&mac.getControlState().throw.targetType==='weapon');r.key('keyup','d');r.frame();
+    const pickup=r.button('road_disrupt');r.pointer(pickup,'pointerdown',73);r.pointer(pickup,'pointerup',73);r.frame();const weapon=plain(mac.combat.getSnapshot().player.weapon);
+    r.pointer(T.joystick,'pointerdown',74);r.pointer(T.joystick,'pointermove',74,144,670);r.run(50);assert(mac.combat.getSnapshot().player.running);
+    const strike=r.button('road_attack');assert.match(strike.textContent,/Run Kick/);r.pointer(strike,'pointerdown',75);r.frame();
+    let p=mac.combat.getSnapshot().player;assert.equal(p.attack.kind,'running-kick');assert.equal(p.attack.weaponKind,null);assert.deepEqual(plain(p.weapon),weapon);assert.equal(mac.tutorial.progress['running-kick'],1);
+    const art=mac.frameArt.get('mac');let pose=r.B.MacCombatFrames.sample(p,{player:true,compiled:art.compiled,supplemental:art.supplemental});assert.equal(pose.clipKey,'air-kick.windup');assertWholeFrame(r);
+    r.run(105);p=mac.combat.getSnapshot().player;pose=r.B.MacCombatFrames.sample(p,{player:true,compiled:art.compiled,supplemental:art.supplemental});assert.equal(pose.clipKey,'air-kick.active');assertWholeFrame(r);
+    await r.B.RuntimeLifecycle.pause();r.frame();const frozen=plain(mac.combat.getSnapshot());assert.equal(frozen.player.attack,null);assert.equal(T.pointers.size,0);r.run(250);assert.deepEqual(plain(mac.combat.getSnapshot()),frozen);
+    await r.B.RuntimeLifecycle.resume();r.frame();r.run(150);p=mac.combat.getSnapshot().player;assert.equal(p.attack,null);assert(!p.running);assert.deepEqual(plain(p.weapon),weapon);assert.equal(r.scheduled.size,1);assert.equal(r.work.timers,0);assert.equal(r.work.intervals,0);await mac.exit();
+  });
   await check('an actual late-held Guard block selects the native impact cel only for its simulation receipt age', async () => {
     const r=rig();await r.start();r.manager.touchCommand('mac:skip');r.frame();const mac=r.B.MacCombatPreview;
     r.key('keydown','d');r.until(s=>s.combat.enemies[0].phase==='windup');r.key('keyup','d');r.key('keydown','k');
@@ -437,7 +485,13 @@ async function run() {
     await fightRoute(r,{until:s=>s.combat.zone.index===1&&s.combat.zone.cleared});r.frame();const car=mac.combat.getSnapshot().props.find(prop=>prop.id==='alley-car');assert(car&&!car.broken&&!car.carryable);
     r.key('keydown','s');r.until(s=>Math.abs(s.combat.player.laneY-car.laneY)<8);r.key('keyup','s');r.frame();
     r.key('keydown',car.x-70<mac.combat.getSnapshot().player.x?'a':'d');r.until(s=>Math.abs(s.combat.player.x-(car.x-70))<10);r.key('keyup','a');r.key('keyup','d');r.frame();
-    for(let n=0;n<12&&!mac.combat.getSnapshot().props.find(prop=>prop.id===car.id).broken;n++){pressKey(r,'j');r.until(s=>!s.combat.player.attack);}
+    pressKey(r,'j');r.until(s=>s.combat.props.find(prop=>prop.id===car.id).recoil?.elevation>0);
+    const bounced=mac.combat.getSnapshot().props.find(prop=>prop.id===car.id);assert.equal(bounced.x,car.x);assert.equal(bounced.laneY,car.laneY);assert(bounced.hp>0&&!bounced.broken,'A car survives the first earned weapon or fist hit');
+    const recoilCell=mac.powerArt.cells[mac.propCell(bounced)],recoilSheet=mac.powerArt.sheets.get(recoilCell.sheet),recoilDraw=r.work.lastDraws.find(call=>call.path===recoilSheet.sourceImage&&call.args[0]===recoilCell.source.x&&call.args[1]===recoilCell.source.y);
+    assert.deepEqual(recoilDraw.position,[bounced.x-mac.cameraX+bounced.recoil.x,bounced.laneY-bounced.recoil.elevation]);assert.equal(recoilDraw.rotation,bounced.recoil.rotation,'Whole native car rocks around its registered floor pivot');
+    await r.B.RuntimeLifecycle.pause();r.frame();const frozenRecoil=plain(mac.combat.getSnapshot().props.find(prop=>prop.id===car.id));r.run(250);assert.deepEqual(plain(mac.combat.getSnapshot().props.find(prop=>prop.id===car.id)),frozenRecoil,'Pause freezes actual car bounce');
+    await r.B.RuntimeLifecycle.resume();r.frame();r.until(s=>!s.combat.player.attack);r.run(450);assert.equal(mac.combat.getSnapshot().props.find(prop=>prop.id===car.id).recoil,null,'The car settles without a presentation clock');
+    for(let n=0;n<30&&!mac.combat.getSnapshot().props.find(prop=>prop.id===car.id).broken;n++){pressKey(r,'j');r.until(s=>!s.combat.player.attack);}
     assert(mac.combat.getSnapshot().props.find(prop=>prop.id===car.id).broken,'Ordinary strikes wreck the car');assert.equal(mac.tutorial.progress.scenery,1);
     const cell=mac.powerArt.cells.car_broken,sheet=mac.powerArt.sheets.get(cell.sheet);assert(r.work.lastDraws.some(call=>call.path===sheet.sourceImage&&call.args[0]===cell.source.x&&call.args[1]===cell.source.y),'Native collapsed car is selected from actual prop state');
     const pickup=mac.combat.getSnapshot().pickups.find(item=>item.kind==='barrier');assert(pickup);r.key('keydown','d');r.until(s=>s.combat.player.powerups.barrierMs>0);r.key('keyup','d');r.frame();

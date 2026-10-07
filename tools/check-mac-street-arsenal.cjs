@@ -37,6 +37,15 @@ check('floor weapon equips by L and shared Strike spends a finite melee charge',
   r.run(450,{strike:{held:true}});assert.equal(r.view().player.weapon.charges,13);assert.equal(r.events.filter(e=>e.type==='strike').length,1);
   r.game.releaseInputs('pause');assert(!r.view().player.attack);assert.equal(r.view().player.weapon.charges,13);
 });
+check('armed running Strike kicks before its weapon while charges and inventory stay intact',()=>{
+  const r=rig();walkTo(r,260);r.step(press('throw'));r.step({move_x:1,run:{held:true}});
+  assert.equal(r.game.getControlState().strike.label,'Run Kick');const weapon=plain(r.view().player.weapon);
+  r.step({move_x:1,run:{held:true},...press('strike')});assert.equal(r.view().player.attack.kind,'running-kick');
+  assert.equal(r.view().player.attack.weaponKind,null);r.run(700,{strike:{held:true}});
+  assert.deepEqual(plain(r.view().player.weapon),weapon);assert(!r.events.some(e=>e.type==='weapon-used'||e.type==='weapon-fired'));
+  assert.equal(r.events.filter(e=>e.type==='running-kick').length,1);
+  r.game.releaseInputs('pause');r.step(press('strike'));assert.equal(r.view().player.attack.kind,'pipe');
+});
 check('guard preserves an armed weapon; real hurt drops and L recovers its remaining charges',()=>{
   const r=rig();walkTo(r,260);r.step(press('throw'));r.step();r.step(press('strike'));r.run(450);
   assert.equal(r.view().player.weapon.charges,13);r.until(s=>s.enemies[0].phase==='windup',{move_x:1});r.run(800,{guard:{held:true}});
@@ -140,11 +149,36 @@ check('all8 weapons are earned/equipped/fired through all6 districts with30 real
 });
 check('world props are human scale and only explicit street surfaces are targetable',()=>{
   assert.equal(new Set(M.props.map(p=>p.zoneId)).size,6);const cars=M.props.filter(p=>p.kind==='car');assert.equal(cars.length,4);
-  assert(cars.every(p=>p.width===390&&p.height===(p.variant==='van'?227.5:175.5)&&!p.carryable));assert(cars.some(p=>p.variant==='van'));
+  assert(cars.every(p=>p.width===(p.variant==='van'?790:680)&&p.height===(p.variant==='van'?284.083095:209.074627)&&!p.carryable));assert(cars.some(p=>p.variant==='van'));
+  const native=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/mac-street-power/mac-street-power-v1.json'),'utf8'));
+  const measurements=[...native.scaleMeasurements.props,...native.scaleMeasurements.cars];
+  for(const prop of M.props) {
+    const kind=prop.kind==='car'&&prop.variant==='van'?'car_van':['terminal','streetlight'].includes(prop.kind)?'fixture_'+prop.kind:prop.kind;
+    const measurement=measurements.find(m=>m.kind===kind);assert(measurement,'every physical prop has a native solid measurement: '+kind);
+    assert.equal(prop.width,measurement.visibleWidth);assert.equal(prop.height,measurement.visibleHeight);
+  }
+  assert.equal(native.sheets.find(s=>s.id==='cars').sourceImage,'assets/mac-street-power/street-cars-side-v2.png');
   assert(!cars.some(p=>/rooftop|transit/.test(p.zoneId)));assert(M.props.filter(p=>p.placement==='street-fixture').every(p=>p.laneY>=780&&p.laneY<=970&&p.targetable));
   const changed=route.events.filter(e=>e.type==='prop-hit');assert(changed.length>0);assert(changed.every(e=>M.props.some(p=>p.id===e.id&&p.targetable)));
 });
 check('calibrated long rifle muzzle still hits a point-blank opponent in its first sweep',()=>{
+  const native=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/mac-street-power/mac-street-power-v1.json'),'utf8'));
+  const poses=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/mac-street-dynamic/mac-modem-actions-v1.json'),'utf8'));
+  const frame=poses.frames.find(f=>f.id===poses.clips['fire.active'].frames[0].frame);
+  const sheet=poses.sheets.find(s=>s.id===frame.sheet),bodyScale=260/sheet.pixelScale.standingVisibleHeight;
+  for(const kind of ['scatter-blaster','coil-rifle','plasma-disc']) {
+    const binding=frame.itemBindings[kind],cell=native.cells['weapon_'+kind];assert(binding&&cell);
+    let forward=(binding.gripAnchor.x-frame.feetPivot.x)*bodyScale;
+    let elevation=(frame.feetPivot.y-binding.gripAnchor.y)*bodyScale;
+    if(cell.muzzle) {
+      const itemScale=cell.displayHeight/cell.source.height,angle=binding.weaponAngle;
+      const dx=(cell.muzzle.x-cell.grip.x)*itemScale,dy=(cell.muzzle.y-cell.grip.y)*itemScale;
+      forward+=dx*Math.cos(angle)-dy*Math.sin(angle);
+      elevation-=dx*Math.sin(angle)+dy*Math.cos(angle);
+    }
+    assert(Math.abs(M.weapons[kind].muzzleForward-forward)<=.0005,kind+' muzzle matches its selected native trigger grip');
+    assert(Math.abs(M.weapons[kind].muzzleElevation-elevation)<=.0005,kind+' muzzle matches its selected native height');
+  }
   const r=rig();r.equipped=new Set();r.used=new Set();
   r.until(s=>s.player.weapon?.kind==='coil-rifle'||s.status==='defeated',s=>{
     for(const e of r.events){if(e.type==='weapon-equipped')r.equipped.add(e.kind);if(e.type==='strike'&&e.weaponKind)r.used.add(e.weaponKind);}
@@ -158,7 +192,7 @@ check('calibrated long rifle muzzle still hits a point-blank opponent in its fir
   const shot=r.events.slice(eventStart).find(e=>e.type==='weapon-fired'),hit=r.events.slice(eventStart).find(e=>e.type==='enemy-hit'&&e.cause==='coil-rifle');
   assert(shot&&hit);assert.equal(hit.atMs,shot.atMs,'first physical sweep includes chest-to-muzzle segment');
   assert((hit.x-shot.x)*shot.facing>0&&(hit.x-shot.muzzleX)*shot.facing<0,'contact really was closer than the drawn barrel tip');
-  assert.equal(shot.elevation,224.717);assert(Math.abs((shot.muzzleX-shot.x)*shot.facing-161.433)<.001);
+  assert.equal(shot.elevation,223.345);assert(Math.abs((shot.muzzleX-shot.x)*shot.facing-169.160)<.001);
 });
 let street;
 check('a box carries beyond3s, pause drops safely, and a real throw hits a car once',()=>{
@@ -181,10 +215,47 @@ check('a box carries beyond3s, pause drops safely, and a real throw hits a car o
   const collisions=r.events.filter(e=>e.type==='body-impact'&&e.id===crate.id&&e.targetId===car.id);
   assert.equal(collisions.length,1);assert.equal(collisions[0].damage,40);assert.equal(r.view().props.find(p=>p.id===car.id).hp,car.hp-40);
 });
+check('several normal car hits restart a bounded floor-anchored bounce then settle cleanly',()=>{
+  const r=street,car=r.view().props.find(p=>p.kind==='car');assert(car.maxHp>=240&&car.hp>100);
+  walkTo(r,car.x-145,car.laneY);r.until(s=>!s.player.attack);const initialHits=r.events.filter(e=>e.type==='prop-hit'&&e.id===car.id).length;
+  r.step(press('strike'));r.until(()=>r.events.filter(e=>e.type==='prop-hit'&&e.id===car.id).length>initialHits,{},600);
+  const first=r.view().props.find(p=>p.id===car.id);assert(!first.broken&&first.recoil);assert.equal(first.hp,car.hp-12);
+  const paused=plain(first);r.game.update(0);assert.deepEqual(plain(r.view().props.find(p=>p.id===car.id)),paused);
+  const oldAge=first.recoil.ageMs;r.run(50);const moving=r.view().props.find(p=>p.id===car.id);
+  assert(moving.recoil.ageMs>oldAge&&moving.recoil.elevation>0);assert.equal(moving.x,car.x);assert.equal(moving.laneY,car.laneY);
+  r.until(s=>s.player.attack?.phase==='recovery');r.step(press('strike'));
+  r.until(()=>r.events.filter(e=>e.type==='prop-hit'&&e.id===car.id).length>initialHits+1,{},600);
+  const second=r.view().props.find(p=>p.id===car.id);assert(second.recoil.ageMs<30);assert.equal(second.hp,car.hp-26);assert(!second.broken);
+  for(let n=0;n<70;n++) {r.step();const p=r.view().props.find(p=>p.id===car.id);
+    assert.equal(p.x,car.x);assert.equal(p.laneY,car.laneY);
+    if(p.recoil){assert(p.recoil.remainingMs<=420&&p.recoil.strength<=1);assert(Math.abs(p.recoil.x)<=M.constants.carRecoilX);
+      assert(p.recoil.elevation<=M.constants.carBounceHeight&&p.recoil.elevation>=0);assert(Math.abs(p.recoil.rotation)<=M.constants.carRecoilRotation);}}
+  assert.equal(r.view().props.find(p=>p.id===car.id).recoil,null);assert(!r.events.some(e=>e.type==='prop-break'&&e.id===car.id));
+  assert(M.weapons['gravity-hammer'].propDamage>M.weapons.crowbar.propDamage&&M.weapons.crowbar.propDamage>M.weapons.pipe.propDamage);
+});
+check('real pipe and crowbar contacts damage sturdy cars differently without changing enemy damage',()=>{
+  const r=rig();r.equipped=new Set(Object.keys(M.weapons));r.used=new Set(Object.keys(M.weapons));
+  r.until(s=>s.zone.state==='zone-clear'||s.status==='defeated',s=>routeInput(r,s),100000);assert.notEqual(r.view().status,'defeated');
+  const car=r.view().props.find(p=>p.kind==='car'),initialHp=car.hp;
+  for(const [kind,damage] of [['pipe',24],['crowbar',38]]) {
+    const item=r.view().pickups.find(p=>p.kind==='weapon'&&p.weaponKind===kind);assert(item);
+    walkTo(r,item.x,item.laneY);r.step(press('throw'));r.step();assert.equal(r.view().player.weapon.kind,kind);
+    walkTo(r,car.x-145,car.laneY);r.until(s=>!s.player.attack);const before=r.view().props.find(p=>p.id===car.id).hp;
+    const eventStart=r.events.length;r.step(press('strike'));r.until(()=>r.events.slice(eventStart).some(e=>e.type==='prop-hit'&&e.id===car.id));
+    const event=r.events.slice(eventStart).find(e=>e.type==='prop-hit'&&e.id===car.id);
+    assert.equal(event.cause,kind);assert.equal(event.damage,damage);assert.equal(r.view().props.find(p=>p.id===car.id).hp,before-damage);
+    r.until(s=>!s.player.attack);
+  }
+  assert.equal(r.view().props.find(p=>p.id===car.id).hp,initialHp-62);assert(!r.view().props.find(p=>p.id===car.id).broken);
+  assert.equal(M.weapons.pipe.damage,17);assert.equal(M.weapons.crowbar.damage,21);
+});
 check('wrecked car drops a real weapon and Barrier; street fixture grants timed Overdrive',()=>{
   const r=street,car=r.view().props.find(p=>p.kind==='car');walkTo(r,car.x-145,car.laneY);
   r.until(s=>s.props.find(p=>p.id===car.id).broken,s=>r.game.getControlState().strike.ready&&!s.player.attack?press('strike'):{},15000);
   assert(r.events.some(e=>e.type==='prop-break'&&e.id===car.id&&e.cause==='strike'));assert(r.view().pickups.some(p=>p.kind==='weapon'&&p.id===car.id+'-weapon'));
+  assert.equal(r.events.filter(e=>e.type==='prop-break'&&e.id===car.id).length,1);assert.equal(r.view().props.find(p=>p.id===car.id).recoil,null);
+  const loot=r.view().pickups.filter(p=>p.id.startsWith(car.id+'-'));r.step(press('strike'));r.run(600);
+  assert.equal(r.events.filter(e=>e.type==='prop-break'&&e.id===car.id).length,1);assert.deepEqual(plain(r.view().pickups.filter(p=>p.id.startsWith(car.id+'-'))),plain(loot));
   r.until(s=>!s.player.attack);walkTo(r,car.x,car.laneY);assert.equal(r.view().player.powerups.barrierCharges,3);assert(r.view().player.powerups.barrierMs>0);
   const fixture=r.view().props.find(p=>p.kind==='streetlight');walkTo(r,fixture.x-95,fixture.laneY);
   r.until(s=>s.props.find(p=>p.id===fixture.id).broken,s=>r.game.getControlState().strike.ready&&!s.player.attack?press('strike'):{},15000);

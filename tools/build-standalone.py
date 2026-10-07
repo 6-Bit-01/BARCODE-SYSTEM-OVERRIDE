@@ -97,10 +97,12 @@ MAC_DYNAMIC_FRAMES = {
 MAC_DYNAMIC_CLIPS = {"guard", "guard-walk", "run", "grab-start", "grab-hold", "carry", "carry-walk"} | {
     f"{action}.{phase}" for action in ("pummel", "melee", "fire") for phase in ("windup", "active", "recovery")}
 MAC_DYNAMIC_LOOPS = {"guard", "guard-walk", "run", "grab-hold", "carry", "carry-walk"}
+MAC_WEAPON_KINDS = {"pipe", "crowbar", "shock-baton", "energy-blade", "gravity-hammer",
+                    "scatter-blaster", "coil-rifle", "plasma-disc"}
 MAC_POWER_ROOT = "assets/mac-street-power/"
 MAC_POWER_SHEETS = {
     "props": "street-props-v1.png", "blood": "street-blood-v1.png",
-    "equipment": "street-weapons-v1.png", "cars": "street-cars-v1.png",
+    "equipment": "street-weapons-v1.png", "cars": "street-cars-side-v2.png",
     "fixtures": "street-fixtures-v1.png", "cores": "street-powerups-v1.png"}
 MAC_POWER_CELLS = {"crate_intact", "crate_cracked", "crate_broken",
                    "stall_intact", "stall_cracked", "stall_broken",
@@ -141,7 +143,34 @@ def crops_overlap(a, b):
         min(a["y"] + a["height"], b["y"] + b["height"]) > max(a["y"], b["y"])
 
 
+def native_polygons(polygons, rect):
+    require(isinstance(polygons, list), "Native overlap regions must be polygon arrays")
+    for polygon in polygons:
+        require(isinstance(polygon, list) and len(polygon) >= 3 and
+                all(isinstance(point, dict) and native_anchor(point, rect) for point in polygon),
+                "Native overlap polygon escapes its complete source crop")
+        area = sum(point["x"] * polygon[(index + 1) % len(polygon)]["y"] -
+                   polygon[(index + 1) % len(polygon)]["x"] * point["y"]
+                   for index, point in enumerate(polygon))
+        require(abs(area) > 0.01, "Native overlap polygon has no area")
+
+
+def native_item_bindings(entry, rect, weapon_cells):
+    bindings = entry.get("itemBindings", {})
+    require(isinstance(bindings, dict) and set(bindings) == MAC_WEAPON_KINDS,
+            "Every equipped character cel must register all eight weapon grips")
+    for kind, binding in bindings.items():
+        require(native_anchor(binding.get("gripAnchor", {}), rect) and
+                type(binding.get("weaponAngle")) in (int, float) and
+                math.isfinite(binding["weaponAngle"]) and abs(binding["weaponAngle"]) <= math.pi and
+                binding.get("itemLayer") in ("front", "behind"), "Invalid per-weapon native grip/layer")
+        native_polygons(binding.get("handOcclusion"), rect)
+        if "itemFrontRegions" in binding:
+            native_polygons(binding["itemFrontRegions"], weapon_cells["weapon_" + kind]["source"])
+
+
 def supplemental_frame_files(output, actor, base):
+    weapon_cells = json.loads(safe_path(output, MAC_POWER_ROOT + "mac-street-power-v1.json").read_text(encoding="utf-8"))["cells"]
     name = MAC_DYNAMIC_ROOT + "mac-modem-actions-v1.json"
     selection = actor.get("supplemental", {})
     require(selection.get("registration") == name, "Missing selected Mac supplemental registration")
@@ -175,6 +204,7 @@ def supplemental_frame_files(output, actor, base):
         angle = frame.get("weaponAngle")
         require(type(angle) in (int, float) and math.isfinite(angle) and abs(angle) <= math.pi,
                 "Invalid native weapon angle")
+        native_item_bindings(frame, rect, weapon_cells)
         require(not any(crops_overlap(rect, old) for old in crops.get(sheet, [])), "Supplemental crops overlap")
         crops.setdefault(sheet, []).append(rect)
     for sheet in sheets:
@@ -208,6 +238,7 @@ def supplemental_frame_files(output, actor, base):
         require(frame_id in base_frames and native_anchor(anchor.get("gripAnchor", {}), base_frames[frame_id]["source"]) and
                 type(angle) in (int, float) and math.isfinite(angle) and abs(angle) <= math.pi,
                 "Invalid base-cel weapon grip")
+        native_item_bindings(anchor, base_frames[frame_id]["source"], weapon_cells)
     return selected
 
 
@@ -245,15 +276,22 @@ def street_power_files(output):
         require(all(isinstance(pivot.get(key), (int, float)) and math.isfinite(pivot[key]) and
                     0 <= pivot[key] <= rect["width" if key == "x" else "height"] for key in ("x", "y"))
                 and isinstance(cell.get("displayHeight"), (int, float)) and
-                0 < cell["displayHeight"] <= (520 if name.startswith("fixture_streetlight_") else 500),
+                0 < cell["displayHeight"] <= (580 if name.startswith("fixture_streetlight_") else 500),
                 "Invalid power cell registration")
         for key in ("grip", "muzzle"):
             require(key not in cell or native_anchor(cell[key], rect), "Invalid native weapon " + key)
+        if "itemFrontRegions" in cell:
+            native_polygons(cell["itemFrontRegions"], rect)
         for other_sheet, other in crops:
             require(sheet != other_sheet or min(rect["x"] + rect["width"], other["x"] + other["width"]) <= max(rect["x"], other["x"])
                     or min(rect["y"] + rect["height"], other["y"] + other["height"]) <= max(rect["y"], other["y"]),
                     "Power crops overlap")
         crops.append((sheet, rect))
+    historical_car = MAC_POWER_ROOT + "street-cars-v1.png"
+    require(sha(safe_path(output, historical_car).read_bytes()) ==
+            "8a4bb7d98147fdf88b7cafe39ba268af7b557e601abad24015b3922a4b6d7224",
+            "Historical car artwork must remain unchanged")
+    selected.add(historical_car)
     return selected
 
 
@@ -816,7 +854,7 @@ def build(output, receipt):
     records, mapping, originals_hash = read_originals()
     head = git("rev-parse", "HEAD").decode("ascii").strip()
     tree = git("rev-parse", "HEAD^{tree}").decode("ascii").strip()
-    source_paths = ["index.html", "style.css", "sprites-manifest.json"] + sorted(
+    source_paths = ["index.html", "mac-equipment-review.html", "style.css", "sprites-manifest.json"] + sorted(
         path.relative_to(ROOT).as_posix() for path in (ROOT / "src").rglob("*") if path.is_file())
     require(ADAPTER in source_paths, "Standalone sprite adapter is missing")
     payloads, sources = {}, []

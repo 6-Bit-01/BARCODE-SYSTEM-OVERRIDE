@@ -55,8 +55,19 @@ function combatInput(r,s){
     Math.abs(e.attackLaneY-p.laneY)<45&&Math.abs(e.x-p.x)<330)
     .sort((x,y)=>(x.tellMs-x.phaseMs)-(y.tellMs-y.phaseMs))[0];
   const remaining=warning?warning.tellMs-warning.phaseMs:Infinity;
+  // Optional sturdy cars no longer wreck from incidental crowd contacts to
+  // supply a free Barrier. Respect the Regent's real armored commitments.
+  if(foe.kind==='null_regent'&&foe.phase==='active') {
+    if(foe.attackSpec.guardable!==false)return {...input,move_x:0,guard:{held:true}};
+    if(controls.jump.ready)return {...input,move_x:0,...press('jump')};
+    return {...input,move_x:0,move_y:p.laneY>875?-1:1};
+  }
+  if(foe.kind==='null_regent'&&s.projectiles.some(item=>item.owner!=='player'&&Math.abs(item.x-p.x)<430&&Math.abs(item.laneY-p.laneY)<55)) {
+    if(incoming&&controls.jump.ready)return {...input,...press('jump')};
+    return {...input,move_x:0,guard:{held:true}};
+  }
   if(incoming&&controls.jump.ready){input.jump={pressed:true,held:true};return input;}
-  if(warning&&remaining<310&&!p.attack&&!p.throwMs){
+  if(warning&&remaining<(warning.kind==='null_regent'?650:310)&&(warning.kind==='null_regent'||!p.attack&&!p.throwMs)){
     if(warning.attackTell.guardable===false&&remaining<250&&controls.jump.ready)
       input.jump={pressed:true,held:true};
     else if(warning.attackTell.guardable!==false&&remaining<105)input.guard={held:true};
@@ -64,8 +75,12 @@ function combatInput(r,s){
     input.move_x=0;return input;
   }
   if(controls.throw.ready&&controls.throw.targetType==='enemy'&&!r.lastThrow)input.throw={pressed:true,held:true};
-  else if(controls.strike.ready&&!r.lastStrike&&Math.abs(dx)<=100&&Math.abs(foe.laneY-p.laneY)<=35)
-    input.strike={pressed:true,held:true};
+  else if(controls.strike.ready&&!r.lastStrike&&Math.abs(dx)<=100&&Math.abs(foe.laneY-p.laneY)<=35) {
+    // Run+Strike now deliberately commits a lunge. This ordinary-combat route
+    // braces once to end incidental tap running, then uses its existing strike.
+    if(p.running)input.guard={held:true};
+    else input.strike={pressed:true,held:true};
+  }
   r.lastThrow=!!input.throw;r.lastStrike=!!input.strike;
   return input;
 }
@@ -147,6 +162,26 @@ check('moving Strike commits a directional step attack rather than sliding a jab
   r.run(700,{strike:{held:true}});assert.equal(r.events.filter(e=>e.type==='strike').length,1);
 });
 
+check('running Strike commits a bounded grounded kick with launch instead of a step punch',()=>{
+  const r=rig();engage(r);r.step({move_x:1,run:{held:true}});
+  assert(r.view().player.running);assert.equal(r.game.getControlState().strike.label,'Run Kick');
+  const hp=r.view().enemies[0].hp,start=r.view().player.x;
+  r.step({move_x:1,run:{held:true},...press('strike')});
+  const attack=r.view().player.attack;assert.equal(attack.kind,'running-kick');assert(attack.running&&!attack.airborne);
+  assert.equal(r.view().player.animation.action,'running-kick');
+  assert.equal(r.game.getControlState().strike.label,'Run Kick','committed kick keeps its label through recovery');
+  assert.deepEqual(plain(attack.timing),{windupMs:85,activeMs:145,recoveryMs:245});
+  r.run(150,{move_x:-1,strike:{held:true}});const contact=r.view();
+  assert(contact.player.x>start+60&&contact.player.elevation===0);assert.equal(contact.player.facing,1);
+  assert.equal(contact.enemies[0].hp,hp-24);assert(contact.enemies[0].launched);
+  assert(r.events.some(e=>e.type==='launch'&&e.cause==='running-kick'));
+  assert(r.events.some(e=>e.type==='running-kick'));
+  r.until(s=>s.player.attack?.phase==='recovery',{strike:{held:true}});
+  assert(r.view().player.attack.rootShift<=125+1e-6);assert(r.view().player.attack.rootShift>100);
+  assert(!r.game.getControlState().strike.ready,'committed run kick cannot buffer a jab chain');
+  r.run(700,{strike:{held:true}});assert.equal(r.events.filter(e=>e.type==='strike').length,1);assert.equal(r.view().player.comboNext,1);
+});
+
 check('Jump plus Strike performs a real aerial kick above the ground-punch limit',()=>{
   const r=rig();engage(r);const hp=r.view().enemies[0].hp;
   r.step(press('jump'));r.run(80);
@@ -159,7 +194,7 @@ check('Jump plus Strike performs a real aerial kick above the ground-punch limit
   assert.equal(r.view().player.attack.airborne,true);
   r.run(800,{strike:{held:true}});
   assert.equal(r.events.filter(e=>e.type==='strike').length,1);assert.equal(r.view().player.comboNext,1);
-  const together=rig();together.step({...press('jump'),...press('strike')});
+  const together=rig();together.step({move_x:1,run:{held:true},...press('jump'),...press('strike')});
   assert.equal(together.view().player.attack.kind,'air-kick','simultaneous inputs use the same accessible attack');
 });
 
@@ -188,7 +223,7 @@ check('fresh parry opens one counter; holding guard cannot renew it', () => {
   assert.equal(r.events.filter(e => e.type === 'parry').length, 1);
   assert.equal(r.view().player.hp, 100); assert(r.view().player.counterMs > 0);
   assert.equal(r.game.getControlState().strike.label, 'Counter');
-  r.step(press('strike'));assert.equal(r.view().player.attack.kind,'counter');r.run(150);
+  r.step({move_x:1,run:{held:true},...press('strike')});assert.equal(r.view().player.attack.kind,'counter');r.run(150);
   assert(r.events.some(e => e.type === 'enemy-hit' && e.cause === 'counter' && e.damage === 22));
   assert.equal(r.view().player.counterMs, 0);
   const held = rig(); engage(held); held.step({guard: {held: true}});

@@ -1,3 +1,11 @@
+## October 6, 2026 — individual weapon grips, street scale and running kick
+
+The owner rejected the arsenal1 weapon holds and small cars/props, and explicitly requires each weapon to be positioned and checked individually. This correction adds per-weapon, per-cel grip, angle and front/behind layering, with native palm/forearm overlap drawn from the same complete character cel. The accepted character drawings remain complete; no articulated body animation returns. Both facing directions and equipped idle, guard, movement and attack states belong to the review.
+
+Cars use new longer side-view native drawings, with one uniform scale for each intact/cracked/wrecked family. Street objects are calibrated against the unchanged 260-unit Mac. Stronger cars absorb several attacks and use a finite hit bounce driven by the existing combat clock, while collision/floor anchors, one-time wrecking and loot remain authoritative. Run plus Strike commits a grounded running kick with forward momentum and launch; ordinary strikes, airborne kicks and counters retain their own behavior. Equipped gear remains in inventory and is not spent by the running kick.
+
+Source PR189 and website PR485 remain private drafts. The arsenal1 source6df3cf81/site3dfb10cf checkpoint and verified archive are preserved. The production equipment review page, native review images, final source/site identities, fresh focused/full checks, hosted observations and exact source ZIP are recorded in project-root/verification/mac-street-grip-20261006 and its delivery receipts. The website playtest revision is grip2. Technical validation does not establish owner visual/playtest acceptance, physical-phone performance or final Mac music acceptance. Six districts, twelve waves, thirty enemies, boss, cameos, both Kave choices and the original 624 artwork/audio identities remain.
+
 # Changelog
 
 ## October 6, 2026 — weapons, held grabs and a destructible city

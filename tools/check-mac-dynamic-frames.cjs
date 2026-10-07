@@ -4,7 +4,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const crypto=require('node:crypto'),vm=require('node:vm'),zlib=require('node:zlib');
 const source=path.resolve(__dirname,'..'),modulePath=path.join(source,'src/game/mac-combat-frames.js');
 const options={},args=process.argv.slice(2);
-while(args.length){const arg=args.shift(),match=/^--(registration|base|out)(?:=(.*))?$/.exec(arg);
+while(args.length){const arg=args.shift(),match=/^--(registration|base|equipment|out)(?:=(.*))?$/.exec(arg);
   assert(match,'Unknown option '+arg);options[match[1]]=match[2]||args.shift();assert(options[match[1]],'Missing option value');}
 const context={window:{BARCODE:{}}};vm.createContext(context);vm.runInContext(fs.readFileSync(modulePath,'utf8'),context,{filename:modulePath});
 const F=context.window.BARCODE.MacCombatFrames,plain=value=>JSON.parse(JSON.stringify(value));
@@ -55,10 +55,11 @@ check('pummel load/contact/recovery follow the real attack phase rather than tot
     assert.equal(result.frameId,id);assert.equal(result.phase,phase);assert.equal(result.phaseProgress,.5);
   }
 });
-check('carry uses hand-support cels while armed and unarmed locomotion retain accepted complete cels',()=>{
+check('carry uses support cels; firearm idle uses authored two-hand ready while locomotion retains accepted cels',()=>{
   assert.equal(pose(actor('carry',{carry:{kind:'crate',elapsedMs:9000}})).frameId,'carry_hold');
   assert.equal(pose(actor('carry',{animation:{action:'carry',motion:{speed:65,stridePhase:.6}},carry:{kind:'crate'}})).frameId,'carry_b');
-  assert.equal(pose(actor('idle',{weapon:{kind:'coil-rifle'}})).frameId,'idle_a');
+  assert.equal(pose(actor('idle',{weapon:{kind:'coil-rifle'}})).frameId,'fire_aim');
+  assert.equal(pose(actor('idle',{weapon:{kind:'pipe'}})).frameId,'idle_a');
   assert.equal(pose(actor('walk',{animation:{action:'walk',motion:{speed:80,stridePhase:.1}},weapon:{kind:'pipe'}})).supplemental,false);
   assert.equal(pose(actor('walk',{animation:{action:'walk',motion:{speed:80,stridePhase:.1}}})).supplemental,false);
 });
@@ -78,6 +79,40 @@ check('air kick and flight retain accepted complete cels with supplemental item 
   const jump=pose(actor('jump',{elevation:90,velocityZ:100,weapon:{kind:'pipe'}}));
   assert.equal(jump.committedKey,'jump-rise');assert.equal(jump.frameId,'chamber');
   assert.deepEqual(plain(jump.gripAnchor),{x:100,y:120});assert.equal(jump.weaponAngle,.2);
+});
+check('running kick follows real attack phases using accepted complete kick cels and keeps weapon identity',()=>{
+  for(const phase of ['windup','active','recovery']) {
+    const attack={kind:'running-kick',weaponKind:'pipe',phase,phaseProgress:.4};
+    const result=pose(actor('running-kick',{weapon:{kind:'pipe'},attack}));
+    assert.equal(result.committedKey,'air-kick.'+phase);assert.equal(result.action,'running-kick');
+    assert.equal(result.attackType,'running-kick');assert.equal(result.phaseProgress,.4);assert.equal(result.weaponKind,'pipe');
+    assert.equal(result.frameId,F.selectFrame(base,'air-kick.'+phase,{progress:.4}).frame.id);
+  }
+  assert.equal(pose(actor('running-kick',{hurtMs:40,attack:{kind:'running-kick',phase:'active'}})).committedKey,'hurt');
+});
+check('individual weapon bindings select frozen native hand masks while carried props use their support anchor',()=>{
+  const r=plain(registration),f=r.frames.find(f=>f.id==='melee_contact');
+  f.itemBindings={pipe:{gripAnchor:{x:41,y:36},weaponAngle:.4,itemLayer:'behind',
+    handOcclusion:[[{x:35,y:30},{x:48,y:30},{x:48,y:42},{x:35,y:42}]]}};
+  const bank=F.compileSupplemental(r,{baseCompiled:base});
+  const result=pose(actor('weapon-melee',{weapon:{kind:'pipe'},attack:{kind:'pipe',phase:'active',phaseProgress:0}}),{supplemental:bank});
+  assert.deepEqual(plain(result.gripAnchor),{x:41,y:36});assert.equal(result.weaponAngle,.4);assert.equal(result.itemLayer,'behind');
+  assert(Object.isFrozen(result.handOcclusion));assert(Object.isFrozen(result.handOcclusion[0]));assert(Object.isFrozen(result.handOcclusion[0][0]));
+  const stowed=pose(actor('weapon-melee',{carry:{kind:'crate'},weapon:{kind:'pipe'},attack:{kind:'pipe',phase:'active',phaseProgress:0}}),{supplemental:bank});
+  assert.deepEqual(plain(stowed.gripAnchor),{x:40,y:35});assert.equal(stowed.itemLayer,'front');
+  const spent=pose(actor('weapon-melee',{attack:{kind:'pipe',weaponKind:'pipe',phase:'active',phaseProgress:0}}),{supplemental:bank});
+  assert.deepEqual(plain(spent.gripAnchor),{x:41,y:36});
+});
+check('malformed native occlusion and per-weapon ergonomics are rejected rather than silently inferred',()=>{
+  const good={gripAnchor:{x:41,y:36},weaponAngle:.4,itemLayer:'front',
+    handOcclusion:[[{x:35,y:30},{x:48,y:30},{x:48,y:42},{x:35,y:42}]]};
+  const bad=edit=>{const r=plain(registration);r.frames[0].itemBindings={pipe:plain(good)};edit(r.frames[0]);
+    assert.throws(()=>F.compileSupplemental(r,{baseCompiled:base}),/Whole-character frames/);};
+  bad(f=>f.itemBindings.unknown=f.itemBindings.pipe);bad(f=>f.itemBindings.pipe.itemLayer='automatic');
+  bad(f=>f.itemBindings.pipe.gripAnchor.x=61);bad(f=>f.itemBindings.pipe.weaponAngle=NaN);
+  bad(f=>f.itemBindings.pipe.handOcclusion=[]);bad(f=>f.itemBindings.pipe.handOcclusion[0][0].y=81);
+  bad(f=>f.itemBindings.pipe.handOcclusion[0]=[{x:1,y:1},{x:2,y:2},{x:3,y:3}]);
+  bad(f=>f.itemBindings.pipe.handOcclusion[0]=[{x:1,y:1},{x:2,y:2}]);bad(f=>f.handOcclusion='automatic');
 });
 check('actual hurt death and defeat override every held-item action',()=>{
   for(const action of ['run','grab-hold','grab-pummel','carry','weapon-melee','weapon-fire']){
@@ -203,9 +238,43 @@ if(options.registration)check('actual supplemental registration matches native h
     assert(nearInk>0,'Grip anchor has no nearby authored body/hand ink '+id);
     baseAnchorMeasurements.push({id,reachable:reachable.has(id),nativePoint:{x,y},nearbyInkPixels:nearInk});
   }
+  assert.equal(r.attachmentSchema,1,'Individual native attachment registration required');
+  let individualBindings=0,occlusionPolygons=0;
+  for(const [frame,metadata] of [...Object.values(compiled.frames).map(f=>[f,f]),
+    ...Object.entries(compiled.baseGripAnchors).map(([id,a])=>[base.frames[id],a])]) {
+    assert.deepEqual(Object.keys(metadata.itemBindings).sort(),[...F.weapons].sort(),'Every native cel records all eight ergonomic bindings '+frame.id);
+    for(const kind of F.weapons) {
+      const binding=metadata.itemBindings[kind];individualBindings++;
+      assert(binding.gripAnchor&&binding.handOcclusion.length>0);occlusionPolygons+=binding.handOcclusion.length;
+      const image=images.get(frame.sheet)||baseImages.get(frame.sheet),cx=Math.round(frame.source.x+binding.gripAnchor.x),cy=Math.round(frame.source.y+binding.gripAnchor.y);
+      let ink=0;for(let y=Math.max(frame.source.y,cy-10);y<Math.min(frame.source.y+frame.source.height,cy+11);y++)
+        for(let x=Math.max(frame.source.x,cx-10);x<Math.min(frame.source.x+frame.source.width,cx+11);x++)if(image.pixels[(y*image.width+x)*4+3]>8)ink++;
+      assert(ink>0,'Individual grip has no native hand/body ink '+frame.id+'/'+kind);
+    }
+  }
   native.push({registration:path.relative(source,file),registrationSHA256:sha(bytes),sheets:Object.values(compiled.sheets).map(plain),
     frameCount:measurements.length,measurements,excludedSource,baseAnchorCount:Object.keys(compiled.baseGripAnchors).length,
-    reachableBaseFrameCount:reachable.size,baseAnchorMeasurements});
+    reachableBaseFrameCount:reachable.size,baseAnchorMeasurements,individualBindings,occlusionPolygons});
+});
+if(options.equipment)check('actual native weapons have individual measured trigger/hilt/rim grips and bounded front regions',()=>{
+  const file=path.isAbsolute(options.equipment)?options.equipment:inside(options.equipment),bytes=fs.readFileSync(file),r=JSON.parse(bytes);
+  assert.equal(r.schema,1);assert.equal(r.attachmentSchema,1);
+  const decoded=new Map();for(const sheet of r.sheets){const b=fs.readFileSync(inside(sheet.sourceImage));assert.equal(sha(b),sheet.sourceSHA256);
+    const image=rgba(b);assert.deepEqual({width:image.width,height:image.height},sheet.dimensions);decoded.set(sheet.id,image);}
+  const measurements=[];
+  for(const kind of F.weapons) {
+    const cell=r.cells['weapon_'+kind],s=cell.source,g=cell.grip,image=decoded.get(cell.sheet);
+    assert(g.x>=0&&g.x<s.width&&g.y>=0&&g.y<s.height);assert(cell.gripMeasurement?.contact);
+    assert.deepEqual(cell.gripMeasurement.nativeSheetPoint,{x:s.x+g.x,y:s.y+g.y});
+    assert(image.pixels[((s.y+g.y)*image.width+s.x+g.x)*4+3]>8,'Actual item grip must contact native object ink '+kind);
+    for(const polygon of cell.itemFrontRegions||[]) {
+      assert(polygon.length>=3&&polygon.length<=16);assert(polygon.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=0&&p.x<=s.width&&p.y>=0&&p.y<=s.height));
+      assert(Math.abs(polygon.reduce((sum,p,i)=>{const q=polygon[(i+1)%polygon.length];return sum+p.x*q.y-q.x*p.y;},0))>2);
+    }
+    if(['scatter-blaster','coil-rifle'].includes(kind)){assert(cell.muzzle.x>g.x,'Native barrel must point forward');assert(cell.itemFrontRegions.length>0);}
+    measurements.push({kind,grip:g,contact:cell.gripMeasurement.contact,frontRegions:cell.itemFrontRegions||[],muzzle:cell.muzzle||null});
+  }
+  native.push({equipmentRegistration:path.relative(source,file),registrationSHA256:sha(bytes),measurements,scaleMeasurements:r.scaleMeasurements});
 });
 const receipt={status:'passed',scope:'Supplemental complete-character registration and sampling; owner appearance and hosted playtest remain separate',
   moduleSHA256:sha(fs.readFileSync(modulePath)),checkerSHA256:sha(fs.readFileSync(__filename)),
