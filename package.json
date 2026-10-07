@@ -22,7 +22,7 @@
     "check:frame-ownership": "node tools/check-frame-ownership.js",
     "check:music-profiles": "node tools/check-music-profiles.js",
     "check:makko-hotfix": "node tools/check-makko-hotfix.js",
-    "check:runtime-lifecycle": "node tools/check-runtime-lifecycle.js",
+    "check:runtime-lifecycle": "node tools/check-runtime-lifecycle.js && node tools/check-runtime-audio-resume.cjs",
     "check:enemy-ownership": "node tools/check-enemy-ownership.js",
     "check:action-combat": "node tools/check-action-combat.js",
     "check:level-01-mission": "node tools/check-level-01-mission.js",
