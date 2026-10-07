@@ -60,6 +60,8 @@ After these galleries, the wrapper's unsupported HUD arrow glyph was replaced wi
 
 The independent review found that the foreground Canal truck hid Mac in all four actual Scatter last-charge states. The final wrapper now smoothly fades a foreground, unbroken, unlaunched prop only when its measured transformed bounds overlap Mac's head/torso; minimum opacity is 0.28. Depth and collision are unchanged. `equipment-final/visibility-final/native-earned-render-receipt.json` preserves four after full street scenes and four optical actor companions from those exact states. The companions use the actual `drawStreet`-selected `drawMacPose` arguments; only their neutral diagnostic canvas omits world occluders. Both full scenes and companions were directly inspected by the implementing agent; independent final review is recorded separately.
 
+The first strict package at source `f1abcab5` correctly rejected a missing top-level bank whitelist entry: the supplemental registration selected the new carry PNG, but the master `files[]` listed 34 of the required 35 bank paths. A follow-up adds only the explicit sorted `assets/mac-street-dynamic/mac-carry-low-front-v2.png` entry. The preserved failed package reproduces `Unregistered file in frame bank`; the corrected source passes the same unchanged strict validator with all 35 paths, followed by all 27 native groups. `refine2-bank-selection-fix.json` records this bounded negative/positive check. Runtime, art, grips, actor registrations and all strict pins are unchanged. The earlier independent receipt retains its original master hash; this file-list-only correction does not change any drawn frame.
+
 The final public equipment review shows physically unarmed hurt, committed last-charge inventory fallback, all run phases and release world ownership. Its Play link uses the private `refine2` label. Private source/site packaging, exact-head cloud verification and owner acceptance are separate release gates; production merge/publication has not been performed by this audit.
 
 Retained diagnostic intermediates include the before, angle, carry, support, palms, closeup, crate-edge and crate-finger galleries. Their exact images, dimensions, hashes and bytes are in their existing receipts; helpers regenerate them only from the corresponding frozen inputs. Earlier evidence and generated variants were preserved. No cleanup or permanent deletion was performed.
@@ -71,7 +73,7 @@ Retained diagnostic intermediates include the before, angle, carry, support, pal
 | `src/game/mac-combat-frames.js` | `fbcfe274c06db1523e9c5ba33e188b69c0f41e78f94e751848818820216d5784` |
 | `assets/mac-street-dynamic/mac-modem-actions-v1.json` | `4a245146191fb24dd44d897de6ce05cec4b73b29efda415b92499ca93f797e0f` |
 | `assets/mac-street-power/mac-street-power-v1.json` | `ccb7bc610db084d62f4ac205656ad1bddac108563f3edb1dffa1585d5cca853a` |
-| `assets/mac-combat-frames/mac-combat-frames-v1.json` | `4dd8eb847862ec9c3ec0d10f1544546e50551a6f47e03417bffa56523280e7f5` |
+| `assets/mac-combat-frames/mac-combat-frames-v1.json` | `508f01c4d28ef69a80981ee0ab8472ad8e82170f55b8588d26de73bae16ac559` |
 | `tools/check-mac-dynamic-frames.cjs` | `fe6f75be854d2a1eac1f3dd8ee897ba969a7dc52721de65ffdc482af2f75cf80` |
 | `tools/build-standalone.py` | `652165b70ac8e520f16b3ee02a5a7019837dbf43a50c9183599c2b20fabbe34a` |
 | `mac-equipment-review.html` | `55f1d1c1228edc1c2f2ae2a039fb850a4d3c57295c742d2d7c8d6e3e10fc3db5` |
