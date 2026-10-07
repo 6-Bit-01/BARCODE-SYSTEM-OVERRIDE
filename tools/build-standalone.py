@@ -95,7 +95,7 @@ MAC_DYNAMIC_SHEETS = {
     "dyn_pipe_swing": "mac-pipe-swing-two-braids-v1.png",
     "dyn_scatter_blaster": "mac-scatter-blaster-grips-v1.png",
     "dyn_coil_rifle": "mac-coil-rifle-grips-v1.png",
-    "dyn_plasma_disc": "mac-plasma-disc-grips-v1.png"}
+    "dyn_plasma_disc": "mac-plasma-disc-grips-v1.png", "dyn_carry_low": "mac-carry-low-front-v2.png"}
 MAC_DYNAMIC_IMAGE_HASHES = {
     "dyn_guard": "2a6ed176b8cefba33793f1d6633671322afc8555c01c725cbe8a9ca306e3ed85",
     "dyn_run": "b78e958967d49d32eccb85a19594691e244e6023c34371a002099f3ec0cc4a23",
@@ -104,7 +104,8 @@ MAC_DYNAMIC_IMAGE_HASHES = {
     "dyn_pipe_swing": "a22a5f4787d339614af5c2fc51a548affe55628e057bb54cdeffbdb1e21c83af",
     "dyn_scatter_blaster": "36667f70a3e14bfba05baf4bdf86dda013bc83cb826d340bc3216faf97c274e7",
     "dyn_coil_rifle": "cd1fd6a52cf1df9fd9ff43a1a047768dc8b4285f6b7488685a45f565e1ecb297",
-    "dyn_plasma_disc": "ad23988027d373b8ca10af1f8e4b99e3adb1cb441c1040b37b9b533e7a8ef8e8"}
+    "dyn_plasma_disc": "ad23988027d373b8ca10af1f8e4b99e3adb1cb441c1040b37b9b533e7a8ef8e8",
+    "dyn_carry_low": "f60d950343d3198eee51f1147eacc232cf76d740d004c9a74c5c60b881df7a33"}
 MAC_DYNAMIC_HISTORICAL_IMAGES = {
     "mac-guard-v1.png": "f3410efa856aa1ea7fcedf69bd1e37f8c259af8cfb315282fc81f08b235ca0ee",
     "mac-run-v1.png": "711c9993b6d39b0ce1fbc49897f154618c9d0baafad796a4bb236b2f6d9d4378",
@@ -115,7 +116,8 @@ MAC_DYNAMIC_FRAMES = {
     "run_contact_a", "run_pass_a", "run_contact_b", "run_pass_b",
     "grab_reach", "grab_hold", "pummel_load", "pummel_contact",
     "pickup_load", "carry_hold", "carry_step_a", "carry_step_b",
-    "melee_load", "melee_contact", "melee_follow", "fire_aim", "fire_recoil", "fire_ready"}
+    "melee_load", "melee_contact", "melee_follow", "fire_aim", "fire_recoil", "fire_ready",
+    "carry_low_pickup", "carry_low_hold", "carry_low_stride", "carry_low_pass", "carry_low_windup", "carry_low_release"}
 MAC_PIPE_SWING_PHASES = {
     "windup": (("pipe_swing_load", 50), ("pipe_swing_uncoil", 50)),
     "active": (("pipe_swing_contact", 95),),
@@ -217,6 +219,9 @@ def native_item_bindings(entry, rect, weapon_cells):
                 type(binding.get("weaponAngle")) in (int, float) and
                 math.isfinite(binding["weaponAngle"]) and abs(binding["weaponAngle"]) <= math.pi and
                 binding.get("itemLayer") in ("front", "behind"), "Invalid per-weapon native grip/layer")
+        held_scale = binding.get("itemScale", 1)
+        require(type(held_scale) in (int, float) and math.isfinite(held_scale) and .25 <= held_scale <= 1,
+                "Invalid registered held-only item scale")
         native_polygons(binding.get("handOcclusion"), rect)
         if "itemFrontRegions" in binding:
             native_polygons(binding["itemFrontRegions"], weapon_cells["weapon_" + kind]["source"])
@@ -236,8 +241,8 @@ def supplemental_frame_files(output, actor, base):
             registration.get("baseRegistrationSHA256") == actor["registrationSHA256"],
             "Supplemental poses must use the selected unchanged Mac base registration")
     sheets = registration.get("sheets", [])
-    require(len(sheets) == 8 and {sheet.get("id") for sheet in sheets} == set(MAC_DYNAMIC_SHEETS),
-            "Supplemental poses require exactly eight selected native sheets")
+    require(len(sheets) == 9 and {sheet.get("id") for sheet in sheets} == set(MAC_DYNAMIC_SHEETS),
+            "Supplemental poses require exactly nine selected native sheets")
     selected, dimensions, crops = {name}, {}, {}
     for sheet in sheets:
         image_name = MAC_DYNAMIC_ROOT + MAC_DYNAMIC_SHEETS[sheet["id"]]
@@ -248,8 +253,8 @@ def supplemental_frame_files(output, actor, base):
         dimensions[sheet["id"]] = native_frame_image(output, sheet, image_name)
         selected.add(image_name)
     frames = registration.get("frames", [])
-    require(len(frames) == 55 and {frame.get("id") for frame in frames} == MAC_DYNAMIC_FRAMES | set(MAC_EMBEDDED_FRAME_KINDS),
-            "Supplemental poses require 22 attachment cels, six complete pipe cels and nine cels per selected gun/disc")
+    require(len(frames) == 61 and {frame.get("id") for frame in frames} == MAC_DYNAMIC_FRAMES | set(MAC_EMBEDDED_FRAME_KINDS),
+            "Supplemental poses require 22 preserved attachment cels, six low carry cels, six complete pipe cels and nine cels per selected gun/disc")
     by_id = {frame["id"]: frame for frame in frames}
     for frame in frames:
         sheet, rect = frame.get("sheet"), frame.get("source", {})
@@ -273,7 +278,12 @@ def supplemental_frame_files(output, actor, base):
             angle = frame.get("weaponAngle")
             require(type(angle) in (int, float) and math.isfinite(angle) and abs(angle) <= math.pi,
                     "Invalid native weapon angle")
-            native_item_bindings(frame, rect, weapon_cells)
+            if sheet == "dyn_carry_low":
+                require(frame["id"] in {"carry_low_pickup", "carry_low_hold", "carry_low_stride", "carry_low_pass", "carry_low_windup", "carry_low_release"}
+                        and "itemBindings" not in frame, "Low support cels are exclusively carried-prop poses")
+                native_polygons(frame.get("handOcclusion"), rect)
+            else:
+                native_item_bindings(frame, rect, weapon_cells)
         require(not any(crops_overlap(rect, old) for old in crops.get(sheet, [])), "Supplemental crops overlap")
         crops.setdefault(sheet, []).append(rect)
     for sheet in sheets:

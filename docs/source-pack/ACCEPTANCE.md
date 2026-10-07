@@ -1,3 +1,13 @@
+## October 7, 2026 — full equipment transition and concise dialogue review
+
+The owner requested all selected frames and legal combinations be checked after rejecting the remaining bat/weapon holds. Inspect each of the eight weapons in both facings through idle, every walk/run cel, guard/creep/impact, jump/landing, kicks/counters and attack windup/contact/recovery. Handles must cross the actual palm with natural wrist direction; tools must keep their held size and holding hand across pose changes, and remain visible during the final finite-charge attack. Hurt/defeat must cancel/drop equipment without a ghost model.
+
+Inspect every enemy's real hold, pummel contact, pre-release and released state; check crate/barrel pickup, hold, movement and the actual hand-to-world throw transition. Props must keep street proportions while hands support them and Modem's head stays readable. Earned public-input snapshots and the complete native review matrix are separately recorded in `verification/mac-combat-refine-20261007`; sampler assertions alone do not establish visual quality.
+
+The eight-scene introduction is one readable cue per scene: nine Continue inputs, or ten including the optional answer. Only 9 Bit's explicit player-address fourth-wall scene presents “Get it heard” / “Keep the receipts”; either adds one short response, and Continue remains optional. Kave's ordinary scenes and one-cue desk payoff have no choices. Check keyboard, controller Continue and direct phone choice buttons without leaking into gameplay Jump.
+
+Final refine2 release receipts must establish exact changed-head wrapper/native/syntax checks, committed standalone package, source/site cloud validation and visible hosted observation. Preserve refine1 source `f902da7` / website `dfa5560` and their evidence. Both PRs remain private draft/unmerged. Physical-device frame rate, owner appearance/fun and final Mac music remain pending; software diagnostic workflow success must not be reported as a passed numerical FPS budget.
+
 ## October 7, 2026 — combat refinement review pending
 
 This changed pass follows retained city1 source `bcd25f4` / website `1eee336e`. Play both fight pockets in every district, collect the fixed tutorial Pipe and later seeded floor caches, and break a selected crate/stall/barrel or sturdy car to earn its actual finite-charge weapon. Verify that full replay varies positions/rewards while normal checkpoint retry restores the same seed and checkpoint loot. The final combined-core loot checkpoint passes four groups, including 64 seeds and an earned twelve-floor/ten-prop full-city route, on hash `ebb43230912d86de9b00d08e17704aa0c8c32044786742dd48b3a79080e08957`. This is focused evidence, not final hosted acceptance.

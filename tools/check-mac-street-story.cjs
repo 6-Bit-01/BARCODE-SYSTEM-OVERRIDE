@@ -36,18 +36,22 @@ function reachScene(reader, id) {
 }
 function readAll(reader, answers = {}) {
   const lines = [], scenes = [], choices = [];
-  let lastLine = null;
+  let lastLine = null, advancePresses = 0, choicePresses = 0;
   for (let i = 0; i < 200; i++) {
     const s = reader.snapshot();
     if (!scenes.includes(s.sceneId)) scenes.push(s.sceneId);
     if (s.choice) {
       choices.push(s.choice.id);
-      if (answers[s.choice.id] === 'continue') assert.equal(reader.advance().action, 'rejoin');
-      else assert.equal(reader.choose(answers[s.choice.id] ?? 0).accepted, true);
+      if (answers[s.choice.id] === 'continue') {
+        advancePresses++; assert.equal(reader.advance().action, 'rejoin');
+      } else {
+        choicePresses++; assert.equal(reader.choose(answers[s.choice.id] ?? 0).accepted, true);
+      }
     } else {
       const key = `${s.sceneId}/${s.lineIndex}/${s.fullText}`;
       if (s.revealed && key !== lastLine) { lines.push(`${s.speaker}: ${s.fullText}`); lastLine = key; }
-      if (s.done) return { lines, scenes, choices, snapshot: s };
+      if (s.done) return { lines, scenes, choices, advancePresses, choicePresses, snapshot: s };
+      advancePresses++;
       assert.equal(reader.advance().consumed, true);
     }
   }
@@ -63,8 +67,8 @@ assert.equal(reader.snapshot().text, 'Origi');
 assert.equal(reader.advance().action, 'reveal');
 assert.equal(reader.snapshot().lineIndex, 0, 'Reveal must not advance the line');
 assert.equal(reader.snapshot().fullText, 'Original delivered. Names, room noise, all of it.');
-assert.equal(reader.advance().action, 'line');
-assert.equal(reader.snapshot().speaker, 'DJ FLOPPYDISC / COMMS');
+assert.equal(reader.advance().action, 'scene');
+assert.equal(reader.snapshot().speaker, 'MAC MODEM / COMMS');
 assert.equal(reader.snapshot().text, '');
 
 const opening = story.createIntro();
@@ -72,43 +76,63 @@ const unchanged = copy(opening.snapshot());
 for (const index of [-1, 0, 1, 2, 0.5, undefined]) assert.equal(opening.choose(index).accepted, false);
 assert.deepEqual(copy(opening.snapshot()), unchanged, 'No answer before its actual question');
 const first = readAll(opening);
-const second = readAll(story.createIntro({ instantText: true }), { 'delivery-question': 1 });
-const bypassIntro = readAll(story.createIntro({ instantText: true }), { 'delivery-question': 'continue' });
+const second = readAll(story.createIntro({ instantText: true }), { 'fourth-wall-question': 1 });
+const bypassIntro = readAll(story.createIntro({ instantText: true }), { 'fourth-wall-question': 'continue' });
 for (const trace of [first, second, bypassIntro]) {
   assert.deepEqual(trace.scenes, expectedIds);
-  assert.deepEqual(trace.choices, ['delivery-question'], 'Only the main Kave opening choice remains');
-  assert.equal(trace.lines.length, 19);
-  assert(trace.lines.includes('DJ FLOPPYDISC / COMMS: It matches. Nothing missing.'));
-  assert(trace.lines.includes("DJ FLOPPYDISC / COMMS: Then keep it separate. Record the interruption. Don't call it proof."));
-  assert(trace.lines.includes("KAVE / COMMS: I'll keep the queue moving and the local line open."));
+  assert.deepEqual(trace.choices, ['fourth-wall-question'], 'Only the player-facing 9 Bit fourth-wall choice remains');
+  assert.equal(trace.lines.length, trace === bypassIntro ? 8 : 9);
+  assert(trace.lines.includes("KAVE: Artists are waiting. Local monitoring works; the outbound feed doesn't."));
+  assert(trace.lines.includes("DJ FLOPPYDISC / COMMS: The original is whole. The distribution hold is here, on the line out."));
+  assert(trace.lines.includes("DJ FLOPPYDISC / COMMS: That margin note isn't on the tape. Keep it separate; it isn't proof."));
+  assert(trace.lines.includes("MAC MODEM / COMMS: Street enforcement has the hold. I'll find a way through."));
   assert.equal(trace.lines.at(-1), 'MAC MODEM: Open the channel.');
   assert.equal(trace.snapshot.sceneId, 'get-it-heard');
   assert.equal(trace.snapshot.asset, 'assets/mac-street-review/mac-hero-v2.png');
   assert.equal(trace.snapshot.objective, "Break the street hold across Broadcast Slum and reopen the studio's outbound feed.");
   assert.equal(trace.snapshot.entryRequirement, null);
-  assert(trace.lines.includes('KAVE: Artists waiting for a play. Listeners waiting for a voice.'));
-  assert(trace.lines.includes("KAVE: The outbound feed. Local monitoring works; distribution doesn't."));
 }
-assert.deepEqual(copy(first.snapshot.selections), { 'delivery-question': 'who-is-waiting' });
-assert.deepEqual(copy(second.snapshot.selections), { 'delivery-question': 'what-got-blocked' });
+assert.deepEqual(copy(first.snapshot.selections), { 'fourth-wall-question': 'get-it-heard' });
+assert.deepEqual(copy(second.snapshot.selections), { 'fourth-wall-question': 'keep-receipts' });
 assert.deepEqual(copy(bypassIntro.snapshot.selections), {}, 'Continue does not invent an opening answer');
-assert(first.lines.indexOf('KAVE: Artists waiting for a play. Listeners waiting for a voice.') < first.lines.indexOf("KAVE: The outbound feed. Local monitoring works; distribution doesn't."));
-assert(second.lines.indexOf("KAVE: The outbound feed. Local monitoring works; distribution doesn't.") < second.lines.indexOf('KAVE: Artists waiting for a play. Listeners waiting for a voice.'));
+assert.equal(bypassIntro.advancePresses, 9, 'Eight complete scene cues plus one optional Continue, without reveal presses');
+assert.equal(bypassIntro.choicePresses, 0);
+for (const index of [0, 1]) {
+  const trace = readAll(story.createIntro({ instantText: true }), { 'fourth-wall-question': index });
+  assert.equal(trace.advancePresses, 9, 'Answer adds one short response without adding a rejoin speech');
+  assert.equal(trace.choicePresses, 1);
+  assert.equal(trace.advancePresses + trace.choicePresses, 10, 'Answered route has ten total deliberate inputs');
+}
+for (const id of expectedIds) {
+  const scene = reachScene(story.createIntro({ instantText: true }), id);
+  assert.equal(scene.lineCount, 1, `One cue per approved scene: ${id}`);
+  assert(scene.fullText.length <= 90, 'Scene cues remain brief');
+  assert.equal(scene.choice, null, 'No ordinary crew conversation question precedes its cue');
+}
 const openingChoice = story.createIntro({ instantText: true });
-reachChoice(openingChoice, 'delivery-question');
+reachChoice(openingChoice, 'fourth-wall-question');
 assert.equal(openingChoice.snapshot().choice.optional, true);
+assert.equal(openingChoice.snapshot().sceneId, 'margin-note');
+assert.equal(openingChoice.snapshot().speaker, '9 BIT');
+assert.equal(openingChoice.snapshot().dialogueContext, 'fourth-wall-player-address');
+assert.deepEqual(copy(openingChoice.snapshot().choice.options.map(option => option.label)), ['Get it heard', 'Keep the receipts']);
+for (const index of [-1, 2, 0.5, undefined]) assert.equal(openingChoice.choose(index).accepted, false);
+const mutableChoice = openingChoice.snapshot();
+mutableChoice.choice.options[0].label = 'Altered';
+assert.equal(openingChoice.snapshot().choice.options[0].label, 'Get it heard');
 const noDeadline = copy(openingChoice.snapshot());
 openingChoice.update(1e8);
 assert.deepEqual(copy(openingChoice.snapshot()), noDeadline);
 assert.equal(openingChoice.choose(1).accepted, true);
+assert.equal(openingChoice.snapshot().lineCount, 1, 'A selected answer is one short response');
+assert(openingChoice.snapshot().fullText.includes('controller, not a verdict'));
 const openingAnswered = copy(openingChoice.snapshot());
 assert.equal(openingChoice.choose(0).accepted, false, 'Opening answer consumes the press without a second answer');
 assert.deepEqual(copy(openingChoice.snapshot()), openingAnswered);
-assert(first.lines.includes('KAVE: Artists waiting for a play. Listeners waiting for a voice.'));
-assert(first.lines.includes("KAVE: The outbound feed. Local monitoring works; distribution doesn't."));
-assert(first.lines.includes('MAC MODEM / COMMS: Then we open it back up, piece by piece.'));
-assert(first.lines.indexOf('KAVE: Artists waiting for a play. Listeners waiting for a voice.') < first.lines.indexOf('MAC MODEM / COMMS: Then we open it back up, piece by piece.'));
-assert(first.lines.includes("9 BIT: You. Outside the panel. Still think 'delivered' means 'heard'?"));
+assert(first.lines.includes("9 BIT: Hey, you outside the panel. 'Delivered' doesn't mean 'heard'."));
+assert(first.lines.includes("9 BIT: That's the job. Finish the panels; then you get the buttons."));
+assert(first.lines.filter(text => text.startsWith('9 BIT:')).every(text => /outside the panel|buttons/.test(text)),
+  'Every interactive 9 Bit cue addresses the player or the game presentation');
 const studio = reachScene(story.createIntro({ instantText: true }), 'kave-dead-air');
 assert.equal(studio.asset, 'assets/mac-street-review/scene03-kave-dead-air-v5.png');
 assert(fs.existsSync(path.join(__dirname, '..', studio.asset)), 'Studio candidate must be available');
@@ -132,16 +156,16 @@ reachScene(frameReader, 'margin-note');
 assert.deepEqual(copy(frameReader.snapshot().annotations), [{ kind: 'comic-margin', by: '9 BIT', text: 'AUTHORISED PUNCHING CONSULTANT' }]);
 const editedSnapshot = frameReader.snapshot();
 editedSnapshot.annotations[0].text = 'Altered';
-editedSnapshot.selections['delivery-question'] = 'Altered';
+editedSnapshot.selections['fourth-wall-question'] = 'Altered';
 assert.equal(frameReader.snapshot().choice, null);
 assert.equal(frameReader.snapshot().annotations[0].text, 'AUTHORISED PUNCHING CONSULTANT');
-assert.notEqual(frameReader.snapshot().selections['delivery-question'], 'Altered');
+assert.notEqual(frameReader.snapshot().selections['fourth-wall-question'], 'Altered');
 assert.equal(frameReader.choose(1).accepted, false);
 frameReader.advance();
 frameReader.advance();
-frameReader.advance();
-assert.equal(frameReader.advance().action, 'scene');
-assert.equal(frameReader.snapshot().sceneId, 'record-straight', 'Crew responds naturally without a player interruption prompt');
+assert.equal(frameReader.snapshot().choice.id, 'fourth-wall-question');
+assert.equal(frameReader.advance().action, 'rejoin');
+assert.equal(frameReader.snapshot().sceneId, 'record-straight', 'Continue immediately resumes the next scene without another speech');
 
 const skipped = story.createIntro();
 reachScene(skipped, 'kave-dead-air');
@@ -158,41 +182,25 @@ assert.equal(skipped.snapshot().done, false);
 assert.equal(skipped.snapshot().skipped, false);
 assert.equal(story.createIntro().snapshot().sceneId, 'delivered', 'Readers own independent memory');
 
-const bypassDesk = story.createDesk();
-reachChoice(bypassDesk, 'desk-question');
-assert.equal(bypassDesk.snapshot().choice.optional, true);
+const bypassDesk = story.createDesk({ instantText: true });
 assert.equal(bypassDesk.snapshot().entryRequirement, 'city-chapter-endpoint');
 assert.equal(bypassDesk.snapshot().artLocation, 'enclosed-broadcast-studio');
 assert.equal(bypassDesk.snapshot().artTime, 'after-city-chapter-endpoint');
 assert.equal(bypassDesk.snapshot().dialogueContext, 'in-person-studio');
-const waiting = copy(bypassDesk.snapshot());
-bypassDesk.update(1e8);
-assert.deepEqual(copy(bypassDesk.snapshot()), waiting, 'Optional desk conversation has no deadline');
-assert.equal(bypassDesk.advance().action, 'rejoin', 'Optional desk conversation has a direct Continue');
-assert.equal(bypassDesk.snapshot().fullText, "Local monitoring stayed live. Now the outbound feed's open too.");
-assert.deepEqual(copy(bypassDesk.snapshot().selections), {}, 'Continue bypasses without inventing an answer');
-const choiceReader = story.createDesk();
-reachChoice(choiceReader, 'desk-question');
-assert.deepEqual(copy(choiceReader.snapshot().choice.options.map(option => option.label)), ['Ask about the people', 'Ask about the order']);
-for (const index of [-1, 2, 0.5, undefined]) assert.equal(choiceReader.choose(index).accepted, false);
-const mutated = choiceReader.snapshot();
-mutated.choice.options[0].label = 'Altered';
-assert.equal(choiceReader.snapshot().choice.options[0].label, 'Ask about the people');
-assert.equal(choiceReader.choose(1).accepted, true);
-assert(choiceReader.snapshot().fullText.includes('not who ordered it'));
-const answered = copy(choiceReader.snapshot());
-assert.equal(choiceReader.choose(0).accepted, false, 'One press cannot choose twice or advance');
-assert.deepEqual(copy(choiceReader.snapshot()), answered);
-for (const index of [0, 1]) {
-  const trace = readAll(story.createDesk(), { 'desk-question': index });
-  assert.deepEqual(trace.choices, ['desk-question'], 'There is exactly one optional conversation');
-  assert.equal(trace.lines.at(-1), "MAC MODEM: The street hold's broken. Keep both records safe.");
-  assert.equal(trace.snapshot.objective, "The city's street hold is broken. The studio's outbound feed is open.");
-  if (index === 1) assert(trace.lines.some(text => text.includes('not who ordered it')));
-}
+assert.equal(bypassDesk.snapshot().choice, null, 'Ordinary Kave payoff has no dialogue menu');
+assert.equal(bypassDesk.snapshot().lineCount, 1);
+assert.equal(bypassDesk.snapshot().fullText, "First play's through. The outbound feed is open; keep both records safe.");
+for (const index of [-1, 0, 1, 2, 0.5, undefined]) assert.equal(bypassDesk.choose(index).accepted, false);
+assert.equal(bypassDesk.advance().action, 'complete');
+const deskTrace = readAll(story.createDesk({ instantText: true }));
+assert.deepEqual(deskTrace.choices, [], 'No interaction outside the fourth-wall break');
+assert.equal(deskTrace.lines.length, 1);
+assert.equal(deskTrace.advancePresses, 1);
+assert.equal(deskTrace.snapshot.objective, "The city's street hold is broken. The studio's outbound feed is open.");
+assert.deepEqual(copy(deskTrace.snapshot.selections), {});
 const skippedDesk = story.createDesk();
 skippedDesk.skip();
-assert.equal(skippedDesk.snapshot().fullText, "The street hold's broken. Keep both records safe.");
+assert.equal(skippedDesk.snapshot().fullText, "First play's through. The outbound feed is open; keep both records safe.");
 assert.deepEqual(copy(skippedDesk.snapshot().selections), {});
 skippedDesk.reset();
 assert.equal(skippedDesk.snapshot().done, false);
@@ -200,7 +208,7 @@ assert.equal(skippedDesk.snapshot().skipped, false);
 const instant = story.createIntro({ instantText: true, artPaths: { delivered: 'assets/private-test.png' } });
 assert.equal(instant.snapshot().revealed, true);
 assert.equal(instant.snapshot().asset, 'assets/private-test.png');
-assert.equal(instant.advance().action, 'line');
+assert.equal(instant.advance().action, 'scene');
 
 // The narration runs against real combat receipts, never snapshot polling or
 // another update owner. Actual chapter entry verifies the shared event shape.
@@ -259,15 +267,17 @@ const market = stateFor('night-market',{zone:{id:'night-market',cleared:true},ci
   relay:{available:true,restored:false}});
 const readyEvent = {type:'relay-ready',id:'market-relay'};
 assert.equal(story.gameplayCues([readyEvent], market).cues[0].text,
-  'Market relay is clear. Link it and give Kave his signal back.');
+  'Market relay is clear. Link it and bring my signal back.');
+assert.equal(story.gameplayCues([readyEvent], market).cues[0].speaker, 'KAVE / COMMS');
 assert.equal(story.gameplayCues([readyEvent], {...market,relay:{available:false,restored:false}}).cues.length, 0);
 const restoredMarket = {...market,relay:{available:false,restored:true}};
 const restoredEvent = {type:'relay-restored',id:'market-relay'};
 const restored = story.gameplayCues([restoredEvent], restoredMarket);
 assert.deepEqual(copy(restored.cues.map(cue => [cue.speaker,cue.text])), [
-  ['9 BIT','Local signal restored. Your track. Their speakers.'],
+  ['DJ FLOPPYDISC / COMMS','Local signal restored. Your track. Their speakers.'],
   ['KAVE','There you are, Modem. Keep that signal moving.']
 ]);
+assert.equal(restored.cues[0].id, 'city.relay.restored.local');
 assert.equal(story.gameplayCues([restoredEvent], market).cues.length, 0, 'A relay claim requires the real restored result');
 assert.equal(story.gameplayCues([readyEvent], restoredMarket).cues.length, 0, 'A restored relay cannot ask for another Link');
 assert(restored.cues.every(cue => !/outbound|first play/i.test(cue.text)), 'Local relay is not an earned outbound feed claim');
@@ -277,6 +287,7 @@ const fixtureState = stateFor('transit-concourse',{props:[fixture]});
 const dischargeEvent = {type:'fixture-discharge',id:fixture.id,kind:fixture.kind,enemyIds:['enemy-1']};
 const discharged = story.gameplayCues([dischargeEvent], fixtureState);
 assert.equal(discharged.cues[0].id, 'city.fixture-discharge');
+assert.equal(discharged.cues[0].speaker, 'DJ FLOPPYDISC / COMMS');
 assert.equal(discharged.cues[0].zoneId, fixtureState.zone.id);
 for (const invalidEvent of [{...dischargeEvent,enemyIds:[]},{...dischargeEvent,id:'wrong-prop'},
   {...dischargeEvent,kind:'crate'},{type:'prop-hit',id:fixture.id,kind:fixture.kind}])
@@ -323,6 +334,9 @@ for (const incomplete of [{...endpoint,desk:{unlocked:false}},
 assert.equal(story.gameplayCues([], endpoint).cues.length, 0, 'Reading/reviewing a completed snapshot is not a new event');
 assert.equal(story.gameplayCues([defeatEvent], endpoint, endpointCues.seenIds).cues.length, 0);
 assert.deepEqual(copy(story.sceneIds), expectedIds, 'Gameplay narration preserves every approved scene');
-assert.deepEqual(readAll(story.createIntro()).choices, ['delivery-question']);
-assert.deepEqual(readAll(story.createDesk()).choices, ['desk-question']);
-console.log('Mac street story passed: eight stable scenes, exactly two optional Kave choices, all 19 core lines, reveal/advance/reconvergence/skip/reset, and 16 sparse immutable gameplay cues gated by actual events and snapshots without campaign or host side effects.');
+assert.deepEqual(readAll(story.createIntro()).choices, ['fourth-wall-question']);
+assert.deepEqual(readAll(story.createDesk()).choices, []);
+const rooftopCue = story.gameplayCues([{type:'zone-enter',zoneId:'rooftop-relay'}], stateFor('rooftop-relay')).cues[0];
+assert.equal(rooftopCue.speaker, '9 BIT');
+assert(/player.*camera/i.test(rooftopCue.text), 'The only 9 Bit gameplay aside explicitly breaks the fourth wall');
+console.log('Mac street story passed: eight stable single-cue scenes, one optional player-facing 9 Bit choice, nine-input Continue and ten-input answered instant routes, one-cue desk payoff, reveal/advance/reconvergence/skip/reset, and 16 sparse immutable gameplay cues gated by actual events and snapshots without campaign or host side effects.');

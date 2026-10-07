@@ -465,15 +465,16 @@ async function run() {
       r.work.lastCels=[];r.work.lastDraws=[];
       const placed=R.drawWeapon(ctx,kind,scene,facing,{x:420,feet:390,height:260}),pose=placed.pose;
       const owned=r.B.MacCombatFrames.embeddedWeapons.includes(kind)&&art.supplemental.clips['weapon_'+kind+'.idle'];
-      if(owned)assert(pose.frame.embeddedWeapon===kind||pose.weaponStowed,
-        'Owned gun/disc must use its complete cel or an explicit temporary stow; generic detached hands are rejected');
-      if(pose.weaponStowed) {
-        assert(owned);assert.equal(placed.item,null,'Temporary stow never attaches a floating weapon');
-        assert.notEqual(pose.frame.embeddedWeapon,kind);assert.equal(r.work.lastCels.length,1);
-        assert.equal(r.work.lastDraws.length,1,'Accepted exception paints only its whole actor cel');
+      if(scene.action==='hurt') {
+        assert.equal(placed.item,null,'Real hit reaction follows the weapon drop; no false retained hold');
+        assert(!pose.frame.embeddedWeapon);assert.equal(r.work.lastCels.length,1);
         assert.equal(r.work.lastCels[0].clipRegion,null);assert.equal(r.work.lastCels[0].rotation,0);
         painted++;continue;
       }
+      assert.equal(pose.weaponStowed,false,'Retained inventory remains visibly held in flight, kicks, counters and landing');
+      if(scene.landingAgeMs!==undefined)assert.equal(pose.clipKey,'landing','Actual landing takes precedence over the ready hold');
+      else if(owned&&['idle','walk','run','guard','guard-creep','weapon'].includes(scene.action))
+        assert.equal(pose.frame.embeddedWeapon,kind,'Authored ground/fire gun poses keep their complete native cel: '+scene.id);
       if(pose.frame.embeddedWeapon){
         assert.equal(pose.frame.embeddedWeapon,kind);assert.equal(placed.item,null,'Painted-in weapon has no external overlay');
         assert.equal(r.work.lastCels.length,1,'Embedded weapon and actor draw as one complete authored cel');
@@ -490,12 +491,25 @@ async function run() {
       const cell=mac.powerArt.cells['weapon_'+kind],sheet=mac.powerArt.sheets.get(cell.sheet),items=r.work.lastDraws.filter(call=>call.path===sheet.sourceImage&&call.args[0]===cell.source.x&&call.args[1]===cell.source.y);
       assert(items.length);assert(items.every(call=>call.rotation===pose.weaponAngle));
       assert.deepEqual(items[0].position,[placed.handX,placed.handY]);
+      const heldScale=pose.itemScale??1,nativeScale=cell.displayHeight/cell.source.height*heldScale;
+      assert(Number.isFinite(heldScale)&&heldScale>0,'Held scale is a finite uniform registration');
+      assert.equal(items[0].args[6],cell.source.width*nativeScale,'Held width follows the registered model size');
+      assert.equal(items[0].args[7],cell.source.height*nativeScale,'Held height uses the same scale; no distortion');
       if(pose.itemLayer==='behind')assert(r.work.lastDraws.indexOf(items[0])<r.work.lastDraws.indexOf(body),'Body occludes the item handle');
       else assert(r.work.lastDraws.indexOf(items[0])>r.work.lastDraws.indexOf(body));
       assert(r.work.lastDraws.indexOf(palm)>r.work.lastDraws.indexOf(items.at(-1)),'Native palm closes over the actual handle');
       const expected=pose.handOcclusion.flatMap(polygon=>polygon.map((point,index)=>({...(index?{}:{move:true}),x:420+facing*(point.x-pose.frame.feetPivot.x)*260/pose.standingHeight,y:390-(scene.action==='air-kick'?100:scene.elevation||0)-pose.frame.baselineLift+(point.y-pose.frame.feetPivot.y)*260/pose.standingHeight})));
       assert.equal(palm.clipRegion.length,expected.length);
       for(let index=0;index<expected.length;index++){const point=palm.clipRegion[index],target=expected[index];assert.equal(!!point.move,!!target.move);assert(Math.abs(point.x-target.x)<1e-8&&Math.abs(point.y-target.y)<1e-8,'Registered palm polygons mirror with the complete cel');}painted++;
+    }
+    for(const name of ['crate_intact','crate_cracked','barrel_intact','barrel_cracked'])for(const state of ['floor','carry','release'])for(const facing of [-1,1]) {
+      r.work.lastCels=[];r.work.lastDraws=[];
+      const placed=R.drawProp(ctx,name,state,{facing}),cell=mac.powerArt.cells[name],sheet=mac.powerArt.sheets.get(cell.sheet);
+      const props=r.work.lastDraws.filter(call=>call.path===sheet.sourceImage&&call.args[0]===cell.source.x&&call.args[1]===cell.source.y);
+      assert.equal(props.length,1,'The review has one prop owner before and after handoff');
+      assert.equal(placed.item,state==='carry'?name:null,'Released props are world objects, never attached to open hands');
+      assert(!placed.pose.frame.embeddedWeapon,'Prop review does not draw a phantom weapon');
+      assert.equal(r.work.lastCels.filter(call=>!call.clipRegion).length,1,'Prop review retains one complete character cel');
     }
     assert.equal(painted,R.weapons.length*R.scenes.length*2);assert(painted>=432);assert.deepEqual(plain(mac.combat.getSnapshot()),before,'Visual review does not mutate the playable simulation');assert.equal(r.scheduled.size,1);assert.equal(r.work.canvases,1);assert.equal(r.work.timers,0);await mac.exit();
   });
@@ -642,22 +656,24 @@ async function run() {
     await r.B.RuntimeLifecycle.pause();r.frame();const power=plain(mac.combat.getSnapshot().player.powerups);r.run(300);assert.deepEqual(plain(mac.combat.getSnapshot().player.powerups),power);assert(mac.tutorialReadout.hidden);
     await r.B.RuntimeLifecycle.resume();r.frame();r.run(200);p=mac.combat.getSnapshot().player;assert(p.powerups.barrierMs<power.barrierMs);assert.match(mac.tutorialText.textContent,/Barrier/);assert.equal(r.work.timers,0);assert.equal(r.work.intervals,0);await mac.exit();
   });
-  await check('eight-scene intro retains its Kave choice and reader presses cannot leak into Jump', async () => {
+  await check('eight concise scenes and one fourth-wall answer take ten inputs without leaking into Jump', async () => {
     const r = rig(); await r.start(); const mac = r.B.MacCombatPreview, initial = mac.story.snapshot();
-    pressKey(r, ' '); assert.equal(mac.story.snapshot().sceneId, initial.sceneId); assert(mac.story.snapshot().revealed);
-    r.key('keydown', ' ', true); r.frame(); r.key('keyup', ' '); assert.equal(mac.story.snapshot().lineIndex, initial.lineIndex);
-    pressKey(r, ' '); assert.equal(mac.story.snapshot().lineIndex, 1); assert.equal(mac.combat.getSnapshot().player.elevation, 0);
+    assert(initial.revealed, 'Compact chapter text is readable immediately, without a reveal-only press');
+    r.key('keydown', ' ', true); r.frame(); r.key('keyup', ' '); assert.equal(mac.story.snapshot().sceneId, initial.sceneId);
     const scenes = new Set([initial.sceneId]), choices = new Set();
+    let inputs=0;
     for (let n = 0; n < 65 && mac.phase === 'intro'; n++) {
       const s = mac.story.snapshot(); scenes.add(s.sceneId);
+      assert(s.revealed); assert.equal(s.lineCount,1,'Each scene or optional response has one short cue');
       if (s.choice) {
-        choices.add(s.choice.id); assert.equal(s.choice.id, 'delivery-question');
-        pressKey(r, '2'); assert.equal(mac.story.snapshot().selections['delivery-question'], 'what-got-blocked');
+        choices.add(s.choice.id); assert.equal(s.choice.id, 'fourth-wall-question');
+        assert.equal(s.sceneId,'margin-note'); assert.equal(s.speaker,'9 BIT');
+        pressKey(r, '2'); inputs++; assert.equal(mac.story.snapshot().selections['fourth-wall-question'], 'keep-receipts');
         continue;
       }
-      pressKey(r, ' '); assert.equal(mac.combat.getSnapshot().player.elevation, 0);
+      pressKey(r, ' '); inputs++; assert.equal(mac.combat.getSnapshot().player.elevation, 0);
     }
-    assert.equal(scenes.size, 8); assert.deepEqual([...choices], ['delivery-question']);
+    assert.equal(scenes.size, 8); assert.deepEqual([...choices], ['fourth-wall-question']); assert.equal(inputs,10);
     assert.equal(mac.phase, 'street'); assert.equal(mac.story, null);
     r.frame(); assert.equal(mac.combat.getSnapshot().player.elevation, 0); assert.equal(r.work.audio.filter(x => x === 'start').length, 1);
     await mac.exit();
@@ -709,10 +725,15 @@ async function run() {
     assert(Object.entries(r.work.celDraws).some(([file,count])=>count>0&&r.B.MacCombatPreview.frameArt.get('mac').compiled.sheetIds.some(id=>r.B.MacCombatPreview.frameArt.get('mac').compiled.sheets[id].sourceImage===file)),'Actual shared frame draws complete native Mac cels');
     await r.B.MacCombatPreview.exit();assert.equal(r.B.MacCombatPreview.frameArt.size,0);assert.deepEqual(r.work.writes,[]);
   });
-  await check('optional opening choice has explicit keyboard and remapped controller Continue without selecting an answer', async () => {
+  await check('fourth-wall options support phone answers and nine-input keyboard or controller Continue', async () => {
     const r = rig(); await r.start(); const mac = r.B.MacCombatPreview;
-    for (let n=0;n<30&&!mac.story.snapshot().choice;n++) pressKey(r,' ');
-    assert.equal(mac.story.snapshot().choice.id,'delivery-question'); pressKey(r,' ');
+    let commonInputs=0;
+    for (let n=0;n<9&&mac.phase==='intro';n++) { pressKey(r,' '); commonInputs++; }
+    assert.equal(commonInputs,9); assert.equal(mac.phase,'street'); assert.equal(mac.story,null);
+    assert.equal(mac.combat.getSnapshot().player.elevation,0); await mac.exit();
+    await r.start();
+    for (let n=0;n<9&&!mac.story.snapshot().choice;n++) pressKey(r,' ');
+    assert.equal(mac.story.snapshot().choice.id,'fourth-wall-question'); pressKey(r,' ');
     assert.equal(mac.story.snapshot().choice,null); assert.deepEqual(plain(mac.story.snapshot().selections),{});
     assert.equal(mac.combat.getSnapshot().player.elevation,0); await mac.exit();
     await r.start();
@@ -721,6 +742,13 @@ async function run() {
     pad.buttons[3].pressed=true; r.frame(); pad.buttons[3].pressed=false; r.frame();
     assert.equal(mac.story.snapshot().choice,null); assert.deepEqual(plain(mac.story.snapshot().selections),{});
     assert.equal(mac.combat.getSnapshot().player.elevation,0); await mac.exit();
+    const phone=rig({touch:true}); await phone.start(); const pm=phone.B.MacCombatPreview;
+    for(let n=0;n<9&&!pm.story.snapshot().choice;n++) phone.manager.touchCommand('mac:next');
+    assert.equal(pm.story.snapshot().choice.id,'fourth-wall-question');
+    const answer=phone.button('mac:choice:0');phone.pointer(answer,'pointerdown',17);phone.pointer(answer,'pointerup',17);phone.frame();
+    assert.equal(pm.story.snapshot().selections['fourth-wall-question'],'get-it-heard');
+    assert.equal(pm.story.snapshot().speaker,'9 BIT');assert.equal(pm.combat.getSnapshot().player.elevation,0);
+    await pm.exit();
   });
   await check('Mac controller diagonals work while the original deliberate drop filter remains', async () => {
     const r = rig(); await r.start(); r.manager.touchCommand('mac:skip'); const pad = r.pad();
@@ -807,7 +835,7 @@ async function run() {
     assert(r.work.tellResponses.has('Guard or change lane'),'A real earned Mantid draws its distinct response; no actor or clock fixture is patched');
     assert.equal(r.work.timers,0);assert.equal(r.work.intervals,0);assert.deepEqual(r.work.writes,[]);await mac.exit();assert.equal(r.scheduled.size,0);
   });
-  await check('real route desk/choice/clear/retry never awards or persists campaign completion', async () => {
+  await check('real route brief desk payoff/clear/retry never awards or persists campaign completion', async () => {
     const r = rig({touch: true}); await r.start(); r.manager.touchCommand('mac:skip'); const end = await fightRoute(r);
     assert.equal(end.combat.kills, 30); assert.equal(end.combat.city.completedWaves, 12);
     assert.equal(end.combat.city.clearedZones.length, 6); assert.equal(end.combat.status, 'desk-ready'); assert.equal(end.status, 'playing');
@@ -826,7 +854,7 @@ async function run() {
     assert.deepEqual([...responseCoverage].sort(), ['Guard or change lane','Guard, jump or find a gap','Jump or change lane','Parry, jump or change lane'].sort(),
       'All four earned committed-tell response classes reach the real renderer across the complete route and close Mantid observation');
     const expectedStory = [...r.B.MacStreetCombat.zones.map(zone => 'city.arrival.'+zone.id),
-      'city.relay.ready','city.relay.restored.9bit','city.relay.restored.kave','city.regent.phase2','city.regent.phase3','city.regent.defeated'];
+      'city.relay.ready','city.relay.restored.local','city.relay.restored.kave','city.regent.phase2','city.regent.phase3','city.regent.defeated'];
     for (const id of expectedStory) assert(end.gameplayCueIds.includes(id), 'Actual chapter earns story cue '+id);
     assert.equal(new Set(end.gameplayCueIds).size,end.gameplayCueIds.length,'Retry-safe story memory never duplicates cue IDs');
     assert.deepEqual(r.work.storyReceipts.map(receipt=>receipt.id),plain(end.gameplayCueIds), 'Every admitted cue has one actual wrapper receipt');
@@ -840,10 +868,9 @@ async function run() {
     r.key('keydown', 'd'); r.until(s => Math.abs(s.combat.player.x - s.combat.desk.x) < 170); r.key('keyup', 'd'); r.frame();
     const talk = r.button('inspect'); r.pointer(talk, 'pointerdown', 7); r.pointer(talk, 'pointerup', 7); r.frame();
     assert.equal(r.B.MacCombatPreview.phase, 'desk'); assert.equal(r.B.MacCombatPreview.story.snapshot().sceneId, 'review-desk');
-    for (let n = 0; n < 12 && !r.B.MacCombatPreview.story.snapshot().choice; n++) r.manager.touchCommand('mac:next');
-    assert.equal(r.B.MacCombatPreview.story.snapshot().choice.id, 'desk-question'); r.manager.touchCommand('mac:choice:0');
-    assert.equal(r.B.MacCombatPreview.story.snapshot().selections['desk-question'], 'ask-people');
-    r.manager.touchCommand('mac:skip'); r.frame(); assert.equal(r.B.MacCombatPreview.status, 'clear');
+    assert.equal(r.B.MacCombatPreview.story.snapshot().choice,null);
+    assert(r.B.MacCombatPreview.story.snapshot().revealed);
+    r.manager.touchCommand('mac:next'); r.frame(); assert.equal(r.B.MacCombatPreview.status, 'clear');
     assert.equal(r.w.gameState.victory, false); assert.equal(r.w.gameState.gameOver, false); assert.deepEqual(r.work.writes, []);
     assert(r.manager.touchCommand('mac:retry')); r.frame(); assert.equal(r.B.MacCombatPreview.status, 'playing');
     await settle(); r.frame(); await settle(); r.frame();

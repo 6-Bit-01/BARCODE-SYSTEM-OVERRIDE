@@ -181,7 +181,7 @@ check('partial embedded banks wrong weapon identities detached hands and unsafe 
   bad(r=>r.clips['weapon_coil-rifle.walk'].frames.pop());
   bad(r=>r.clips['weapon_coil-rifle.active'].frames.push({...r.clips['weapon_coil-rifle.active'].frames[0]}));
 });
-check('unsupported gun and disc airborne kicks landing defeat carry and grapple explicitly stow without changing inventory',()=>{
+check('retained gun and disc flight kicks counters and landing stay held; carry and grapple occupy hands without changing inventory',()=>{
   const bank=F.compileSupplemental(embeddedFixture(),{baseCompiled:base});
   for(const kind of F.embeddedWeapons)for(const facing of [-1,1]) {
     const weapon={kind,charges:7,maxCharges:8},values=[
@@ -189,7 +189,6 @@ check('unsupported gun and disc airborne kicks landing defeat carry and grapple 
       [actor('jump',{facing,weapon,elevation:90,velocityZ:-300}),{}],
       [actor('idle',{facing,weapon}),{landingAgeMs:35}],
       [actor('walk',{facing,weapon,animation:{action:'walk',motion:{speed:80,stridePhase:.6}}}),{landingAgeMs:35}],
-      [actor('run',{facing,weapon,hp:0}),{}],
       [actor('carry',{facing,weapon,carry:{kind:'crate',elapsedMs:500}}),{}],
       [actor('grab-hold',{facing,weapon,grapple:{elapsedMs:500}}),{}],
       [actor('throw',{facing,weapon,grapple:{phase:'release',releaseAgeMs:40,elapsedMs:1500}}),{}]
@@ -199,9 +198,9 @@ check('unsupported gun and disc airborne kicks landing defeat carry and grapple 
         attack:{kind:move,phase,phaseProgress:.5}}),{}]);
     for(const [value,extra]of values) {
       const before=plain(value),result=pose(value,{supplemental:bank,...extra});
-      assert.equal(result.weaponStowed,true,'Empty generic hands cannot request a detached '+kind+' on '+result.clipKey);
+      assert.equal(result.weaponStowed,!!(value.carry||value.grapple),'Only occupied hands stow retained '+kind+' on '+result.clipKey);
       assert.equal(result.frame.embeddedWeapon,undefined);assert.deepEqual(plain(value),before);
-      assert.deepEqual(plain(value.weapon),weapon,'Temporary stow retains every charge and inventory identity');
+      assert.deepEqual(plain(value.weapon),weapon,'Rendering retains every charge and inventory identity');
     }
     const ready=pose(actor('idle',{facing,weapon}),{supplemental:bank,landingAgeMs:100});
     assert.equal(ready.clipKey,'weapon_'+kind+'.idle');assert.equal(ready.weaponStowed,false);
@@ -249,6 +248,7 @@ check('malformed native occlusion and per-weapon ergonomics are rejected rather 
     assert.throws(()=>F.compileSupplemental(r,{baseCompiled:base}),/Whole-character frames/);};
   bad(f=>f.itemBindings.unknown=f.itemBindings.pipe);bad(f=>f.itemBindings.pipe.itemLayer='automatic');
   bad(f=>f.itemBindings.pipe.gripAnchor.x=61);bad(f=>f.itemBindings.pipe.weaponAngle=NaN);
+  bad(f=>f.itemBindings.pipe.itemScale=0);bad(f=>f.itemBindings.pipe.itemScale=1.01);bad(f=>f.itemBindings.pipe.itemScale=NaN);
   bad(f=>f.itemBindings.pipe.handOcclusion=[]);bad(f=>f.itemBindings.pipe.handOcclusion[0][0].y=81);
   bad(f=>f.itemBindings.pipe.handOcclusion[0]=[{x:1,y:1},{x:2,y:2},{x:3,y:3}]);
   bad(f=>f.itemBindings.pipe.handOcclusion[0]=[{x:1,y:1},{x:2,y:2}]);bad(f=>f.handOcclusion='automatic');
@@ -367,8 +367,10 @@ if(options.registration)check('actual supplemental registration matches native h
   const pipeFrames=Object.values(compiled.frames).filter(frame=>frame.embeddedWeapon==='pipe');
   assert.equal(pipeFrames.length,6);assert.deepEqual(pipeFrames.map(frame=>frame.id).sort(),priorFrames.slice(-6).sort());
   const equipped=F.embeddedWeapons.some(kind=>compiled.clips['weapon_'+kind+'.idle']);
-  assert.equal(Object.keys(compiled.frames).length,equipped?55:28,'Only the selected old28 and optional27 new complete weapon cels belong to this bank');
-  assert.equal(compiled.sheetIds.length,equipped?8:5);
+  const lowCarry=!!compiled.sheets.dyn_carry_low;
+  assert.equal(Object.keys(compiled.frames).length,(equipped?55:28)+(lowCarry?6:0),'Exact preserved cels plus selected six complete low carry cels');
+  assert.equal(compiled.sheetIds.length,(equipped?8:5)+(lowCarry?1:0));
+  if(lowCarry)for(const id of ['carry_low_pickup','carry_low_hold','carry_low_stride','carry_low_pass','carry_low_windup','carry_low_release'])assert(compiled.frames[id]?.sheet==='dyn_carry_low');
   assert.equal(r.baseRegistrationSHA256,sha(fs.readFileSync(basePath)),'Accepted base registration unchanged');
   assert.equal(inside(r.baseRegistration),basePath,'Supplemental names the actual accepted base');
   const images=new Map(),coverage=new Map(),measurements=[],excludedSource=[];
@@ -439,7 +441,7 @@ if(options.registration)check('actual supplemental registration matches native h
     if(!F.embeddedWeapons.includes(kind)){
       assert.equal(result.frameId,run.frames[Number(scene.id.at(-1))].frame,'Every melee run cel has an individual grip inspection');
       assert(result.handOcclusion.some(polygon=>inPolygon(result.gripAnchor,polygon)),'Native handle must enter the closed fist polygon '+kind+'/'+result.frameId);
-      assert.equal(result.itemLayer,['run_contact_a','run_pass_b'].includes(result.frameId)?'behind':'front');
+      assert.equal(result.itemLayer,'front','Rear stride equipment stays visible outside the back silhouette');
       const image=images.get(result.frame.sheet),frame=result.frame,p=result.gripAnchor;
       assert(image.pixels[((frame.source.y+Math.round(p.y))*image.width+frame.source.x+Math.round(p.x))*4+3]>8,'Run grip contacts actual fist ink');
     }else{assert.equal(result.frame.embeddedWeapon,kind);assert.equal(result.gripAnchor,null);}
@@ -458,9 +460,15 @@ if(options.registration)check('actual supplemental registration matches native h
   for(const [frame,metadata] of [...Object.values(compiled.frames).map(f=>[f,f]),
     ...Object.entries(compiled.baseGripAnchors).map(([id,a])=>[base.frames[id],a])]) {
     if(frame.embeddedWeapon)continue;
+    if(frame.sheet==='dyn_carry_low'){
+      assert.equal(metadata.itemBindings,undefined,'Exclusive complete support cels never invent weapon bindings');
+      assert(metadata.gripAnchor&&metadata.handOcclusion.length===2,'Two native support palms are registered');
+      continue;
+    }
     assert.deepEqual(Object.keys(metadata.itemBindings).sort(),[...F.weapons].sort(),'Every native cel records all eight ergonomic bindings '+frame.id);
     for(const kind of F.weapons) {
       const binding=metadata.itemBindings[kind];individualBindings++;
+      assert(binding.itemScale>=.25&&binding.itemScale<=1,'Held-only scale stays bounded');
       assert(binding.gripAnchor&&binding.handOcclusion.length>0);occlusionPolygons+=binding.handOcclusion.length;
       const image=images.get(frame.sheet)||baseImages.get(frame.sheet),cx=Math.round(frame.source.x+binding.gripAnchor.x),cy=Math.round(frame.source.y+binding.gripAnchor.y);
       let ink=0;for(let y=Math.max(frame.source.y,cy-10);y<Math.min(frame.source.y+frame.source.height,cy+11);y++)
