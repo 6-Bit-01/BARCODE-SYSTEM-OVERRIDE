@@ -113,6 +113,16 @@ check('finite per-cel baseline lift translates the complete body uniformly at ac
   const images=new Map(compiled.sheetIds.map(id=>[id,{naturalWidth:compiled.sheets[id].dimensions.width,naturalHeight:compiled.sheets[id].dimensions.height}]));
   F.draw(ctx,{compiled,images},p,500,880,335,-1);
 });
+check('launched and grounded enemies use complete fall and down cels without rotating standing artwork',()=>{
+  const compiled=F.compile(registration('chitin_scuttler'),{complete:true});
+  for(const hp of [20,0]) {
+    const airborne={kind:'chitin_scuttler',hp,facing:-1,phase:hp?'launched':'defeated',launched:true,elevation:110,velocityZ:-80,launchAgeMs:250,
+      animation:{action:hp?'hurt':'defeat',ageMs:250}};
+    const a=pose(airborne,compiled);assert.equal(a.action,'launched');assert.equal(a.frameId,'fall');assert.equal(draw(a,compiled,-1).calls.filter(c=>c[0]==='drawImage').length,1);
+    const down=pose({...airborne,launched:false,elevation:0,knockdownMs:200,knockdownAgeMs:80},compiled);
+    assert.equal(down.action,'knockdown');assert.equal(down.frameId,'down');draw(down,compiled,-1);
+  }
+});
 check('authored holds are discrete, gait follows simulation distance and pause needs no hidden clock',()=>{
   const a=player({animation:{action:'idle',ageMs:100,motion:{stridePhase:0}}}),before=JSON.stringify(a);
   assert.equal(pose(a).frameId,'idle_a');assert.equal(pose(a).frameId,pose(a).frameId);assert.equal(JSON.stringify(a),before);
@@ -170,7 +180,7 @@ check('actual moving strike, aerial kick and earned guard-counter select distinc
   r=rig();r.until(s=>s.enemies[0].phase==='windup',{move_x:1});
   r.until(s=>s.enemies[0].attackTell?.remainingMs<=80);r.step({guard:{held:true}});
   r.until(s=>s.player.counterMs>0,{guard:{held:true}});
-  r.step({strike:{pressed:true,held:true}});actionPhases(r,'counter');
+  r.step({strike:{pressed:true,held:true}});r.until(s=>!!s.player.attack);actionPhases(r,'counter');
 });
 check('actual throw release at 140ms, recovery at 280ms and 420ms commitment use authored holds',()=>{
   const r=rig();r.until(()=>r.game.getControlState().throw.ready,{move_x:1});r.step({throw:{pressed:true,held:true}});
@@ -183,6 +193,14 @@ check('actual throw release at 140ms, recovery at 280ms and 420ms commitment use
     else{recovery=true;assert.equal(p.frameId,'idle_a');}r.step();
   }
   assert(beforeRelease&&released&&recovery);assert.equal(r.view().player.grapple,null);
+});
+check('a real thrown enemy draws its authored fall in flight and down cel on the actual ground',()=>{
+  const r=rig();r.until(()=>r.game.getControlState().throw.ready,{move_x:1});r.step({throw:{pressed:true,held:true}});
+  const victimId=r.view().player.grapple.targetId;const compiled=F.compile(registration('chitin_scuttler'),{complete:true});
+  const flying=r.until(s=>s.enemies.some(e=>e.id===victimId&&e.launched));
+  const actor=flying.enemies.find(e=>e.id===victimId);assert(actor.elevation>0);assert.equal(pose(actor,compiled).frameId,'fall');
+  const landed=r.until(s=>s.enemies.some(e=>e.id===victimId&&!e.launched&&e.knockdownMs>0));
+  const down=landed.enemies.find(e=>e.id===victimId);assert.equal(down.elevation,0);assert.equal(pose(down,compiled).frameId,'down');
 });
 check('each enemy tactic has a distinct authored preparation/contact sequence and honest delayed contact',()=>{
   for(const [kind,moves] of Object.entries(F.styles)){

@@ -1,5 +1,9 @@
 # Continue here — existing BARCODE website hosting
 
+## October 6, 2026 — current private Modem power pass
+
+Continue from source draft PR189 and website draft PR485. The private Mac city now uses complete drawn character cels, with the first two districts receiving body throws/finisher launches, destructible props, recovery, coordinated positioning, native damage art and a hands-on skippable tutorial. Inspect/Link restores the market relay with 9 Bit/Kave reactions. All six districts, twelve waves, thirty enemies and both Kave choices remain playable. See [the power pass](docs/source-pack/MAC_STREET_POWER_PASS.md); exact source/site commits, checks, hosted observations and current v5 archive are in project-root/verification/mac-street-power-20261006 and its delivery receipts. Owner playtesting and final Mac music remain pending. Earlier Makko and Level 2-only continuation instructions below are historical for this private branch.
+
 ## October 3, 2026 — minimal Level 2 road cues and gear tap repair, unpublished
 
 The existing BARCODE website release is merged as site PR478 / `272f3eec6a854aa97091c1b939be1fd71880c208`; its standalone bundle identifies source `90a80762cf919b9f2efb70b95a0a04bfc189542c`. The live route is `/system-override`, reached through the tiny footer © shortcut. The game uses its local standalone adapter and BARCODE-hosted files, with native scenery/art and the original rearview. Earlier migration-only and Makko hosting statements below are historical where they conflict with this release record.

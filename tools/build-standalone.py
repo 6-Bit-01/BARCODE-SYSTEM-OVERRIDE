@@ -84,6 +84,55 @@ MAC_RIG_ASSETS = {"assets/mac-combat-rigs/" + name for name in (
     "shock_mantid-v1.png", "shock_mantid-v1-rig.json",
     "null_regent-v1.png", "null_regent-v1-rig.json")}
 MAC_FRAME_ROOT = "assets/mac-combat-frames/"
+MAC_POWER_ROOT = "assets/mac-street-power/"
+MAC_POWER_CELLS = {"crate_intact", "crate_cracked", "crate_broken",
+                   "stall_intact", "stall_cracked", "stall_broken",
+                   "relay_off", "relay_on", "pickup_health"} | {
+    f"blood_{color}_{kind}" for color in ("red", "green", "purple")
+    for kind in ("impact", "heavy", "floor")}
+
+
+def street_power_files(output):
+    """Select only the two native power atlases and their measured cells."""
+    manifest_name = MAC_POWER_ROOT + "mac-street-power-v1.json"
+    manifest = json.loads(safe_path(output, manifest_name).read_text(encoding="utf-8"))
+    require(manifest.get("schema") == 1 and set(manifest.get("cells", {})) == MAC_POWER_CELLS,
+            "Street power requires every registered prop and all three damage palettes")
+    sheets = manifest.get("sheets", [])
+    require(len(sheets) == 2 and len({sheet.get("id") for sheet in sheets}) == 2,
+            "Street power must select exactly two native atlases")
+    selected, dimensions = {manifest_name}, {}
+    for sheet in sheets:
+        name = sheet.get("sourceImage", "")
+        require(re.fullmatch(re.escape(MAC_POWER_ROOT) + r"[a-z0-9_-]+-v[0-9]+\.png", name),
+                "Power atlas must be a selected native PNG sibling")
+        image = safe_path(output, name).read_bytes()
+        require(sha(image) == sheet.get("sourceSHA256"), "Power atlas bytes changed")
+        require(image[:8] == b"\x89PNG\r\n\x1a\n" and image[24:29] == bytes((8, 6, 0, 0, 0)),
+                "Power atlas must retain native RGBA8 transparency")
+        size = {"width": int.from_bytes(image[16:20], "big"), "height": int.from_bytes(image[20:24], "big")}
+        require(sheet.get("dimensions") == size, "Power atlas dimensions changed")
+        dimensions[sheet["id"]] = size
+        selected.add(name)
+    require(len(selected) == 3, "Power atlases must have distinct paths")
+    crops = []
+    for name, cell in manifest["cells"].items():
+        sheet, rect, pivot = cell.get("sheet"), cell.get("source", {}), cell.get("pivot", {})
+        require(sheet in dimensions, "Unknown power cell atlas")
+        require(all(isinstance(rect.get(key), int) and rect[key] >= (1 if key in ("width", "height") else 0)
+                    for key in ("x", "y", "width", "height")), "Invalid native power crop")
+        require(rect["x"] + rect["width"] <= dimensions[sheet]["width"] and
+                rect["y"] + rect["height"] <= dimensions[sheet]["height"], "Power crop escapes native atlas")
+        require(all(isinstance(pivot.get(key), (int, float)) and math.isfinite(pivot[key]) and
+                    0 <= pivot[key] <= rect["width" if key == "x" else "height"] for key in ("x", "y"))
+                and isinstance(cell.get("displayHeight"), (int, float)) and 0 < cell["displayHeight"] <= 500,
+                "Invalid power cell registration")
+        for other_sheet, other in crops:
+            require(sheet != other_sheet or min(rect["x"] + rect["width"], other["x"] + other["width"]) <= max(rect["x"], other["x"])
+                    or min(rect["y"] + rect["height"], other["y"] + other["height"]) <= max(rect["y"], other["y"]),
+                    "Power crops overlap")
+        crops.append((sheet, rect))
+    return selected
 
 
 def combat_frame_files(output):
@@ -607,10 +656,13 @@ def verify_texture_bank(output, files):
     frame_files = combat_frame_files(output)
     require({name for name in files if name.startswith(MAC_FRAME_ROOT)} == frame_files,
             "The game contains an unregistered complete-character sprite asset")
+    power_files = street_power_files(output)
+    require({name for name in files if name.startswith(MAC_POWER_ROOT)} == power_files,
+            "Only selected power art may enter the playable package")
     originals = sorted([name, record["bytes"], record["sha256"]]
                        for name, record in files.items() if name.startswith("assets/")
                        and name not in derivatives and name not in MAC_REVIEW_ASSETS and name not in MAC_CITY_ASSETS
-                       and name not in MAC_RIG_ASSETS and name not in frame_files)
+                       and name not in MAC_RIG_ASSETS and name not in frame_files and name not in power_files)
     require(len(originals) == 624 and sha(json.dumps(originals, separators=(",", ":")).encode("utf-8")) ==
             "0b2ac58dc88ddb68b595fb8592d242d8478c426d78309fe4ff45b88c04027f56",
             "Original 624 artwork/audio identities or bytes changed")
@@ -620,6 +672,7 @@ def verify_texture_bank(output, files):
             "macCityAssetCount": len(MAC_CITY_ASSETS),
             "macRigAssetCount": len(MAC_RIG_ASSETS),
             "macFrameAssetCount": len(frame_files),
+            "macPowerAssetCount": len(power_files),
             "gpuMipBytes": bank.get("allGpuMipBytes"), "runtimeAcceptance": "not established by packaging"}
 
 

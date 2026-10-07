@@ -79,6 +79,47 @@ function combatFrameFiles() {
   assert.deepEqual(Object.keys(owner.files).filter(name => name.startsWith(macFrameRoot)).sort(), [...selected].sort());
   return selected;
 }
+const createPowerHash = data => crypto.createHash('sha256').update(data).digest('hex');
+const macPowerRoot = 'assets/mac-street-power/';
+const macPowerCells = ['crate_intact','crate_cracked','crate_broken','stall_intact','stall_cracked','stall_broken','relay_off','relay_on','pickup_health',
+  ...['red','green','purple'].flatMap(color => ['impact','heavy','floor'].map(kind => 'blood_' + color + '_' + kind))];
+function powerArtFiles(bytes, files) {
+  const name = macPowerRoot + 'mac-street-power-v1.json', bank = JSON.parse(bytes(name));
+  assert.equal(bank.schema, 1);
+  assert.deepEqual(Object.keys(bank.cells).sort(), [...macPowerCells].sort());
+  assert.equal(bank.sheets.length, 2); assert.equal(new Set(bank.sheets.map(sheet => sheet.id)).size, 2);
+  const selected = new Set([name]), sheets = new Map(), crops = [];
+  for (const sheet of bank.sheets) {
+    assert.match(sheet.sourceImage, /^assets\/mac-street-power\/[a-z0-9_-]+-v[0-9]+\.png$/);
+    const data = bytes(sheet.sourceImage), hash = createPowerHash(data);
+    assert.equal(hash, sheet.sourceSHA256); assert.equal(files[sheet.sourceImage]?.sha256, hash);
+    const image = nativeRigRGBA(data, sheet.sourceImage);
+    assert.deepEqual(sheet.dimensions, {width: image.width, height: image.height});
+    sheets.set(sheet.id, image); selected.add(sheet.sourceImage);
+  }
+  assert.equal(selected.size, 3);
+  for (const [id, cell] of Object.entries(bank.cells)) {
+    const image = sheets.get(cell.sheet), r = cell.source; assert(image, 'Unknown power atlas: ' + id);
+    for (const key of ['x','y','width','height']) assert(Number.isSafeInteger(r[key]) && r[key] >= (['width','height'].includes(key) ? 1 : 0));
+    assert(r.x+r.width<=image.width && r.y+r.height<=image.height, 'Native power crop escapes atlas: '+id);
+    assert(Number.isFinite(cell.pivot.x) && cell.pivot.x>=0 && cell.pivot.x<=r.width);
+    assert(Number.isFinite(cell.pivot.y) && cell.pivot.y>=0 && cell.pivot.y<=r.height);
+    assert(Number.isFinite(cell.displayHeight) && cell.displayHeight>0 && cell.displayHeight<=500);
+    let visible=0, clear=0;
+    for(let y=0;y<r.height;y++) for(let x=0;x<r.width;x++) {
+      const alpha=image.pixels[((r.y+y)*image.width+r.x+x)*4+3];
+      if(alpha>8) { visible++; assert(x>0 && y>0 && x<r.width-1 && y<r.height-1, 'Visible power ink clipped: '+id); }
+      else clear++;
+    }
+    assert(visible>0 && clear>0,'Power cell must retain native drawn ink and transparency: '+id);
+    for(const old of crops) assert(old.sheet!==cell.sheet ||
+      Math.min(r.x+r.width,old.source.x+old.source.width)<=Math.max(r.x,old.source.x) ||
+      Math.min(r.y+r.height,old.source.y+old.source.height)<=Math.max(r.y,old.source.y),'Power crops overlap: '+id);
+    crops.push(cell);
+  }
+  assert.deepEqual(Object.keys(files).filter(name=>name.startsWith(macPowerRoot)).sort(),[...selected].sort());
+  return selected;
+}
 const encoderCommit = '4d6fc70eaf62ad0558e63e8d97eb9766118327a6';
 const transcoderCommit = '9bebe16726b3a61c8c213eeee3b7cffb462ef34e';
 function textureManifest() {
@@ -494,9 +535,10 @@ async function checkRoadTextureBank() {
   assert.equal(macRigAssets.size, 17);
   assert.deepEqual(assets.filter(name => name.startsWith(macRigRoot)), [...macRigAssets].sort(), 'Only the exact 17 articulated combat assets may extend originals');
   const frameFiles = combatFrameFiles();
-  const originals = assets.filter(name => !derivatives.has(name) && !macReviewAssets.has(name) && !macCityAssets.has(name) && !macRigAssets.has(name) && !frameFiles.has(name));
+  const powerFiles = powerArtFiles(name => fs.readFileSync(localAsset(name)), files);
+  const originals = assets.filter(name => !derivatives.has(name) && !macReviewAssets.has(name) && !macCityAssets.has(name) && !macRigAssets.has(name) && !frameFiles.has(name) && !powerFiles.has(name));
   assert.equal(originals.length, originalAssetCount, 'All 624 original assets must remain present');
-  assert.equal(owner.canonicalAssetCount - derivatives.size - macReviewAssets.size - macCityAssets.size - macRigAssets.size - frameFiles.size, originalAssetCount);
+  assert.equal(owner.canonicalAssetCount - derivatives.size - macReviewAssets.size - macCityAssets.size - macRigAssets.size - frameFiles.size - powerFiles.size, originalAssetCount);
   const originalRows = originals.map(name => [name, files[name].bytes, files[name].sha256]);
   assert.equal(crypto.createHash('sha256').update(JSON.stringify(originalRows)).digest('hex'), originalAssetInventorySHA256,
     'Original artwork, music, sprites or asset metadata changed');
@@ -533,7 +575,7 @@ async function checkRoadTextureBank() {
     assert.equal(entry.originalPath, catalog[key]?.path, 'Texture bank targets different production art: ' + key);
   }
   return { sources: 171, compressed: 149, originalSVG: 22, unchangedOriginalAssets: originals.length,
-    derivativeFiles: derivatives.size, macReviewAssetCount: macReviewAssets.size, macCityAssetCount: macCityAssets.size, macRigAssetCount: macRigAssets.size, macFrameAssetCount: frameFiles.size,
+    derivativeFiles: derivatives.size, macReviewAssetCount: macReviewAssets.size, macCityAssetCount: macCityAssets.size, macRigAssetCount: macRigAssets.size, macFrameAssetCount: frameFiles.size, macPowerAssetCount: powerFiles.size,
     compressedBytes, compressedMipBytes: residentMipBytes, svgMipBytes,
     originalMipBytes, gpuMipBytes: residentMipBytes + svgMipBytes, originalAssetInventorySHA256,
     fullResolution: true, premultipliedUNORM: true, productionKeyAndPathCoverage: true, actualAssetHashes: true };

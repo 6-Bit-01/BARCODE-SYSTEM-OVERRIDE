@@ -1,5 +1,20 @@
 # Decision Register
 
+## October 6, 2026 — Modem power pass and hands-on street tutorial
+
+The owner approved making the city fights more substantial, requested a tutorial and stronger blood/damage, and emphasized that Modem should be able to wreck the opposition. The opening Service Alley and Night Market are the quality target for this pass. The full six districts, twelve waves, thirty enemies, boss and both meaningful Kave dialogue choices remain playable.
+
+Throws and third-hit finishers now launch complete drawn enemies. Flying bodies damage each secondary target once per flight, smash crates or the market stall, and settle into a held knockdown before recovery. Short bounded impact pauses retain fresh input presses without pausing the external music transport. Opening melee enemies flank and take turns committing; the Guard can protect a Spitter, which backs away to create firing distance. Each opening district's second wave is placed farther down the street.
+
+Breakable props have intact, cracked and collapsed native art at one consistent family scale. Broken props drop recovery that Mac collects by walking over it while grounded and injured. The market relay becomes available after its fights; the existing Inspect action restores the local feed with short 9 Bit and Kave reactions. It does not add another dialogue choice or block the six-district route.
+
+A small skippable coach teaches movement, a three-hit combo, air kick, guard/counter, contextual throw and relay interaction from actual gameplay receipts. It changes instructions for keyboard, controller or touch. Joystick, Jump, Strike and Guard keep their thumb slots; Throw and Link appear when useful. There is no gameplay More menu. The tutorial never prevents fighting or requires a cutscene text advance.
+
+Two selected native transparent atlases supply eighteen measured prop and red/green/purple blood cells. Damage bursts follow real damage events, with heavier impacts, bounded floor marks, complete-character recoil/fall/down cels, distinct existing-owner sounds and a finite camera response disabled by Reduced Motion. No body-part renderer, additional frame loop, timer, canvas, campaign progress or award writer is added.
+
+This remains a private playable review branch (source PR189 / website PR485). Exact local checks, strict native package, commit identities, CI, hosted play observations and the recoverable v5 source archive are recorded under project-root/verification/mac-street-power-20261006 and its delivery receipts. Owner playtesting, physical-phone performance and final Mac soundtrack approval remain separate; the existing Level 03 proof stems are temporary audio. Production publication is not inferred from this pass.
+
+
 ## October 6, 2026 — complete drawn cels integrated into the playable private city
 
 The owner confirmed that work should continue into the game after accepting revised Walk and Air kick study revision 2. The private Mac wrapper now uses complete-character held drawings for Mac, six alien species and the four-armed Null Regent. It loads the exact eight hashed registrations and twelve native transparent PNGs from `assets/mac-combat-frames/mac-combat-frames-v1.json`; the entry launches `MacCombatFrames` instead of the rejected articulated renderer. The registered sibling bank adds exactly 21 assets, preserving the sealed 624 original artwork/audio identities, earlier city art and rejected rig history.
