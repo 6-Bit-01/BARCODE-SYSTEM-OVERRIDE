@@ -59,7 +59,8 @@ const macDynamicRoot = 'assets/mac-street-dynamic/';
 const macDynamicSheets = {dyn_guard:'mac-guard-two-braids-v1.png',dyn_run:'mac-run-two-braids-v1.png',
   dyn_hold:'mac-hold-carry-two-braids-v1.png',dyn_weapon:'mac-weapon-poses-two-braids-v1.png',
   dyn_pipe_swing:'mac-pipe-swing-two-braids-v1.png',dyn_scatter_blaster:'mac-scatter-blaster-grips-v1.png',
-  dyn_coil_rifle:'mac-coil-rifle-grips-v1.png',dyn_plasma_disc:'mac-plasma-disc-grips-v1.png'};
+  dyn_coil_rifle:'mac-coil-rifle-grips-v1.png',dyn_plasma_disc:'mac-plasma-disc-grips-v1.png',
+  dyn_carry_low:'mac-carry-low-front-v2.png'};
 const macDynamicImageHashes = {
   dyn_guard:'2a6ed176b8cefba33793f1d6633671322afc8555c01c725cbe8a9ca306e3ed85',
   dyn_run:'b78e958967d49d32eccb85a19594691e244e6023c34371a002099f3ec0cc4a23',
@@ -68,13 +69,15 @@ const macDynamicImageHashes = {
   dyn_pipe_swing:'a22a5f4787d339614af5c2fc51a548affe55628e057bb54cdeffbdb1e21c83af',
   dyn_scatter_blaster:'36667f70a3e14bfba05baf4bdf86dda013bc83cb826d340bc3216faf97c274e7',
   dyn_coil_rifle:'cd1fd6a52cf1df9fd9ff43a1a047768dc8b4285f6b7488685a45f565e1ecb297',
-  dyn_plasma_disc:'ad23988027d373b8ca10af1f8e4b99e3adb1cb441c1040b37b9b533e7a8ef8e8'};
+  dyn_plasma_disc:'ad23988027d373b8ca10af1f8e4b99e3adb1cb441c1040b37b9b533e7a8ef8e8',
+  dyn_carry_low:'f60d950343d3198eee51f1147eacc232cf76d740d004c9a74c5c60b881df7a33'};
 const macDynamicHistoricalImages = {
   'mac-guard-v1.png':'f3410efa856aa1ea7fcedf69bd1e37f8c259af8cfb315282fc81f08b235ca0ee',
   'mac-run-v1.png':'711c9993b6d39b0ce1fbc49897f154618c9d0baafad796a4bb236b2f6d9d4378',
   'mac-hold-carry-v1.png':'e40c210ed47efb4453d7add6d42250e766715825ff3943727203667d9939861c',
   'mac-weapon-poses-v1.png':'e59a6f8716d6d5b8fc3f4789dbc96cde64c94f186d99f6b2d8640f8033e4fba3'};
-const macDynamicFrames = ['guard_brace','guard_step_a','guard_step_b','guard_impact',
+const macCarryLowFrames = new Set(['carry_low_pickup','carry_low_hold','carry_low_stride','carry_low_pass','carry_low_windup','carry_low_release']);
+const macDynamicFrames = [...macCarryLowFrames,'guard_brace','guard_step_a','guard_step_b','guard_impact',
   'run_contact_a','run_pass_a','run_contact_b','run_pass_b','grab_reach','grab_hold','pummel_load','pummel_contact',
   'pickup_load','carry_hold','carry_step_a','carry_step_b','melee_load','melee_contact','melee_follow','fire_aim','fire_recoil','fire_ready'];
 const macPipeSwingPhases = {
@@ -131,6 +134,8 @@ function checkItemBindings(entry, rect) {
       binding.gripAnchor.y >= 0 && binding.gripAnchor.y <= rect.height, 'Invalid native weapon grip');
     assert(Number.isFinite(binding.weaponAngle) && Math.abs(binding.weaponAngle) <= Math.PI);
     assert(['front','behind'].includes(binding.itemLayer), 'Invalid held item layer');
+    const heldScale=binding.itemScale??1;
+    assert(Number.isFinite(heldScale)&&heldScale>=.25&&heldScale<=1,'Invalid registered held-only item scale');
     checkNativePolygons(binding.handOcclusion, rect);
     if (Object.hasOwn(binding, 'itemFrontRegions')) checkNativePolygons(binding.itemFrontRegions, power.cells['weapon_' + kind].source);
   }
@@ -144,9 +149,9 @@ function supplementalFrameFiles(actor, baseRegistration) {
   assert.equal(registration.baseRegistration, actor.registration);
   assert.equal(registration.baseRegistrationSHA256, actor.registrationSHA256, 'Supplemental poses must preserve the accepted base');
   assert.equal(registration.actor, 'mac'); assert.equal(registration.schemaVersion, 1); assert.equal(registration.facing, 'right');
-  assert.equal(registration.sheets.length, 8);
+  assert.equal(registration.sheets.length, 9);
   assert.deepEqual(registration.sheets.map(sheet => sheet.id).sort(), Object.keys(macDynamicSheets).sort());
-  assert.equal(registration.frames.length, 55);
+  assert.equal(registration.frames.length, 61);
   assert.deepEqual(registration.frames.map(frame => frame.id).sort(), [...macDynamicFrames,...macEmbeddedFrameKinds.keys()].sort());
   // Validate the actual packaged loader and registrations, never source-tree substitutes.
   const context = makeContext(); load(context, 'src/game/mac-combat-frames.js');
@@ -167,7 +172,16 @@ function supplementalFrameFiles(actor, baseRegistration) {
     } else {
       assert(!['dyn_pipe_swing',...Object.values(macEmbeddedWeaponSheets)].includes(frame.sheet));
       assert(!Object.hasOwn(frame,'embeddedWeapon'));
-      checkItemBindings(frame, frame.source);
+      if(frame.sheet==='dyn_carry_low') {
+        assert(macCarryLowFrames.has(frame.id),'Only the exact six complete low support cels belong to this sheet');
+        assert(!Object.hasOwn(frame,'itemBindings'),'Low support cels are exclusive prop poses');
+        checkNativeAnchor(frame.gripAnchor,frame.source);
+        assert.equal(frame.handOcclusion?.length,2,'Both native support palms must be registered');
+        checkNativePolygons(frame.handOcclusion,frame.source);
+      } else {
+        assert(!macCarryLowFrames.has(frame.id),'Low support cels must retain their selected native sheet');
+        checkItemBindings(frame, frame.source);
+      }
     }
   }
   const pipeClips=new Set(Object.keys(macPipeSwingPhases).map(phase=>'pipe-swing.'+phase));
@@ -205,14 +219,14 @@ function supplementalFrameFiles(actor, baseRegistration) {
       assert(!clipped,'Supplemental body ink clipped: '+frame.id);
     }
   }
-  assert.equal(selected.size, 9);
+  assert.equal(selected.size, 10);
   // Keep the four historical source sheets byte-identical while selecting only the replacements.
   for(const [filename,digest]of Object.entries(macDynamicHistoricalImages)) {
     const imageName=macDynamicRoot+filename,data=fs.readFileSync(localFile(imageName));
     assert.equal(createPowerHash(data),digest,'Historical supplemental source PNG changed');
     assert.equal(owner.files[imageName]?.sha256,digest);selected.add(imageName);
   }
-  assert.equal(selected.size,13);
+  assert.equal(selected.size,14);
   return selected;
 }
 function combatFrameFiles() {
@@ -818,7 +832,7 @@ async function main() {
     '--manifest', macFrameRoot + 'mac-combat-frames-v1.json'], {encoding: 'utf8', timeout: 120000});
   assert.match(frameCheck, /native actors checked: 8/, 'Native complete-character cels must pass actual hash, crop, alpha and action checks');
   const macFrames = {selectedActors: 8, assetCount: frameFiles.size, nativeCelsChecked: true,
-    supplementalSheetsChecked: 8, supplementalCelsChecked: 55, embeddedPipeCelsChecked: 6,
+    supplementalSheetsChecked: 9, supplementalCelsChecked: 61, completePropSupportCelsChecked: 6, embeddedPipeCelsChecked: 6,
     embeddedWeaponCelsChecked: {'scatter-blaster':9,'coil-rifle':9,'plasma-disc':9},
     historicalSupplementalSheetsChecked: 4, supplementalPackagedLoaderChecked: true,
     runtimeAcceptance: 'not established by packaging'};
