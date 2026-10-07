@@ -55,6 +55,9 @@ function combatInput(r,s){
     Math.abs(e.attackLaneY-p.laneY)<45&&Math.abs(e.x-p.x)<330)
     .sort((x,y)=>(x.tellMs-x.phaseMs)-(y.tellMs-y.phaseMs))[0];
   const remaining=warning?warning.tellMs-warning.phaseMs:Infinity;
+  const expectedType={psion_lancer:'lunge',bile_spitter:'bile',rift_stalker:'rift-cross',shock_mantid:'ground-wave'}[foe.kind];
+  const observe=r.observeFirstPatterns&&expectedType&&!r.events.some(e=>e.type==='enemy-attack'&&e.attackType===expectedType);
+  if(observe)input.move_x=Math.abs(dx)>C.roles[foe.kind].distance-5||p.facing!==direction?direction:0;
   // Optional sturdy cars no longer wreck from incidental crowd contacts to
   // supply a free Barrier. Respect the Regent's real armored commitments.
   if(foe.kind==='null_regent'&&foe.phase==='active') {
@@ -74,6 +77,7 @@ function combatInput(r,s){
     else if(warning.attackTell.guardable===false&&p.elevation===0)input.move_y=p.laneY>875?-1:1;
     input.move_x=0;return input;
   }
+  if(observe)return input;// Earn each base commitment before attacking this role.
   if(controls.throw.ready&&controls.throw.targetType==='enemy'&&!r.lastThrow)input.throw={pressed:true,held:true};
   else if(controls.strike.ready&&!r.lastStrike&&Math.abs(dx)<=100&&Math.abs(foe.laneY-p.laneY)<=35) {
     // Run+Strike now deliberately commits a lunge. This ordinary-combat route
@@ -334,6 +338,7 @@ check('checkpoint retry restores the current earned wave rather than wiping the 
 });
 
 check('full earned six-area route clears 12 waves and one three-phase boss',()=>{
+  route.observeFirstPatterns=true;
   fight(route);
   assert.equal(route.view().status,'desk-ready','tactical ordinary controls can finish the complete route');
   const s=route.view();assert.equal(s.kills,30);assert.equal(s.city.completedWaves,12);
@@ -462,6 +467,7 @@ check('all six aliens execute two different physical tactics through public play
       const input={move_x:Math.abs(dx)>105||p.facing!==direction?direction:0,
         move_y:Math.abs(e.laneY-p.laneY)>6?Math.sign(e.laneY-p.laneY):0};
       if(['windup','active'].includes(e.phase)){
+        input.move_x=0;// Observe the commitment from its earned spacing, without chasing into its muzzle.
         const reach=e.attackSpec.laneReach??C.constants.laneReach;
         input.move_y=Math.abs(p.laneY-e.attackLaneY)<=reach+32
           ?Math.abs(C.constants.laneMin-e.attackLaneY)>Math.abs(C.constants.laneMax-e.attackLaneY)?-1:1:0;

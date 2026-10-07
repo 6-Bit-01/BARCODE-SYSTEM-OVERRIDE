@@ -56,7 +56,7 @@ class Element extends EventTarget {
   click() { if (!this.disabled) this.dispatchEvent({type: 'click', bubbles: true, detail: 0}); }
   getBoundingClientRect() { return {left: 20, top: 600, width: 140, height: 140, right: 160, bottom: 740}; }
 }
-function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementalMutation} = {}) {
+function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementalMutation, lootSeed = 5062979} = {}) {
   const work = {raf: 0, timers: 0, intervals: 0, canvases: 0, writes: [], profiles: [], audio: [], cues: [], events: [], decoded: [], celDraws: {}, powerDraws: [], lastCels: [], lastDraws: [], lastRotations: [], lastTexts: [], storyReceipts: [], fetched: []};
   let supplementalOverride = null;
   if (supplementalMutation) {
@@ -88,7 +88,12 @@ function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementa
     e.id = id; if (id === 'continueButton') e.hidden = true; if (id === 'gameCanvas') { e.width = 1920; e.height = 1080; } doc.body.appendChild(e);
   }
   const win = new EventTarget();
-  Object.assign(win, {document: doc, console, Math, Date, Map, Set, URLSearchParams, crypto: webcrypto, TextDecoder, Uint8Array,
+  let seedRequests = 0;
+  const testCrypto = {subtle:webcrypto.subtle, getRandomValues(values) {
+    for(let i=0;i<values.length;i++) values[i]=(lootSeed+seedRequests+i)>>>0;
+    seedRequests++;work.seedRequests=seedRequests;return values;
+  }};
+  Object.assign(win, {document: doc, console, Math, Date, Map, Set, URLSearchParams, crypto: testCrypto, TextDecoder, Uint8Array,
     location: {search: '?preview=mac-firstslice'}, innerWidth: 390, innerHeight: 844,
     performance: {now: () => now}, navigator: {maxTouchPoints: touch ? 5 : 0, getGamepads: () => pads},
     matchMedia: query => ({matches: touch && /coarse|hover:\s*none/.test(query), addEventListener() {}, removeEventListener() {}}),
@@ -276,6 +281,11 @@ function assertStreetHud(r) {
   if (s.boss?.hp > 0) {
     assert(has(`NULL REGENT · ${s.boss.phase} / 3 · ${s.boss.phaseName}`,960,125), 'Boss HUD names the earned live phase');
     (r.work.bossHudPhases ||= new Set()).add(s.boss.phase);
+    if (!mac.tutorial.skipped && !mac.tutorial.completed && !s.player.grapple && !s.player.carry &&
+      ['warning','committed','punish'].includes(s.boss.window)) {
+      assert(mac.tutorialReadout.hidden, 'Ordinary teaching cannot cover a live boss warning or exposed timer');
+      (r.work.bossCoachWindows ||= new Set()).add(s.boss.window);
+    }
     const exposedText = drawn.find(call => call.x === 960 && call.y === 177 && call.text.startsWith('EXPOSED'));
     if (s.boss.window === 'punish' && s.boss.punishRemainingMs > 0) {
       assert(exposedText);
@@ -316,13 +326,22 @@ async function fightRoute(r,{until,equipWeapons=true,combatLane}={}) {
     if (state.boss) bossPhases.add(state.boss.phase);
     const foe = state.enemies.filter(e => e.hp > 0 && e.phase !== 'dormant')
       .sort((a, b) => Math.abs(a.x - p.x) - Math.abs(b.x - p.x))[0];
+    const gunShot={ 'scatter-blaster':'scatter-bolt','coil-rifle':'coil-bolt','plasma-disc':'plasma-disc' };
+    const pendingShot=gunShot[p.weapon?.kind]&&!r.work.nativeShotKinds?.has(gunShot[p.weapon.kind]);
+    const cache=equipWeapons&&!pendingShot?state.pickups.filter(item=>item.kind==='weapon'&&item.source==='street-cache'&&item.zoneId===state.zone.id)
+      .sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x))[0]:null;
     actionInput.releaseVirtualOwner('route');
     const hold = name => actionInput.setVirtualAction(name, 'route', true, {timeStamp: r.w.performance.now()});
     if(c.interactAvailable) {
       if(r.B.TouchControls.enabled) { const link=r.button('inspect');assert.match(link.textContent,/Link/);r.pointer(link,'pointerdown',91);r.pointer(link,'pointerup',91);r.work.relayTouchUses=(r.work.relayTouchUses||0)+1; }
       else hold('inspect');
     }
-    if (equipWeapons && c.throw.ready && c.throw.targetType === 'weapon' && !throwHeld) {hold('road_disrupt');throwHeld=true;strikeHeld=false;}
+    if (cache && c.throw.ready && c.throw.targetType === 'weapon' && c.throw.targetId===cache.id && !throwHeld) {hold('road_disrupt');throwHeld=true;strikeHeld=false;}
+    else if (cache && (!foe || Math.abs(foe.x-p.x)>145 && Math.abs(cache.x-p.x)<140)) {
+      if(Math.abs(cache.x-p.x)>7)hold(cache.x>p.x?'move_right':'move_left');
+      if(Math.abs(cache.laneY-p.laneY)>5)hold(cache.laneY>p.laneY?'move_down':'move_up');
+      throwHeld=false;strikeHeld=false;
+    }
     else if (!foe) {hold('move_right');throwHeld=false;strikeHeld=false;}
     else {
       const direction = Math.sign(foe.x - p.x) || p.facing;
@@ -349,7 +368,7 @@ async function fightRoute(r,{until,equipWeapons=true,combatLane}={}) {
         if (warning.attackTell.guardable === false && remaining < 250 && c.jump.ready) hold('jump');
         else if (warning.attackTell.guardable !== false && remaining < 105) hold('road_defend');
         else if (warning.attackTell.guardable === false && p.elevation === 0) hold(p.laneY > 875 ? 'move_up' : 'move_down');
-      } else if (c.throw.ready && c.throw.targetType === 'enemy' && !throwHeld) { hold('road_disrupt'); throwing = true; }
+      } else if (!pendingShot && c.throw.ready && c.throw.targetType === 'enemy' && !throwHeld) { hold('road_disrupt'); throwing = true; }
       else if (c.strike.ready && !strikeHeld && Math.abs(foe.x - p.x) <= attackReach && Math.abs(foe.laneY - p.laneY) <= 35) { hold('road_attack'); strike = true; }
       strikeHeld = strike; throwHeld = throwing;
     }
@@ -359,7 +378,11 @@ async function fightRoute(r,{until,equipWeapons=true,combatLane}={}) {
 }
 let groups = 0;
 const responseCoverage = new Set();
-async function check(name, body) { await body(); groups++; console.log('PASS Mac integration ' + name); }
+async function check(name, body) {
+  const selected=process.argv.indexOf('--only-group');
+  if(selected>=0&&!name.includes(process.argv[selected+1]))return;
+  await body(); groups++; console.log('PASS Mac integration ' + name);
+}
 async function run() {
   await check('registration and native sheet hash mismatches reject entry without a part-rig fallback', async () => {
     const bank=JSON.parse(fs.readFileSync(path.join(root,'assets/mac-combat-frames/mac-combat-frames-v1.json'),'utf8'));
@@ -796,6 +819,10 @@ async function run() {
     for(const proof of ['close-boss','close-ordinary','separate-lanes','separate-props'])
       assert(r.work.depthProof.has(proof),'Real native draw-order regression actually samples '+proof);
     assert(r.work.exposedHudAdvanced, 'At least one real exposed window counts down between gameplay frames');
+    assert.deepEqual([...(r.work.bossCoachWindows || [])].sort(),['committed','punish','warning'],
+      'An unfinished earned tutorial yields during all three live boss combat windows');
+    const firstLootSeed=end.combat.lootSeed;
+    assert.equal(r.work.seedRequests,1,'Street frames never reroll the chapter loot');
     assert.deepEqual([...responseCoverage].sort(), ['Guard or change lane','Guard, jump or find a gap','Jump or change lane','Parry, jump or change lane'].sort(),
       'All four earned committed-tell response classes reach the real renderer across the complete route and close Mantid observation');
     const expectedStory = [...r.B.MacStreetCombat.zones.map(zone => 'city.arrival.'+zone.id),
@@ -823,6 +850,8 @@ async function run() {
     const loadedZones = r.B.MacCombatPreview.cityArt.zones.filter(zone => r.B.MacCombatPreview.assets.has(zone.background));
     assert.deepEqual(loadedZones.map(zone => zone.id), ['service-alley','night-market']);
     assert.equal(r.B.MacCombatPreview.combat.getSnapshot().kills, 0); assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.x, 200);
+    assert.notEqual(r.B.MacCombatPreview.combat.getSnapshot().lootSeed,firstLootSeed,'Full chapter replay requests a fresh loot layout');
+    assert.equal(r.work.seedRequests,2);
     assert.equal(r.B.MacCombatPreview.phase, 'street'); assert.equal(r.B.MacCombatPreview.story, null); assert.deepEqual(r.work.writes, []);
     assert.equal(r.B.MacCombatPreview.floorMarks.length,0);assert.equal(r.B.MacCombatPreview.radio,null);assert.equal(r.B.MacCombatPreview.tutorial.skipped,false);
     assert.deepEqual(plain(r.B.MacCombatPreview.getSnapshot().gameplayCueIds),[],'Full-city replay clears chapter-local narration memory');
@@ -836,12 +865,17 @@ async function run() {
     let jumpedForDefeat=false;
     r.until(s => s.status === 'failed', s => {
       const p = s.combat.player, foe = s.combat.enemies[0];
+      r.key('keyup',' ');
       for(const key of ['d','a','w','s'])r.key('keyup',key);
       if(Math.abs(foe.x-p.x)>60)r.key('keydown',foe.x>p.x?'d':'a');
       if(Math.abs(foe.laneY-p.laneY)>5)r.key('keydown',foe.laneY>p.laneY?'s':'w');
-      const lethalTell=s.combat.enemies.find(e=>e.hp>0&&e.phase==='windup'&&e.attackTell.remainingMs<=25&&p.hp<=e.attackSpec.damage&&Math.abs(e.x-p.x)<e.attackSpec.reach+15&&Math.abs(e.attackLaneY-p.laneY)<=e.attackSpec.laneReach);
-      const lethalShot=s.combat.projectiles.find(shot=>p.hp<=shot.damage&&(shot.x-p.x)*shot.facing<0&&Math.abs(shot.x-p.x)<Math.abs(shot.speed||shot.vx||350)*.045&&Math.abs(shot.laneY-p.laneY)<=shot.laneReach);
-      if(!jumpedForDefeat&&(lethalTell||lethalShot)&&p.elevation===0&&!p.hurtMs&&!p.invulnerableMs){
+      const lethalTell=s.combat.enemies.find(e=>e.hp>0&&(e.phase==='windup'&&e.attackTell.remainingMs<=25||e.phase==='active')&&p.hp<=e.attackSpec.damage&&Math.abs(e.x-p.x)<e.attackSpec.reach+p.body.radius&&Math.abs(e.attackLaneY-p.laneY)<=(e.attackSpec.laneReach??r.B.MacStreetCombat.constants.laneReach));
+      const lethalShot=s.combat.projectiles.find(shot=>{
+        if(p.hp>shot.damage||Math.abs(shot.laneY-p.laneY)>shot.laneReach)return false;
+        const center=p.x+p.facing*p.body.offsetX,next=shot.x+shot.vx/60;
+        return center+p.body.radius>=Math.min(shot.x,next)-shot.width&&center-p.body.radius<=Math.max(shot.x,next)+shot.width;
+      });
+      if((lethalTell||lethalShot)&&p.elevation===0&&!p.hurtMs&&p.invulnerableMs<=25){
         r.key('keydown',' ');jumpedForDefeat=true;
       }
     });
@@ -851,7 +885,7 @@ async function run() {
     const seenBeforeRetry=plain(mac.getSnapshot().gameplayCueIds),narrationBeforeRetry=r.work.storyReceipts.length;
     assert(seenBeforeRetry.includes('city.arrival.service-alley'),'Death occurs after actual district narration admission');
     const blood=mac.powerArt.cells.blood_red_impact;assert(r.work.powerDraws.some(call=>call.path===mac.powerArt.sheets.get(blood.sheet).sourceImage&&call.args[0]===blood.source.x&&call.args[1]===blood.source.y),'Actual player contacts draw native red damage art');assert(r.work.cues.some(cue=>cue.kind==='damage'));
-    assert(jumpedForDefeat&&combatFrozen.player.elevation>0,'Actual lethal contact happens during a jump');
+    assert(jumpedForDefeat&&combatFrozen.player.elevation>0,'Actual lethal contact happens during a jump '+JSON.stringify({jumpedForDefeat,elevation:combatFrozen.player.elevation,receipts:r.work.events.filter(e=>['jump','land','player-hit','player-defeated'].includes(e.type)).slice(-10)}));
     assert.equal(mac.playerDefeatedAtMs,mac.lastEvents.find(e=>e.type==='player-defeated').atMs,'Defeat uses its actual core event receipt');
     r.run(200);assert.equal(mac.elapsedMs,clockFrozen);assert.deepEqual(plain(mac.combat.getSnapshot()),combatFrozen);
     pad.buttons[9].pressed = false; r.frame(); await r.B.RuntimeLifecycle.resume(); r.frame();r.run(700);
@@ -863,6 +897,8 @@ async function run() {
     assert.deepEqual(downCel.position,[combatFrozen.player.x-mac.cameraX,combatFrozen.player.laneY-pose.frame.baselineLift],'Terminal corpse reaches lane despite frozen positive gameplay elevation');
     pad.buttons[0].pressed = true; r.frame(); assert.equal(r.B.MacCombatPreview.status, 'playing');
     assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.hp, 100); r.frame();
+    assert.equal(mac.combat.getSnapshot().lootSeed,combatFrozen.lootSeed,'Normal defeat retry keeps this chapter layout');
+    assert.equal(r.work.seedRequests,1,'Normal retry does not consume another seed');
     assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.elevation, 0, 'held retry A cannot become a jump');
     assert.deepEqual(plain(mac.getSnapshot().gameplayCueIds),seenBeforeRetry,'Normal checkpoint retry preserves heard chapter cues');
     assert.equal(r.work.storyReceipts.length,narrationBeforeRetry,'Retry does not issue the arrival a second time');
@@ -882,6 +918,7 @@ async function run() {
     assert.deepEqual(plain(r.manager.actionInput.keyboardBindings), original); assert.equal(r.B.MacCombatPreview.active, false);
     assert.equal(r.scheduled.size, 0); assert.deepEqual(r.work.writes, []);
   });
+  assert(groups>0,'The requested integration group must exist');
   console.log(`Mac street integration: ${groups} groups passed (stubbed device/art/Canvas; real owners and gameplay route).`);
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

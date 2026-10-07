@@ -310,6 +310,35 @@ check('draw uses one native whole-character crop at the same scale facing and fl
   }
   assert.throws(()=>F.draw(ctx,{...art,images:new Map([['dyn_test',{naturalWidth:600,naturalHeight:100}]])},result,0,0,200),/dimensions differ/);
 });
+check('measured uniform anatomical calibration keeps whole cels feet and item anchors on one scalar',()=>{
+  const r=fixture(),sheet=r.sheets[0],reference={frame:'idle_a',standingVisibleHeight:321,
+    segment:{from:{x:215,y:44},to:{x:230,y:118}}};
+  const scalar=(Math.hypot(15,74)/321)/(20/70);
+  sheet.bodyCalibration={schemaVersion:1,feature:'cap-crown-to-beard-tip',uniformScale:scalar,
+    nativeSegment:{from:{x:20,y:10},to:{x:20,y:30}},reference};
+  const bank=F.compileSupplemental(r,{baseCompiled:base}),value=actor('run',{weapon:{kind:'pipe'}});
+  const before=plain(value),p=pose(value,{supplemental:bank}),calls=[];
+  const ctx={save(){},restore(){},translate(...a){calls.push(['translate',...a]);},scale(...a){calls.push(['scale',...a]);},drawImage(...a){calls.push(['draw',...a]);}};
+  const art={images:new Map([['dyn_test',{naturalWidth:1200,naturalHeight:100}]]),compiled:base};
+  for(const facing of [-1,1]){
+    calls.length=0;const result=F.draw(ctx,art,p,300,880,260,facing);
+    assert(Math.abs(result.scale-260/70*scalar)<1e-12);assert.equal(bank.sheets.dyn_test.standingHeight,70);
+    const call=calls.find(a=>a[0]==='draw');assert(Math.abs(call[8]/60-call[9]/80)<1e-12,'Whole native XY ratio remains identical');
+    assert.deepEqual(calls[0],['translate',300,880]);assert.deepEqual(calls[1],['scale',facing,1]);
+    assert.deepEqual(plain(p.gripAnchor),{x:40,y:35});assert.equal(p.frame.feetPivot.y,75);
+  }
+  assert(Object.isFrozen(bank.sheets.dyn_test.bodyCalibration.reference.segment.from));assert.deepEqual(plain(value),before);
+});
+check('unsafe detached or invented anatomical calibration fails before drawing',()=>{
+  const make=()=>{const r=fixture();r.sheets[0].bodyCalibration={schemaVersion:1,feature:'cap-crown-to-beard-tip',
+    uniformScale:(Math.hypot(15,74)/321)/(20/70),nativeSegment:{from:{x:20,y:10},to:{x:20,y:30}},
+    reference:{frame:'idle_a',standingVisibleHeight:321,segment:{from:{x:215,y:44},to:{x:230,y:118}}}};return r;};
+  for(const edit of [c=>c.uniformScale=.5,c=>c.uniformScale=1,c=>c.reference.frame='missing',
+    c=>c.reference.standingVisibleHeight=330,c=>c.nativeSegment.to.x=61,c=>c.reference.segment.to.x=1000,
+    c=>c.nativeSegment.to={...c.nativeSegment.from}]){
+    const r=make();edit(r.sheets[0].bodyCalibration);assert.throws(()=>F.compileSupplemental(r,{baseCompiled:base}),/calibration|anatomical|uniform.*scale/);
+  }
+});
 function inside(file){const resolved=path.resolve(source,file),relative=path.relative(source,resolved);
   assert(relative&&!relative.startsWith('..')&&!path.isAbsolute(relative),'Native asset must stay inside source');return resolved;}
 function rgba(bytes){
@@ -380,6 +409,42 @@ if(options.registration)check('actual supplemental registration matches native h
     const imageBytes=fs.readFileSync(inside(sheet.sourceImage));assert.equal(sha(imageBytes),sheet.sourceSHA256,'Unchanged accepted native sheet');
     const image=rgba(imageBytes);assert.deepEqual({width:image.width,height:image.height},plain(sheet.dimensions));baseImages.set(sheet.id,image);
   }
+  const anatomy=[];
+  for(const sheet of Object.values(compiled.sheets))if(sheet.bodyCalibration){
+    const calibration=sheet.bodyCalibration,frame=compiled.frames[sheet.referenceFrame],reference=base.frames[calibration.reference.frame];
+    const hasInk=(image,frame,p)=>image.pixels[((frame.source.y+Math.round(p.y))*image.width+frame.source.x+Math.round(p.x))*4+3]>8;
+    for(const p of [calibration.nativeSegment.from,calibration.nativeSegment.to])
+      assert(hasInk(images.get(sheet.id),frame,p),'Native anatomical landmark has no actual source ink '+sheet.id);
+    for(const p of [calibration.reference.segment.from,calibration.reference.segment.to])
+      assert(hasInk(baseImages.get(reference.sheet),reference,p),'Accepted anatomical landmark has no original source ink');
+    const length=s=>Math.hypot(s.to.x-s.from.x,s.to.y-s.from.y),target=length(calibration.reference.segment)*260/reference.standingHeight;
+    const measured=length(calibration.nativeSegment)*260/frame.standingHeight;
+    assert(Math.abs(target-measured)<1e-9,'Uniform anatomical world measurement differs from accepted character '+sheet.id);
+    assert(Object.values(compiled.frames).filter(f=>f.sheet===sheet.id).every(f=>f.standingHeight===frame.standingHeight),'Every whole cel in one sheet shares its one scalar');
+    anatomy.push({sheet:sheet.id,referenceFrame:frame.id,uniformScale:calibration.uniformScale,acceptedWorldHeadSegment:target,calibratedWorldHeadSegment:measured});
+  }
+  const runningGripMeasurements=[];
+  const run=compiled.clips.run,midpoints=run.frames.map(entry=>(entry.startMs+entry.endMs)/2/run.totalMs);
+  const reviewHTML=fs.readFileSync(path.join(source,'mac-equipment-review.html'),'utf8');
+  const reviewScript=reviewHTML.match(/<script id="equipment-review">([\s\S]*?)<\/script>/);assert(reviewScript);
+  const reviewContext={window:{BARCODE:{MacStreetCombat:{create:()=>({getSnapshot:()=>({player:{}})}),weapons:Object.fromEntries(F.weapons.map(kind=>[kind,{name:kind,charges:1}]))}}}};
+  vm.createContext(reviewContext);vm.runInContext(reviewScript[1],reviewContext,{filename:'mac-equipment-review.html'});
+  const review=reviewContext.window.BARCODE.MacEquipmentReview;
+  assert.deepEqual(plain(review.scenes.filter(s=>/^run-\d$/.test(s.id)).map(s=>s.stride)),plain(midpoints),'Review checkpoints must enter all four actual weighted holds');
+  const inPolygon=(p,polygon)=>{let inside=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+    const a=polygon[i],b=polygon[j];if((a.y>p.y)!==(b.y>p.y)&&p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x)inside=!inside;
+  }return inside;};
+  for(const kind of F.weapons)for(const facing of [-1,1])for(const scene of review.scenes.filter(s=>/^run-\d$/.test(s.id))){
+    const actor=review.playerFor(kind,scene,facing),result=F.sample(actor,{player:true,compiled:base,supplemental:compiled});
+    if(!F.embeddedWeapons.includes(kind)){
+      assert.equal(result.frameId,run.frames[Number(scene.id.at(-1))].frame,'Every melee run cel has an individual grip inspection');
+      assert(result.handOcclusion.some(polygon=>inPolygon(result.gripAnchor,polygon)),'Native handle must enter the closed fist polygon '+kind+'/'+result.frameId);
+      assert.equal(result.itemLayer,['run_contact_a','run_pass_b'].includes(result.frameId)?'behind':'front');
+      const image=images.get(result.frame.sheet),frame=result.frame,p=result.gripAnchor;
+      assert(image.pixels[((frame.source.y+Math.round(p.y))*image.width+frame.source.x+Math.round(p.x))*4+3]>8,'Run grip contacts actual fist ink');
+    }else{assert.equal(result.frame.embeddedWeapon,kind);assert.equal(result.gripAnchor,null);}
+    runningGripMeasurements.push({kind,facing,scene:scene.id,frameId:result.frameId,gripAnchor:plain(result.gripAnchor),itemLayer:result.itemLayer,weaponAngle:result.weaponAngle});
+  }
   for(const [id,anchor] of Object.entries(compiled.baseGripAnchors)){
     const frame=base.frames[id],image=baseImages.get(frame.sheet),x=Math.round(frame.source.x+anchor.gripAnchor.x),y=Math.round(frame.source.y+anchor.gripAnchor.y);
     let nearInk=0;for(let py=Math.max(frame.source.y,y-12);py<Math.min(frame.source.y+frame.source.height,y+13);py++)
@@ -405,7 +470,7 @@ if(options.registration)check('actual supplemental registration matches native h
   }
   native.push({registration:path.relative(source,file),registrationSHA256:sha(bytes),sheets:Object.values(compiled.sheets).map(plain),
     frameCount:measurements.length,measurements,excludedSource,baseAnchorCount:Object.keys(compiled.baseGripAnchors).length,
-    reachableBaseFrameCount:reachable.size,baseAnchorMeasurements,individualBindings,occlusionPolygons});
+    reachableBaseFrameCount:reachable.size,baseAnchorMeasurements,individualBindings,occlusionPolygons,anatomicalCalibration:anatomy,runningGripMeasurements});
 });
 if(options.equipment)check('actual native weapons have individual measured trigger/hilt/rim grips and bounded front regions',()=>{
   const file=path.isAbsolute(options.equipment)?options.equipment:inside(options.equipment),bytes=fs.readFileSync(file),r=JSON.parse(bytes);

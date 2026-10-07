@@ -72,7 +72,14 @@ check('L genuinely holds an enemy, walks slowly, then commits a throw only after
 });
 check('enemy strength timeout is <=3s and one uninterrupted L hold cannot regrab',()=>{
   const r=rig();nearEnemy(r);r.step(press('throw'));const g=r.view().player.grapple;
-  assert(g.maxHoldMs>=1000&&g.maxHoldMs<=3000);r.run(4200,{throw:{held:true},move_y:-1});
+  assert(g.maxHoldMs>=1000&&g.maxHoldMs<=3000);
+  // A held victim does not freeze the spear fighter. Leave its actual locked
+  // lane after the tell, instead of waiting at the upper edge for a valid hit.
+  for(let n=0;n<Math.ceil(4200/(1000/60));n++){
+    const s=r.view(),warning=s.enemies.find(e=>e.hp&&!e.grappledBy&&['windup','active'].includes(e.phase));
+    const move_y=warning?Math.abs(M.constants.laneMin-warning.attackLaneY)>Math.abs(M.constants.laneMax-warning.attackLaneY)?-1:1:-1;
+    r.step({throw:{held:true},move_y});
+  }
   assert.equal(r.events.filter(e=>e.type==='grab-start').length,1);assert(r.events.some(e=>e.type==='grab-end'&&e.reason==='strength-limit'),JSON.stringify(r.events.filter(e=>/grab|player-hit/.test(e.type))));
   assert(!r.view().player.grapple);assert(r.events.filter(e=>e.type==='throw-release').length<=1,'a later enemy hit can interrupt release; it cannot repeat the held activation');
 });
@@ -93,7 +100,9 @@ check('held Strike pummels in real attack phases for <=1s total per grab',()=>{
 function routeInput(r,s){const p=s.player,controls=r.game.getControlState(),input={};
   if(p.grapple||p.carry)return {};// Release L; never rely on an automatic throw.
   const foe=s.enemies.filter(e=>e.hp&&e.phase!=='dormant').sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x))[0];
-  const wanted=s.pickups.filter(item=>item.kind==='weapon'&&!r.equipped.has(item.weaponKind))
+  const needsContact=p.weapon&&!r.events.some(e=>e.type==='enemy-hit'&&e.cause===p.weapon.kind);
+  const wanted=s.pickups.filter(item=>!needsContact&&item.kind==='weapon'&&
+    (!r.equipped.has(item.weaponKind)||!r.used.has(item.weaponKind)))
     .sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x))[0];
   if(wanted&&(!foe||Math.abs(wanted.x-p.x)<160)){
     if(controls.throw.ready&&controls.throw.targetType==='weapon'&&controls.throw.targetId===wanted.id)input.throw={pressed:true,held:true};
@@ -101,7 +110,8 @@ function routeInput(r,s){const p=s.player,controls=r.game.getControlState(),inpu
     // A nearby attacker still gets fought rather than chasing loot through it.
     if(!foe||Math.abs(foe.x-p.x)>105)return input;
   }
-  if(p.weapon&&!r.used.has(p.weapon.kind)&&controls.strike.ready){input.strike={pressed:true,held:true};return input;}
+  // Keep an acquired weapon through the next real target contact. A cosmetic
+  // swing into an empty cache pocket cannot satisfy the actual damage gate.
   if(!foe)return {move_x:1};
   const dx=foe.x-p.x,direction=Math.sign(dx)||p.facing;
   input.move_x=Math.abs(dx)>58||p.facing!==direction?direction:0;input.move_y=Math.abs(foe.laneY-p.laneY)>8?Math.sign(foe.laneY-p.laneY):0;
@@ -125,7 +135,15 @@ function routeInput(r,s){const p=s.player,controls=r.game.getControlState(),inpu
     if(warning.attackTell.guardable===false&&remain<250&&controls.jump.ready)input.jump={pressed:true,held:true};
     else if(warning.attackTell.guardable!==false&&remain<105)input.guard={held:true};
     else if(warning.attackTell.guardable===false&&!p.elevation)input.move_y=p.laneY>875?-1:1;return input;}
-  if(controls.throw.ready&&controls.throw.targetType==='enemy'&&!r.lastThrow)input.throw={pressed:true,held:true};
+  if(r.reserveProps){
+    if(controls.strike.ready&&!p.attack&&!p.comboMs&&Math.abs(dx)<100&&Math.abs(foe.laneY-p.laneY)<35){
+      if(p.running)input.guard={held:true};else input.strike={pressed:true,held:true};
+    }
+    return input;// Individual grounded blows keep the carry/fixture props for their exact later assertions.
+  }
+  if(needsContact&&controls.strike.ready&&!r.lastStrike&&!foe.launched&&!foe.knockdownMs&&Math.abs(dx)<M.weapons[p.weapon.kind].reach&&Math.abs(foe.laneY-p.laneY)<35)
+    input.strike={pressed:true,held:true};
+  else if(controls.throw.ready&&controls.throw.targetType==='enemy'&&!r.lastThrow)input.throw={pressed:true,held:true};
   else if(controls.strike.ready&&!r.lastStrike&&Math.abs(dx)<(p.weapon?M.weapons[p.weapon.kind].reach:100)&&Math.abs(foe.laneY-p.laneY)<35)input.strike={pressed:true,held:true};
   r.lastThrow=!!input.throw;r.lastStrike=!!input.strike;return input;
 }
@@ -164,11 +182,14 @@ check('world props are human scale and only explicit street surfaces are targeta
 check('calibrated long rifle muzzle still hits a point-blank opponent in its first sweep',()=>{
   const native=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/mac-street-power/mac-street-power-v1.json'),'utf8'));
   const poses=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/mac-street-dynamic/mac-modem-actions-v1.json'),'utf8'));
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/game/mac-combat-frames.js'),'utf8'),sandbox);
+  const F=sandbox.window.BARCODE.MacCombatFrames;
+  const base=F.compile(JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/mac-combat-frames/mac-frames-v1.json'),'utf8')),{complete:true});
+  const calibrated=F.compileSupplemental(poses,{baseCompiled:base});
   const origins={};
   for(const kind of ['scatter-blaster','coil-rifle','plasma-disc']) {
     const owned=poses.clips['weapon_'+kind+'.active'],clip=owned||poses.clips['fire.active'];
-    const frame=poses.frames.find(f=>f.id===clip.frames[0].frame);
-    const sheet=poses.sheets.find(s=>s.id===frame.sheet),bodyScale=260/sheet.pixelScale.standingVisibleHeight;
+    const frame=calibrated.frames[clip.frames[0].frame],bodyScale=260/frame.standingHeight;
     let forward,elevation;
     if(owned) {
       assert.equal(clip.frames.length,1);assert.equal(frame.embeddedWeapon,kind);assert(frame.shotAnchor);
@@ -197,32 +218,43 @@ check('calibrated long rifle muzzle still hits a point-blank opponent in its fir
   // including movement during the rifle's actual windup; the old110/80 setup
   // could hit beyond the new shorter barrel and never exercise its close sweep.
   const closeRange=origins['coil-rifle'].forward*.55,walkRange=closeRange*.65;
-  r.until(s=>!s.player.hurtMs&&s.enemies.some(e=>e.hp&&e.phase==='windup'&&Math.abs(e.x-s.player.x)<closeRange&&Math.abs(e.laneY-s.player.laneY)<30),s=>{
-    const foe=s.enemies.filter(e=>e.hp).sort((a,b)=>Math.abs(a.x-s.player.x)-Math.abs(b.x-s.player.x))[0];
-    // Close at ordinary walking speed. A permanent guard during approach
-    // invites the guard's genuine overhead response and takes an avoidable hit
-    // before this rifle fixture can reach its calibrated point-blank sample.
-    // Respect the locked response once a real guardable attack is announced.
-    return {move_x:Math.abs(foe.x-s.player.x)>walkRange?Math.sign(foe.x-s.player.x):0,
-      move_y:Math.abs(foe.laneY-s.player.laneY)>8?Math.sign(foe.laneY-s.player.laneY):0,
-      guard:{held:['windup','active'].includes(foe.phase)&&foe.attackSpec.guardable!==false}};
-  },15000);
+  r.until(s=>s.player.weapon?.kind==='coil-rifle'&&!s.player.hurtMs&&!s.player.counterMs&&s.enemies.some(e=>e.hp&&e.phase==='recovery'&&e.attackSpec.recoverMs-e.phaseMs>350&&
+    (e.x-s.player.x)*s.player.facing>5&&(e.x-s.player.x)*s.player.facing<closeRange&&Math.abs(e.laneY-s.player.laneY)<20),s=>{
+    if(s.player.weapon?.kind!=='coil-rifle')return routeInput(r,s);
+    const foe=s.enemies.filter(e=>e.hp&&e.phase!=='dormant').sort((a,b)=>Math.abs(a.x-s.player.x)-Math.abs(b.x-s.player.x))[0];
+    if(!foe)return {move_x:1};// A seeded floor cache may be between its two earned fights.
+    // Earn the opponent's real recovery before the calibrated shot. Two fighters can
+    // cross during a rifle windup; an arbitrary nearby tell is no longer a safe
+    // stationary target for the first-sweep assertion. Parry's actual counter
+    // priority also takes precedence over an equipped weapon, so do not fake it.
+    const direction=Math.sign(foe.x-s.player.x)||s.player.facing,input={
+      move_x:Math.abs(foe.x-s.player.x)>walkRange||s.player.facing!==direction?direction:0,
+      move_y:Math.abs(foe.laneY-s.player.laneY)>8?Math.sign(foe.laneY-s.player.laneY):0};
+    if(foe.phase==='windup'){
+      if(foe.attackTell.guardable&&foe.attackTell.remainingMs<300)input.guard={held:true};
+      else if(!foe.attackTell.guardable){input.move_y=s.player.laneY>875?-1:1;
+        if(foe.attackTell.remainingMs<250&&r.game.getControlState().jump.ready)input.jump={pressed:true,held:true};}
+    }else if(foe.phase==='active'&&foe.attackSpec.guardable)input.guard={held:true};
+    return input;
+  },30000);
   assert.equal(r.view().player.weapon.kind,'coil-rifle');r.step(press('strike'));
   const eventStart=r.events.length;r.until(()=>r.events.slice(eventStart).some(e=>e.type==='weapon-fired'),{},1000);
   const shot=r.events.slice(eventStart).find(e=>e.type==='weapon-fired'),hit=r.events.slice(eventStart).find(e=>e.type==='enemy-hit'&&e.cause==='coil-rifle');
   assert(shot&&hit);assert.equal(hit.atMs,shot.atMs,'first physical sweep includes chest-to-muzzle segment');
-  assert((hit.x-shot.x)*shot.facing>0&&(hit.x-shot.muzzleX)*shot.facing<0,'contact really was closer than the drawn barrel tip');
+  assert((hit.x-shot.x)*shot.facing>0&&(hit.x-shot.muzzleX)*shot.facing<0,'contact really was closer than the drawn barrel tip '+JSON.stringify({shot,hit}));
   assert.equal(shot.elevation,Number(origins['coil-rifle'].elevation.toFixed(9)));
   assert(Math.abs((shot.muzzleX-shot.x)*shot.facing-origins['coil-rifle'].forward)<.001);
 });
 let street;
 check('a box carries beyond3s, pause drops safely, and a real throw hits a car once',()=>{
   const r=street=rig();r.equipped=new Set(Object.keys(M.weapons));r.used=new Set(Object.keys(M.weapons));
+  r.reserveProps=true;
   // Fight along the upper lane to preserve the lower exit crate for this
   // carry/throw fixture. The actual crowd's launched bodies can now destroy
   // both central boxes during the ordinary route; that is valid combat.
   r.until(s=>s.zone.state==='zone-clear'||s.status==='defeated',s=>({...routeInput(r,s),
     move_y:s.player.laneY>M.constants.laneMin+3?-1:0}),100000);assert.notEqual(r.view().status,'defeated');
+  r.reserveProps=false;
   const crate=r.view().props.find(p=>p.carryable&&!p.broken);assert(crate,'earned first street has a usable prop');walkTo(r,crate.x,crate.laneY);
   r.until(()=>r.game.getControlState().throw.ready&&r.game.getControlState().throw.targetType==='prop');r.step(press('throw'));
   assert(r.view().player.carry);assert.equal(r.view().player.carry.maxHoldMs,null);assert.equal(r.view().props.find(p=>p.id===crate.id).heldBy,'mac');

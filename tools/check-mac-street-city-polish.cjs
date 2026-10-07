@@ -9,7 +9,7 @@ const context={window:{BARCODE:{}},requestAnimationFrame:forbidden,setTimeout:fo
 const coreBytes=fs.readFileSync(path.join(__dirname,'../src/game/mac-street-combat.js'));
 vm.runInNewContext(coreBytes.toString('utf8'),context);
 const C=context.window.BARCODE.MacStreetCombat,dt=1000/60,press=name=>({[name]:{pressed:true,held:true}});
-const plain=value=>JSON.parse(JSON.stringify(value)),receipt={checks:[],route:null,samples:{}};
+const plain=value=>JSON.parse(JSON.stringify(value)),receipt={sourceSha256:crypto.createHash('sha256').update(coreBytes).digest('hex'),checks:[],route:null,samples:{}};
 const snapshotIndex=process.argv.indexOf('--snapshot-out'),snapshotNames=new Set();
 const snapshots={source:'src/game/mac-street-combat.js',sourceSha256:crypto.createHash('sha256').update(coreBytes).digest('hex'),
   scope:'Earned public-input production simulation snapshots; native draw diagnostics, not hardware playback or physical input proof.',cases:[]};
@@ -118,14 +118,27 @@ check('a destroyed street fixture really interrupts nearby aliens once and never
 });
 let route;
 check('public play earns six separated second fights, fair mixed pressure and the three-phase boss',()=>{
-  route=rig();const advances=new Set(),waves=new Set(),tactics=new Set();let maxMelee=0,mixedPressure=false,recoveryHit=false,phaseLocked=false;
+  route=rig();const advances=new Set(),waves=new Set(),tactics=new Set();let maxMelee=0,earlyMaxMelee=0,mixedPressure=false,recoveryHit=false,phaseLocked=false;
+  let settledClearanceSamples=0,minSettledClearance=Infinity;
   for(let frame=0;frame<Math.ceil(480000/dt);frame++){
     const s=route.view();if(s.desk.unlocked||s.status==='defeated')break;
+    const settled=s.enemies.filter(e=>e.hp>0&&['approach','recovery'].includes(e.phase)&&e.phaseMs>300&&Math.abs(e.knockbackVx)<5&&!e.elevation&&!e.launched&&!e.grappledBy);
+    for(let a=0;a<settled.length;a++)for(let b=a+1;b<settled.length;b++){
+      const left=settled[a],right=settled[b],width=left.body.radius+right.body.radius+C.constants.bodySpacingPad;
+      const dx=right.x+right.facing*right.body.offsetX-left.x-left.facing*left.body.offsetX,dy=right.laneY-left.laneY;
+      if(Math.abs(dx)>width+16||Math.abs(dy)>C.constants.bodySpacingDepth+16)continue;
+      const ratio=Math.hypot(dx/width,dy/C.constants.bodySpacingDepth);settledClearanceSamples++;
+      minSettledClearance=Math.min(minSettledClearance,ratio);
+      const innerRatio=Math.hypot(dx/(width-C.constants.bodySpacingPad),dy/C.constants.bodySpacingDepth);
+      assert(innerRatio>=1,'settled ground bodies retain conservative torso clearance '+JSON.stringify({zone:s.zone.index,elapsed:s.elapsedMs,ratio,innerRatio,left:{kind:left.kind,x:left.x,y:left.laneY,phase:left.phase,age:left.phaseMs},right:{kind:right.kind,x:right.x,y:right.laneY,phase:right.phase,age:right.phaseMs}}));
+    }
     const telling=s.enemies.find(e=>e.hp>0&&e.phase==='windup');
     if(telling)recordSnapshot('district-'+s.zone.index+'-tell',s,{zoneId:s.zone.id,enemyId:telling.id,action:'tell',
       attackType:telling.attackTell.type,response:telling.attackTell.response,warning:true});
     const melee=s.enemies.filter(e=>e.hp>0&&e.kind!=='bile_spitter'&&e.attackSpec?.attackType!=='ground-wave'&&['windup','active'].includes(e.phase));
     maxMelee=Math.max(maxMelee,melee.length);
+    if(s.zone.index<=2)earlyMaxMelee=Math.max(earlyMaxMelee,melee.length);
+    assert(melee.length<=(s.zone.index<=2?1:2),'district-specific coordinated attack budget');
     mixedPressure||=melee.length>0&&s.enemies.some(e=>e.hp>0&&['windup','active'].includes(e.phase)&&
       (e.kind==='bile_spitter'||e.attackSpec?.attackType==='ground-wave'));
     for(const e of s.enemies)if(e.hp>0)tactics.add(e.kind+':'+e.tactic);
@@ -136,6 +149,14 @@ check('public play earns six separated second fights, fair mixed pressure and th
     if(s.zone.state==='combat'&&s.wave.index===2){waves.add(s.zone.id);assert(s.checkpoint.x>=s.zone.encounter.advanceX-1e-6);}
     const before=route.events.length,boss=s.enemies.find(e=>e.kind==='null_regent'),deadline=boss?.punishUntilMs;
     const locked=plain(boss?.attackTell||null);let input=fighting(route,s);
+    // Observe the newly allowed overlapping close commitments once before
+    // throwing this pair apart. Public lane dodges keep the setup earned.
+    if(s.zone.index===3&&s.wave.index===1&&maxMelee<2){
+      const nearest=s.enemies.filter(e=>e.hp>0).sort((a,b)=>Math.abs(a.x-s.player.x)-Math.abs(b.x-s.player.x))[0];
+      input={move_x:s.player.facing!==(Math.sign(nearest.x-s.player.x)||s.player.facing)?Math.sign(nearest.x-s.player.x):0,guard:{held:true}};
+      const finalWarning=s.enemies.find(e=>e.phase==='windup'&&e.attackTell.remainingMs<230);
+      if(finalWarning&&route.game.getControlState().jump.ready)input.jump={pressed:true,held:true};
+    }
     const latestBossTell=boss?route.events.findLast(e=>e.type==='enemy-tell'&&e.id===boss.id):null;
     if(locked&&[2,3].includes(boss.bossPhase)&&latestBossTell?.bossPhase===boss.bossPhase)
       recordSnapshot('boss-phase-'+boss.bossPhase+'-tell',s,{bossPhase:boss.bossPhase,phaseName:s.boss.phaseName,
@@ -167,8 +188,10 @@ check('public play earns six separated second fights, fair mixed pressure and th
     }
   }
   const s=route.view();assert.equal(s.status,'desk-ready');assert.equal(s.kills,30);assert.equal(s.city.completedWaves,12);
-  assert.equal(advances.size,6);assert.equal(waves.size,6);assert.equal(maxMelee,1);assert(mixedPressure,'ranged foes attack while a close fighter commits');
-  assert(tactics.has('rift_stalker:flank'));assert(tactics.has('prism_guard:protect-spitter'));assert(tactics.has('shock_mantid:pulse-line'));
+  assert.equal(advances.size,6);assert.equal(waves.size,6);assert.equal(earlyMaxMelee,1);assert.equal(maxMelee,2);
+  assert(mixedPressure,'ranged foes attack while a close fighter commits');
+  assert(settledClearanceSamples>0,'the route exercises body spacing between real approaching or recovering enemies');
+  assert(tactics.has('rift_stalker:flank-pressure'));assert(tactics.has('prism_guard:protect-spitter'));assert(tactics.has('shock_mantid:pulse-line'));
   assert(recoveryHit,'an actual strike lands inside the real boss punish window');
   assert(phaseLocked,'an actual damaging strike crosses a boss phase threshold during its locked warning');
   assert.deepEqual(route.events.filter(e=>e.type==='boss-phase').map(e=>e.phase),[2,3]);
@@ -185,7 +208,8 @@ check('public play earns six separated second fights, fair mixed pressure and th
     }
   }
   receipt.route={kills:s.kills,waves:s.city.completedWaves,districts:s.city.clearedZones.length,
-    advances:[...advances],maxMelee,mixedPressure,recoveryHit,phaseLockedDuringRoute:phaseLocked,
+    advances:[...advances],maxMelee,earlyMaxMelee,mixedPressure,recoveryHit,phaseLockedDuringRoute:phaseLocked,
+    settledClearanceSamples,minSettledClearance,
     elapsedMs:s.elapsedMs,bossExposures:natural.length,tactics:[...tactics].sort()};
   const retry=route.game.retry();assert.equal(retry.zone.index,6);assert.equal(retry.wave.index,2);
   assert.equal(retry.boss.phase,1);assert.equal(retry.boss.punishRemainingMs,0);assert.equal(retry.boss.window,'approach');
