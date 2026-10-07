@@ -1,3 +1,9 @@
+## October 7, 2026 — Mac city polish playtest
+
+Private preview revision `city1` is the next Mac city review. Inspect all six districts: each first fight clears before traversal to its second pocket; melee roles share space while ranged enemies retain their own pressure. Follow the committed lane/response warning, interrupt one powered fixture near aliens, and check that its discharge happens once without hurting Mac. Watch Null Regent phase changes and the actual exposed timer; attack during recovery and verify that a threshold crossed mid-tell preserves the announced attack. Try keyboard, controller and direct touch controls through pickups, grabs and slow guard walking. Eight intro scenes, two optional Kave choices, one-time sparse reactions, native artwork/scale and ordinary pause/retry/title flows remain.
+
+Recorded technical and code-rendered diagnostics do not establish owner appearance acceptance, a physical phone's frame rate or final Mac music. Both PRs remain draft/unmerged. Exact changed-head CI, installed/hosted payload identities and visual evidence are recorded separately under project-root/verification/mac-city-polish-20261007; do not reuse the guardfit5 baseline results as this pass's release results.
+
 ## October 7, 2026 — guard attachment follow-up
 
 The owner rejected the five reused sideways melee guard holds. Each corrected attachment uses the measured bare-fist contact, its own defensive angle/layer and original whole-cel palm overlap, across all four guard cels in both directions. Existing gun/disc guard contact and all native bitmaps remain. Fresh responsive gameplay fits the window; the earlier off-center black area did not reproduce, and its cause remains unproven.

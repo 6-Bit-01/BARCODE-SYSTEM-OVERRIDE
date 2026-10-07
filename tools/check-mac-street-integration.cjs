@@ -57,7 +57,7 @@ class Element extends EventTarget {
   getBoundingClientRect() { return {left: 20, top: 600, width: 140, height: 140, right: 160, bottom: 740}; }
 }
 function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementalMutation} = {}) {
-  const work = {raf: 0, timers: 0, intervals: 0, canvases: 0, writes: [], profiles: [], audio: [], cues: [], events: [], decoded: [], celDraws: {}, powerDraws: [], lastCels: [], lastDraws: [], lastRotations: [], fetched: []};
+  const work = {raf: 0, timers: 0, intervals: 0, canvases: 0, writes: [], profiles: [], audio: [], cues: [], events: [], decoded: [], celDraws: {}, powerDraws: [], lastCels: [], lastDraws: [], lastRotations: [], lastTexts: [], storyReceipts: [], fetched: []};
   let supplementalOverride = null;
   if (supplementalMutation) {
     const bank = JSON.parse(fs.readFileSync(path.join(root,'assets/mac-combat-frames/mac-combat-frames-v1.json'),'utf8'));
@@ -73,6 +73,7 @@ function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementa
     save() { (this.stack ||= []).push({position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion}); },
     restore() { const saved=this.stack?.pop();if(saved){this.lastTranslate=saved.position;this.rotation=saved.rotation;this.clipRegion=saved.clipRegion;} },
     beginPath(){this.currentPath=[];},moveTo(x,y){this.currentPath.push({move:true,x,y});},lineTo(x,y){this.currentPath.push({x,y});},clip(){this.clipRegion=this.currentPath.map(point=>({...point}));},
+    fillText(text,x,y){work.lastTexts.push({text:String(text),x,y,font:this.font});},
     drawImage(image, ...args) { if (args.length === 8 && /assets\/mac-(?:combat-frames|street-dynamic)\//.test(image.src || '')) {
       const call={path:image.src,args,position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion};work.celDraws[image.src] = (work.celDraws[image.src] || 0) + 1;work.lastCels.push(call);work.lastDraws.push(call);
     } else if (args.length === 8 && image.src?.startsWith('assets/mac-street-power/')) {const call={path:image.src,args,position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion};work.powerDraws.push(call);work.lastDraws.push(call);} }, translate(x,y) { this.lastTranslate=[x,y]; }, rotate(angle) { this.rotation=(this.rotation || 0)+angle;work.lastRotations.push(angle); },
@@ -153,11 +154,24 @@ function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementa
   const r = {w: win, doc, B, manager, work, pads, scheduled, key, pointer, globalListeners,
     async start() { const result = await B.RuntimeLifecycle.start({privatePreview: 'mac-firstslice'}); assert(result.ok, JSON.stringify(result)); return result; },
     frame(dt = 1000 / 60) {
-      work.lastCels = []; work.lastDraws = []; work.lastRotations = [];
+      work.lastCels = []; work.lastDraws = []; work.lastRotations = []; work.lastTexts = [];
       const handle = win.gameLoopRafHandle; assert(scheduled.has(handle), 'existing gameplay owner has the next frame');
       const callback = scheduled.get(handle); scheduled.delete(handle); now += dt; callback(now);
       if (r.lastEventBatch !== B.MacCombatPreview.lastEvents) {r.lastEventBatch=B.MacCombatPreview.lastEvents;work.events.push(...(r.lastEventBatch || []));}
-      assert(scheduled.size <= 1, 'at most one gameplay RAF'); return B.MacCombatPreview.getSnapshot();
+      assert(scheduled.size <= 1, 'at most one gameplay RAF');
+      const snapshot = B.MacCombatPreview.getSnapshot(), beforeIds = r.previousStoryCueIds || [];
+      const addedIds = (snapshot.gameplayCueIds || []).filter(id => !beforeIds.includes(id));
+      if (addedIds.length) {
+        const earned = B.MacStreetStory.gameplayCues(B.MacCombatPreview.lastEvents || [], snapshot.combat, beforeIds);
+        for (const id of addedIds) {
+          assert(earned.cues.some(cue => cue.id === id), 'The actual wrapper admits only a cue earned by this event batch and snapshot');
+          work.storyReceipts.push({id,atMs:snapshot.combat.elapsedMs,zoneId:snapshot.combat.zone.id});
+        }
+      }
+      r.previousStoryCueIds = [...snapshot.gameplayCueIds || []];
+      assert((B.MacCombatPreview.radioQueue || []).length <= 3, 'Existing radio queue stays bounded');
+      if (snapshot.phase === 'street') assert((B.MacCombatPreview.radioQueue || []).every(cue => !cue.zoneId || cue.zoneId === snapshot.combat.zone.id), 'Queued narration cannot follow Mac into a different district');
+      return snapshot;
     },
     run(ms) { for (let n = 0; n < Math.round(ms / (1000 / 60)); n++) r.frame(); return B.MacCombatPreview.getSnapshot(); },
     until(predicate, input, limit = 6000) { for (let n = 0; n < limit; n++) { const s = B.MacCombatPreview.getSnapshot(); if (predicate(s)) return s;
@@ -170,27 +184,53 @@ const settle = async () => { for (let n = 0; n < 12; n++) await Promise.resolve(
 const workUnusedAtlases = paths => paths.every(file => !/mac-combat-rigs\/|mac-poses-v3\.png|mac-attacks-v4\.png|mac-city-review\/(?:chitin_scuttler|psion_lancer|bile_spitter|prism_guard|rift_stalker|shock_mantid|null_regent)-.*\.png/.test(file));
 function assertWholeFrame(r) {
   const mac=r.B.MacCombatPreview,s=mac.combat.getSnapshot(),camera=mac.cameraX;
-  const actors=[{kind:'mac',actor:s.player},...s.enemies.filter(e=>(e.hp>0||e.launched||e.knockdownMs>0||e.phase==='defeated'&&e.animation.ageMs<600)&&e.x-camera>-220&&e.x-camera<1920/1.35+220).map(actor=>({kind:actor.kind,actor}))]
-    .sort((a,b)=>a.actor.laneY-b.actor.laneY);
+  const actors=[{kind:'mac',actor:s.player},...s.enemies.filter(e=>(e.hp>0||e.launched||e.knockdownMs>0||e.phase==='defeated'&&e.animation.ageMs<600)&&e.x-camera>-220&&e.x-camera<1920/1.35+220).map(actor=>({kind:actor.kind,actor}))];
   const wholeCels=r.work.lastCels.filter(call=>!call.clipRegion);
   assert.equal(wholeCels.length,actors.length,'One complete cel per actual visible actor; a palm mask may redraw that exact same native cel');
   assert(r.work.lastCels.every(call=>call.rotation===0),'Complete actor cels never rotate; whole held items may turn');
+  const selected = new Map(), used = new Set();
   for(let i=0;i<actors.length;i++) {
     const {kind,actor}=actors[i],art=mac.frameArt.get(kind),height=kind==='null_regent'?335:260;
     const stateAgeMs=kind==='mac'&&mac.playerDefeatedAtMs!==null?s.elapsedMs-mac.playerDefeatedAtMs+mac.elapsedMs-mac.playerDefeatedHostAtMs:undefined;
     const landingAgeMs=kind==='mac'&&mac.playerLandedAtMs!==null?s.elapsedMs-mac.playerLandedAtMs:undefined;
     const guardImpactAgeMs=kind==='mac'&&mac.guardBlockedAtMs!==null?s.elapsedMs-mac.guardBlockedAtMs:undefined;
     const pose=r.B.MacCombatFrames.sample(actor,{compiled:art.compiled,supplemental:art.supplemental,player:kind==='mac',stateAgeMs,landingAgeMs,guardImpactAgeMs}),frame=pose.frame,scale=height/frame.standingHeight;
-    assert.equal(wholeCels[i].path,frame.sourceImage,'Exact selected native sheet');
-    assert.deepEqual(wholeCels[i].args,[frame.source.x,frame.source.y,frame.source.width,frame.source.height,
-      -frame.feetPivot.x*scale,-frame.feetPivot.y*scale,frame.source.width*scale,frame.source.height*scale],'Exact authored crop, uniform scale and pivot');
     const downStartsMs=art.compiled.clips.defeat.frames.at(-1).startMs;
     const elevation=kind==='mac'&&pose.action==='defeat'?(actor.elevation||0)*(1-Math.max(0,Math.min(1,pose.clipTimeMs/Math.max(1,downStartsMs)))):actor.elevation||0;
-    assert.deepEqual(wholeCels[i].position,[actor.x-camera,actor.laneY-elevation-frame.baselineLift*height/260],'Whole-cel registration follows actual flight and grounds finite defeat');
+    const position=[actor.x-camera,actor.laneY-elevation-frame.baselineLift*height/260];
+    const call=wholeCels.find(call=>!used.has(call)&&call.path===frame.sourceImage&&call.position[0]===position[0]&&call.position[1]===position[1]);
+    assert(call,'Every actual visible actor has its own exact selected native sheet and feet registration');
+    used.add(call);selected.set(actor,call);
+    assert.equal(call.path,frame.sourceImage,'Exact selected native sheet');
+    assert.deepEqual(call.args,[frame.source.x,frame.source.y,frame.source.width,frame.source.height,
+      -frame.feetPivot.x*scale,-frame.feetPivot.y*scale,frame.source.width*scale,frame.source.height*scale],'Exact authored crop, uniform scale and pivot');
+    assert.deepEqual(call.position,position,'Whole-cel registration follows actual flight and grounds finite defeat');
     for(const palm of r.work.lastCels.filter(call=>call.clipRegion&&call.path===frame.sourceImage&&call.args[0]===frame.source.x&&call.args[1]===frame.source.y)) {
-      assert.deepEqual(palm.args,wholeCels[i].args,'Palm overdraw retains the full exact authored crop and pixel density');
-      assert.deepEqual(palm.position,wholeCels[i].position,'Palm overdraw retains the same complete actor transform');
+      assert.deepEqual(palm.args,call.args,'Palm overdraw retains the full exact authored crop and pixel density');
+      assert.deepEqual(palm.position,call.position,'Palm overdraw retains the same complete actor transform');
     }
+  }
+  const macCall=selected.get(s.player),macIndex=r.work.lastDraws.indexOf(macCall);
+  const near=s.enemies.filter(e=>e.hp>0&&Math.abs(e.x-s.player.x)<160&&Math.abs(e.laneY-s.player.laneY)<=32);
+  for(const {kind,actor} of actors.slice(1)) {
+    const enemyIndex=r.work.lastDraws.indexOf(selected.get(actor));
+    if(near.includes(actor)) {
+      assert(macIndex>enemyIndex,'Mac remains visible over a living foe engaged on the same close fighting plane');
+      (r.work.depthProof ||= new Set()).add(kind==='null_regent'?'close-boss':'close-ordinary');
+    } else if(Math.abs(actor.laneY-s.player.laneY)>40||!near.length) {
+      if(actor.laneY<s.player.laneY) assert(enemyIndex<macIndex,'A fighter in the distant upper floor lane stays behind Mac');
+      else if(actor.laneY>s.player.laneY) assert(enemyIndex>macIndex,'A fighter in the distant lower floor lane stays in front of Mac');
+      if(Math.abs(actor.laneY-s.player.laneY)>40)(r.work.depthProof ||= new Set()).add('separate-lanes');
+    }
+  }
+  for(const prop of s.props.filter(prop=>prop.kind!=='relay'&&prop.heldBy!=='mac'&&Math.abs(prop.laneY-s.player.laneY)>40)) {
+    const cell=mac.powerArt.cells[mac.propCell(prop)],sheet=mac.powerArt.sheets.get(cell.sheet);
+    const propCall=r.work.lastDraws.find(call=>call.path===sheet.sourceImage&&call.args[0]===cell.source.x&&call.args[1]===cell.source.y&&
+      call.position[0]===prop.x-camera+(prop.recoil?.x||0));
+    assert(propCall,'Actual street prop retains its native registered draw');
+    const propIndex=r.work.lastDraws.indexOf(propCall);
+    assert(prop.laneY<s.player.laneY?propIndex<macIndex:propIndex>macIndex,'Separate prop floor lanes keep their painter order');
+    (r.work.depthProof ||= new Set()).add('separate-props');
   }
 }
 const pressKey = (r, key) => { r.key('keydown', key); r.frame(); r.key('keyup', key); };
@@ -221,7 +261,45 @@ function assertNativeShots(r) {
     (r.work.nativeShotKinds ||= new Set()).add(shot.kind);
   }
 }
-async function fightRoute(r,{until,equipWeapons=true}={}) {
+function assertStreetHud(r) {
+  const mac = r.B.MacCombatPreview, s = mac.combat.getSnapshot(), drawn = r.work.lastTexts;
+  const has = (text,x,y) => drawn.some(call => call.text === text && call.x === x && call.y === y);
+  if (s.wave.state === 'combat' && !s.zone.cleared && !s.desk.unlocked) {
+    const expected = `${s.zone.encounter.name} · ${s.wave.number} / 2`;
+    assert(has(expected,1740,30), 'Real HUD names the actual current enemy pairing');
+    const key = `${s.zone.index}:${s.wave.number}`;
+    (r.work.hudEncounters ||= new Map()).set(key, s.zone.encounter.name);
+    assert(drawn.some(call => call.x === 1740 && call.y === 67 &&
+      (call.text === s.zone.encounter.objective || call.text.endsWith('…') && s.zone.encounter.objective.startsWith(call.text.slice(0,-1)))),
+    'Fitted fight hint retains the real current objective, including host-measured ellipsis');
+  }
+  if (s.boss?.hp > 0) {
+    assert(has(`NULL REGENT · ${s.boss.phase} / 3 · ${s.boss.phaseName}`,960,125), 'Boss HUD names the earned live phase');
+    (r.work.bossHudPhases ||= new Set()).add(s.boss.phase);
+    const exposedText = drawn.find(call => call.x === 960 && call.y === 177 && call.text.startsWith('EXPOSED'));
+    if (s.boss.window === 'punish' && s.boss.punishRemainingMs > 0) {
+      assert(exposedText);
+      assert.equal(exposedText.text, `EXPOSED · ${(s.boss.punishRemainingMs/1000).toFixed(1)}s · HIT HIM`, 'Exposed HUD reads the true remaining combat clock');
+      const record = {phase:s.boss.phase,atMs:s.elapsedMs,remainingMs:s.boss.punishRemainingMs,text:exposedText.text};
+      const prior = r.work.lastExposedHud;
+      if (prior && prior.phase === record.phase && record.atMs > prior.atMs && record.remainingMs < prior.remainingMs)
+        r.work.exposedHudAdvanced = true;
+      r.work.lastExposedHud = record;
+    } else assert.equal(exposedText, undefined, 'HUD cannot advertise a punish window during armor or expired recovery');
+  }
+  for (const enemy of s.enemies.filter(e => e.hp > 0 && e.phase === 'windup' && e.attackTell?.response &&
+    e.x-mac.cameraX>-220 && e.x-mac.cameraX<1920/1.35+220)) {
+    const expected = enemy.attackTell.response.toUpperCase();
+    const labelY = enemy.laneY-(enemy.kind==='null_regent'?360:285)-43;
+    const labelX = Math.max(135,Math.min(1287,enemy.x-mac.cameraX));
+    const label = drawn.find(call => call.x === labelX && call.y === labelY &&
+      (call.text === expected || call.text.endsWith('…') && expected.startsWith(call.text.slice(0,-1))));
+    assert(label, 'Actual committed tell draws its matching response label above this enemy');
+    (r.work.tellResponses ||= new Set()).add(enemy.attackTell.response);
+    responseCoverage.add(enemy.attackTell.response);
+  }
+}
+async function fightRoute(r,{until,equipWeapons=true,combatLane}={}) {
   const actionInput = r.manager.actionInput;
   let strikeHeld = false, throwHeld = false;
   const areas = new Set(), waves = new Set(), bossPhases = new Set();
@@ -250,14 +328,23 @@ async function fightRoute(r,{until,equipWeapons=true}={}) {
       const direction = Math.sign(foe.x - p.x) || p.facing;
       const ranged = ['scatter-blaster','coil-rifle','plasma-disc'].includes(p.weapon?.kind), attackReach = ranged ? p.weapon.kind==='coil-rifle'?650:330 : 100;
       if (Math.abs(foe.x - p.x) > (ranged ? 230 : 58) || p.facing !== direction) hold(direction > 0 ? 'move_right' : 'move_left');
-      if (Math.abs(foe.laneY - p.laneY) > 8) hold(foe.laneY > p.laneY ? 'move_down' : 'move_up');
+      const targetLane = combatLane ?? foe.laneY;
+      if (Math.abs(targetLane - p.laneY) > (combatLane === undefined ? 8 : 3)) hold(targetLane > p.laneY ? 'move_down' : 'move_up');
       let strike = false, throwing = false;
-      const incoming = state.projectiles.find(item => (item.x-p.x)*item.facing < 0 && Math.abs(item.x-p.x)<145 && Math.abs(item.laneY-p.laneY)<=item.laneReach+10);
+      const incoming = state.projectiles.find(item => item.owner !== 'player' && (item.x-p.x)*item.facing < 0 && Math.abs(item.x-p.x)<145 && Math.abs(item.laneY-p.laneY)<=item.laneReach+10);
       const warning = state.enemies.filter(e => e.hp > 0 && e.phase === 'windup' && Math.abs(e.attackLaneY-p.laneY)<45 && Math.abs(e.x-p.x)<330)
         .sort((a,b)=>(a.tellMs-a.phaseMs)-(b.tellMs-b.phaseMs))[0];
       const remaining = warning ? warning.tellMs-warning.phaseMs : Infinity;
-      if (incoming && c.jump.ready) hold('jump');
-      else if (warning && remaining < 310 && !p.attack && !p.throwMs) {
+      if (foe.kind === 'null_regent' && foe.phase === 'active') {
+        actionInput.releaseVirtualOwner('route');
+        if (foe.attackSpec.guardable !== false) hold('road_defend');
+        else if (c.jump.ready) hold('jump');
+        else hold(p.laneY > 875 ? 'move_up' : 'move_down');
+      } else if (foe.kind === 'null_regent' && state.projectiles.some(item => item.owner !== 'player' && Math.abs(item.x-p.x)<430 && Math.abs(item.laneY-p.laneY)<55)) {
+        actionInput.releaseVirtualOwner('route');
+        if (incoming && c.jump.ready) hold('jump'); else hold('road_defend');
+      } else if (incoming && c.jump.ready) hold('jump');
+      else if (warning && remaining < (warning.kind === 'null_regent' ? 650 : 310) && (warning.kind === 'null_regent' || !p.attack && !p.throwMs)) {
         actionInput.releaseVirtualOwner('route');
         if (warning.attackTell.guardable === false && remaining < 250 && c.jump.ready) hold('jump');
         else if (warning.attackTell.guardable !== false && remaining < 105) hold('road_defend');
@@ -266,11 +353,12 @@ async function fightRoute(r,{until,equipWeapons=true}={}) {
       else if (c.strike.ready && !strikeHeld && Math.abs(foe.x - p.x) <= attackReach && Math.abs(foe.laneY - p.laneY) <= 35) { hold('road_attack'); strike = true; }
       strikeHeld = strike; throwHeld = throwing;
     }
-    r.frame(); assertNativeShots(r); if (frame % 90 === 0) await settle();
+    r.frame(); assertNativeShots(r); assertStreetHud(r); if (frame % 90 === 0) {assertWholeFrame(r);await settle();}
   }
   assert.fail('City route timed out: ' + JSON.stringify(r.B.MacCombatPreview.getSnapshot()));
 }
 let groups = 0;
+const responseCoverage = new Set();
 async function check(name, body) { await body(); groups++; console.log('PASS Mac integration ' + name); }
 async function run() {
   await check('registration and native sheet hash mismatches reject entry without a part-rig fallback', async () => {
@@ -494,7 +582,10 @@ async function run() {
   });
   await check('real crate lift keeps one native scale past three seconds and release launches it in lane order', async () => {
     const r=rig({touch:true});await r.start();r.manager.touchCommand('mac:skip');r.frame();const mac=r.B.MacCombatPreview,T=r.B.TouchControls;
-    await fightRoute(r,{until:s=>s.combat.zone.index===1&&s.combat.zone.cleared,equipWeapons:false});r.frame();
+    // Fight along the upper street lane through public controls. The lower
+    // exit crate is deliberately reserved instead of wrecked by body throws.
+    await fightRoute(r,{until:s=>s.combat.zone.index===1&&s.combat.zone.cleared,equipWeapons:false,
+      combatLane:r.B.MacStreetCombat.constants.laneMin+3});r.frame();
     const target=mac.combat.getSnapshot().props.find(prop=>prop.carryable&&!prop.broken);assert(target);
     r.key('keydown',target.laneY<mac.combat.getSnapshot().player.laneY?'w':'s');r.until(s=>Math.abs(s.combat.player.laneY-target.laneY)<10);r.key('keyup','w');r.key('keyup','s');r.frame();
     r.key('keydown',target.x<mac.combat.getSnapshot().player.x?'a':'d');r.until(s=>Math.abs(s.combat.player.x-target.x)<65);r.key('keyup','a');r.key('keyup','d');r.frame();r.until(()=>mac.getControlState().throw.ready&&mac.getControlState().throw.targetType==='prop');
@@ -671,11 +762,48 @@ async function run() {
     assert(r.work.writes.length > 0); assert(r.work.writes.every(([key]) => key === 'barcode.controller.v1'), 'Only explicit controller preference edits persist');
     await r.B.MacCombatPreview.exit();
   });
+  await check('an earned Canal Mantid commits its guard-or-lane leaping response through the real native draw', async () => {
+    const r=rig();await r.start();r.manager.touchCommand('mac:skip');
+    await fightRoute(r,{until:s=>s.combat.zone.index===4});await settle();r.frame();
+    const input=r.manager.actionInput,mac=r.B.MacCombatPreview;
+    r.until(s=>s.combat.enemies.some(enemy=>enemy.hp>0&&enemy.kind==='shock_mantid'&&enemy.attackTell?.response==='Guard or change lane'),s=>{
+      assert.notEqual(s.status,'failed','The earned Mantid observation stays playable');
+      input.releaseVirtualOwner('mantid-observe');
+      const p=s.combat.player,foe=s.combat.enemies.find(enemy=>enemy.hp>0&&enemy.kind==='shock_mantid');assert(foe);
+      const hold=name=>input.setVirtualAction(name,'mantid-observe',true,{timeStamp:r.w.performance.now()});
+      const direction=Math.sign(foe.x-p.x)||p.facing;
+      if(Math.abs(foe.x-p.x)>90||p.facing!==direction)hold(direction>0?'move_right':'move_left');
+      if(Math.abs(foe.laneY-p.laneY)>8)hold(foe.laneY>p.laneY?'move_down':'move_up');
+      const danger=s.combat.enemies.find(enemy=>enemy.hp>0&&enemy.phase==='windup'&&Math.abs(enemy.x-p.x)<330&&Math.abs(enemy.attackLaneY-p.laneY)<65&&enemy.attackTell.remainingMs<250);
+      if(danger){
+        if(danger.attackTell.guardable===false&&mac.getControlState().jump.ready)hold('jump');
+        else if(danger.attackTell.guardable!==false&&danger.attackTell.remainingMs<105)hold('road_defend');
+      }
+    },1500);
+    input.releaseVirtualOwner('mantid-observe');r.frame();assertStreetHud(r);assertWholeFrame(r);
+    assert(r.work.tellResponses.has('Guard or change lane'),'A real earned Mantid draws its distinct response; no actor or clock fixture is patched');
+    assert.equal(r.work.timers,0);assert.equal(r.work.intervals,0);assert.deepEqual(r.work.writes,[]);await mac.exit();assert.equal(r.scheduled.size,0);
+  });
   await check('real route desk/choice/clear/retry never awards or persists campaign completion', async () => {
     const r = rig({touch: true}); await r.start(); r.manager.touchCommand('mac:skip'); const end = await fightRoute(r);
     assert.equal(end.combat.kills, 30); assert.equal(end.combat.city.completedWaves, 12);
     assert.equal(end.combat.city.clearedZones.length, 6); assert.equal(end.combat.status, 'desk-ready'); assert.equal(end.status, 'playing');
     assert.equal(end.combat.relay.restored,true,'Actual contextual phone Link restores the market feed');assert.equal(r.work.relayTouchUses,1);
+    const expectedEncounters = r.B.MacStreetCombat.encounters.flatMap((pair,zoneIndex) =>
+      pair.map((encounter,waveIndex) => [`${zoneIndex+1}:${waveIndex+1}`,encounter.name]));
+    assert.deepEqual([...r.work.hudEncounters], plain(expectedEncounters), 'All twelve actual fights draw their distinct encounter title');
+    assert.deepEqual([...r.work.bossHudPhases], [1,2,3], 'All three earned boss phase names reach the real HUD');
+    for(const proof of ['close-boss','close-ordinary','separate-lanes','separate-props'])
+      assert(r.work.depthProof.has(proof),'Real native draw-order regression actually samples '+proof);
+    assert(r.work.exposedHudAdvanced, 'At least one real exposed window counts down between gameplay frames');
+    assert.deepEqual([...responseCoverage].sort(), ['Guard or change lane','Guard, jump or find a gap','Jump or change lane','Parry, jump or change lane'].sort(),
+      'All four earned committed-tell response classes reach the real renderer across the complete route and close Mantid observation');
+    const expectedStory = [...r.B.MacStreetCombat.zones.map(zone => 'city.arrival.'+zone.id),
+      'city.relay.ready','city.relay.restored.9bit','city.relay.restored.kave','city.regent.phase2','city.regent.phase3','city.regent.defeated'];
+    for (const id of expectedStory) assert(end.gameplayCueIds.includes(id), 'Actual chapter earns story cue '+id);
+    assert.equal(new Set(end.gameplayCueIds).size,end.gameplayCueIds.length,'Retry-safe story memory never duplicates cue IDs');
+    assert.deepEqual(r.work.storyReceipts.map(receipt=>receipt.id),plain(end.gameplayCueIds), 'Every admitted cue has one actual wrapper receipt');
+    assert.equal(r.work.timers,0);assert.equal(r.work.intervals,0);assert.equal(r.work.canvases,1,'Story and fight HUD reuse the existing native surface');
     assert.deepEqual([...(r.work.nativeShotKinds || [])].sort(),['coil-bolt','plasma-disc','scatter-bolt'],'All three actual firearms draw native shots from their calibrated physical muzzle');
     assert.equal(end.tutorial.progress.relay,1);assert(end.floorMarks<=32);
     const cellDrawn=name=>{const cell=r.B.MacCombatPreview.powerArt.cells[name],sheet=r.B.MacCombatPreview.powerArt.sheets.get(cell.sheet);return r.work.powerDraws.some(call=>call.path===sheet.sourceImage&&call.args.slice(0,4).every((value,index)=>value===[cell.source.x,cell.source.y,cell.source.width,cell.source.height][index]));};
@@ -697,7 +825,10 @@ async function run() {
     assert.equal(r.B.MacCombatPreview.combat.getSnapshot().kills, 0); assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.x, 200);
     assert.equal(r.B.MacCombatPreview.phase, 'street'); assert.equal(r.B.MacCombatPreview.story, null); assert.deepEqual(r.work.writes, []);
     assert.equal(r.B.MacCombatPreview.floorMarks.length,0);assert.equal(r.B.MacCombatPreview.radio,null);assert.equal(r.B.MacCombatPreview.tutorial.skipped,false);
+    assert.deepEqual(plain(r.B.MacCombatPreview.getSnapshot().gameplayCueIds),[],'Full-city replay clears chapter-local narration memory');
     await r.manager.touchCommand('mac:exit'); assert.equal(r.scheduled.size, 0);
+    assert.deepEqual(plain(r.B.MacCombatPreview.gameplayCueSeen),[],'Disposal leaves no chapter narration memory or queue');
+    assert.deepEqual(plain(r.B.MacCombatPreview.radioQueue),[]);assert.equal(r.work.timers,0);assert.equal(r.work.intervals,0);
   });
   await check('earned defeat accepts controller Start pause, fresh retry and title commands', async () => {
     const r = rig(); await r.start(); r.manager.touchCommand('mac:skip');
@@ -717,6 +848,8 @@ async function run() {
     for(const key of ['d','a','w','s',' '])r.key('keyup',key);const pad = r.pad(); pad.buttons[9].pressed = true; r.frame(); await settle();
     assert.equal(r.B.RuntimeLifecycle.getState(), 'paused', 'controller Start remains available on Mac results');
     const mac=r.B.MacCombatPreview,combatFrozen=plain(mac.combat.getSnapshot()),clockFrozen=mac.elapsedMs;
+    const seenBeforeRetry=plain(mac.getSnapshot().gameplayCueIds),narrationBeforeRetry=r.work.storyReceipts.length;
+    assert(seenBeforeRetry.includes('city.arrival.service-alley'),'Death occurs after actual district narration admission');
     const blood=mac.powerArt.cells.blood_red_impact;assert(r.work.powerDraws.some(call=>call.path===mac.powerArt.sheets.get(blood.sheet).sourceImage&&call.args[0]===blood.source.x&&call.args[1]===blood.source.y),'Actual player contacts draw native red damage art');assert(r.work.cues.some(cue=>cue.kind==='damage'));
     assert(jumpedForDefeat&&combatFrozen.player.elevation>0,'Actual lethal contact happens during a jump');
     assert.equal(mac.playerDefeatedAtMs,mac.lastEvents.find(e=>e.type==='player-defeated').atMs,'Defeat uses its actual core event receipt');
@@ -731,6 +864,8 @@ async function run() {
     pad.buttons[0].pressed = true; r.frame(); assert.equal(r.B.MacCombatPreview.status, 'playing');
     assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.hp, 100); r.frame();
     assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.elevation, 0, 'held retry A cannot become a jump');
+    assert.deepEqual(plain(mac.getSnapshot().gameplayCueIds),seenBeforeRetry,'Normal checkpoint retry preserves heard chapter cues');
+    assert.equal(r.work.storyReceipts.length,narrationBeforeRetry,'Retry does not issue the arrival a second time');
     pad.buttons[0].pressed = false; r.frame(); await r.B.MacCombatPreview.exit(); assert.deepEqual(r.work.writes, []);
   });
   await check('cancelled asynchronous entry cannot mutate profile/audio/controls after title return', async () => {

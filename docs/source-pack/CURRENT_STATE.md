@@ -1,3 +1,11 @@
+## October 7, 2026 — Mac city fights and story polish
+
+Continue from the saved guardfit5 source `f1467ea37a2710f4b1650d230a93bc0040276918` and website `71f430134e7b7c0b0f4c69c4bafb9fe5679c3ed3`. The owner approved the full Mac chapter pass, starting with enemy behavior and encounter design. This pass gives all six districts two separated encounters with authored tactical objectives, coordinated close-range pressure and spaced readable ranged tells. Existing enemy-specific attack types and all accepted complete-character artwork remain in use. The Null Regent gains longer exposed recovery windows, phase names and a HUD timer; crossing a health threshold cannot rewrite a committed warning. Breaking a powered terminal/streetlight can interrupt nearby aliens once, through an actual enemy-only discharge receipt.
+
+The existing radio surface carries sparse earned district, fixture, car and boss reactions. Eight approved intro scenes and exactly two optional Kave choices remain. No new dialogue menu, action button, input/animation loop, audio transport or save owner is introduced. See `docs/source-pack/MAC_CITY_POLISH_PASS.md` and `MAC_CITY_POLISH_STORY.md` for the scope.
+
+Fresh exact-head packaging, cloud results and visual observations for this pass belong in project-root/verification/mac-city-polish-20261007. Guardfit5 receipts apply to the retained baseline, not this changed runtime. Source PR189 and website PR485 stay private drafts until owner release. The earlier black-area cause remains unproven; this pass makes no speculative viewport change. Final Mac music and physical-device gameplay acceptance remain pending.
+
 ## October 7, 2026 — guard attachment follow-up
 
 The grips4 source8768b318/site625c866e recovery and full source archive are complete. This follow-up corrects five melee weapons across brace, both slow guard steps and guard impact, preserving every native bitmap and all embedded gun/disc cels. The public review uses real walking cels. Fresh normal/responsive gameplay fits the window; the prior off-center black area did not reproduce, and its cause is not established.

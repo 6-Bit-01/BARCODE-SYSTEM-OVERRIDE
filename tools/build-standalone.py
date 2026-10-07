@@ -1,6 +1,7 @@
 """Build the static, same-origin System Override game without changing its source.
 
 Usage: python tools/build-standalone.py --output PATH --receipt PATH
+Optional low-space reuse: --reuse-owned PATH --reuse-owner-sha256 SHA256
 The output must be empty or owned by an earlier invocation of this tool. No
 files are deleted. Canonical assets come from exact HEAD blobs, not a checkout
 that may have translated text line endings. Runtime source uses the working
@@ -10,8 +11,11 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import re
+import stat
 import subprocess
+import tempfile
 import zlib
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
@@ -461,6 +465,155 @@ def require(condition, message):
 
 def sha(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def file_record(path):
+    digest, size = hashlib.sha256(), 0
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+            size += len(chunk)
+    return {"sha256": digest.hexdigest(), "bytes": size}
+
+
+def no_reparse_path(path):
+    # Check before resolving: resolve() would hide a junction or symlink.
+    absolute = path.absolute()
+    for component in reversed((absolute, *absolute.parents)):
+        try:
+            metadata = component.lstat()
+        except FileNotFoundError:
+            continue
+        require(not stat.S_ISLNK(metadata.st_mode) and
+                not getattr(metadata, "st_file_attributes", 0) &
+                getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0),
+                f"Reuse path contains a link or reparse point: {component}")
+
+
+def owned_inventory(root):
+    no_reparse_path(root)
+    require(root.is_dir(), "Reuse donor must be an existing directory")
+    files = []
+    for directory, folders, names in os.walk(root, followlinks=False):
+        for name in folders + names:
+            entry = Path(directory) / name
+            metadata = entry.lstat()
+            require(not stat.S_ISLNK(metadata.st_mode) and
+                    not getattr(metadata, "st_file_attributes", 0) &
+                    getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0),
+                    f"Reuse donor contains a link or reparse point: {entry}")
+            require(stat.S_ISDIR(metadata.st_mode) or stat.S_ISREG(metadata.st_mode),
+                    f"Reuse donor contains a non-regular entry: {entry}")
+            if stat.S_ISREG(metadata.st_mode):
+                files.append(entry.relative_to(root).as_posix())
+    return sorted(files)
+
+
+class OwnedReuse:
+    """Verified immutable donor links; changed paths always get a new inode."""
+
+    def __init__(self, donor, output, owner_sha256):
+        no_reparse_path(donor)
+        no_reparse_path(output)
+        self.donor, self.output = donor.resolve(), output.resolve()
+        require(self.donor != self.output and
+                not self.output.is_relative_to(self.donor) and
+                not self.donor.is_relative_to(self.output), "Reuse roots overlap")
+        require(not self.output.exists() or not any(self.output.iterdir()),
+                "Reuse output must be fresh and empty")
+        require(re.fullmatch(r"[0-9a-f]{64}", owner_sha256 or ""),
+                "Reuse requires the exact previously verified owner SHA-256")
+        marker = safe_path(self.donor, OWNER_FILE)
+        require(file_record(marker)["sha256"] == owner_sha256, "Reuse owner hash differs")
+        self.owner_bytes = marker.read_bytes()
+        self.owner = json.loads(self.owner_bytes)
+        require(set(self.owner) == {"assetBytes", "builder", "builderSHA256", "canonicalAssetCount", "files",
+                                   "limitations", "ownedFiles", "preservedOriginalCount", "sourceCommit",
+                                   "sourceMode", "sourceTree", "status"},
+                "Reuse donor owner differs from the sanitized strict-builder schema")
+        require(self.owner.get("builder") == TOOL_ID and self.owner.get("status") == "complete",
+                "Reuse donor has no complete strict-builder owner")
+        require(re.fullmatch(r"[0-9a-f]{40}", self.owner.get("sourceCommit", "")) and
+                re.fullmatch(r"[0-9a-f]{40}", self.owner.get("sourceTree", "")),
+                "Reuse donor has invalid source identity")
+        require(isinstance(self.owner.get("files"), dict), "Reuse donor has no file hashes")
+        names = sorted(self.owner["files"])
+        for name in names:
+            require(PurePosixPath(name).as_posix() == name and name != OWNER_FILE,
+                    "Reuse owner contains an unnormalized or recursive path")
+            safe_path(self.donor, name)
+            record = self.owner["files"][name]
+            require(isinstance(record, dict) and set(record) == {"sha256", "bytes"} and
+                    re.fullmatch(r"[0-9a-f]{64}", record.get("sha256", "")) and
+                    type(record.get("bytes")) is int and record["bytes"] >= 0,
+                    f"Reuse owner has an invalid file record: {name}")
+        require(self.owner.get("ownedFiles") == sorted([*names, OWNER_FILE]),
+                "Reuse owner does not account for every payload path")
+        self.linked = 0
+        self.skipped = 0
+        self.written_bytes = 0
+        self.verify_donor()
+
+    def verify_donor(self):
+        require(owned_inventory(self.donor) == self.owner["ownedFiles"],
+                "Reuse donor contains unknown or missing files")
+        require(safe_path(self.donor, OWNER_FILE).read_bytes() == self.owner_bytes,
+                "Reuse donor owner changed")
+        for name, expected in self.owner["files"].items():
+            require(file_record(safe_path(self.donor, name)) == expected,
+                    f"Reuse donor payload hash differs: {name}")
+
+    def seed(self, names):
+        require(set(self.owner["ownedFiles"]) <= names,
+                "Reuse donor has stale owned files; no deletion is permitted")
+        require(not self.output.exists() or not any(self.output.iterdir()),
+                "Reuse output ceased to be empty")
+        self.output.mkdir(parents=True, exist_ok=True)
+        # Never hardlink the mutable ownership marker. It is written atomically
+        # below, while every linked payload inode remains immutable.
+        for name in self.owner["files"]:
+            donor, target = safe_path(self.donor, name), safe_path(self.output, name)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            os.link(donor, target)
+            require(os.path.samefile(donor, target), f"Reuse link identity differs: {name}")
+            self.linked += 1
+
+    def write(self, target, data):
+        no_reparse_path(target)
+        require(target.resolve().is_relative_to(self.output), "Reuse write escapes output")
+        if target.exists() and file_record(target) == {"sha256": sha(data), "bytes": len(data)}:
+            self.skipped += 1
+            return
+        target.parent.mkdir(parents=True, exist_ok=True)
+        descriptor, temporary = tempfile.mkstemp(prefix=".standalone-reuse-", dir=target.parent)
+        temporary = Path(temporary)
+        try:
+            with os.fdopen(descriptor, "wb") as stream:
+                stream.write(data)
+            require(file_record(temporary) == {"sha256": sha(data), "bytes": len(data)},
+                    "Reuse atomic write hash differs")
+            # replace() removes this output's old directory entry only. It
+            # never truncates an inode shared with the verified donor.
+            os.replace(temporary, target)
+            self.written_bytes += len(data)
+        finally:
+            if temporary.exists():
+                temporary.unlink()
+
+
+def write_generated(target, data, reuse):
+    if reuse is None:
+        target.write_bytes(data)
+    else:
+        reuse.write(target, data)
+
+
+def write_generated_text(target, text, reuse):
+    if reuse is None:
+        target.write_text(text, encoding="utf-8")
+    else:
+        # Match Path.write_text's existing platform newline behavior exactly.
+        reuse.write(target, text.replace("\n", os.linesep).encode("utf-8"))
 
 
 def safe_path(root, name):
@@ -924,7 +1077,10 @@ def verify_texture_bank(output, files):
             "gpuMipBytes": bank.get("allGpuMipBytes"), "runtimeAcceptance": "not established by packaging"}
 
 
-def build(output, receipt):
+def build(output, receipt, reuse_owned=None, reuse_owner_sha256=None):
+    require((reuse_owned is None) == (reuse_owner_sha256 is None),
+            "Provide both --reuse-owned and --reuse-owner-sha256")
+    reuse = OwnedReuse(reuse_owned, output, reuse_owner_sha256) if reuse_owned is not None else None
     output, receipt = output.resolve(), receipt.resolve()
     require(output != ROOT and not output.is_relative_to(ROOT), "Output must be outside the game checkout")
     require(not receipt.is_relative_to(output), "Private receipt must be outside the public game output")
@@ -938,6 +1094,13 @@ def build(output, receipt):
     records, mapping, originals_hash = read_originals()
     head = git("rev-parse", "HEAD").decode("ascii").strip()
     tree = git("rev-parse", "HEAD^{tree}").decode("ascii").strip()
+    if reuse is not None:
+        base = reuse.owner["sourceCommit"]
+        require(git("rev-parse", base + "^{tree}").decode("ascii").strip() == reuse.owner["sourceTree"],
+                "Reuse donor source tree differs from the exact committed checkpoint")
+        require(sha(git("show", base + ":tools/build-standalone.py")) == reuse.owner.get("builderSHA256"),
+                "Reuse donor builder differs from its exact committed source")
+        git("merge-base", "--is-ancestor", base, head)
     source_paths = ["index.html", "mac-equipment-review.html", "style.css", "sprites-manifest.json"] + sorted(
         path.relative_to(ROOT).as_posix() for path in (ROOT / "src").rglob("*") if path.is_file())
     require(ADAPTER in source_paths, "Standalone sprite adapter is missing")
@@ -958,11 +1121,13 @@ def build(output, receipt):
     stale = previous - names
     require(not any(safe_path(output, name).exists() for name in stale),
             "Old generated files remain; choose a fresh empty output rather than deleting them")
+    if reuse is not None:
+        reuse.seed(names)
     output.mkdir(parents=True, exist_ok=True)
     # Recover an interrupted copy by recording the exact generated paths before
     # writing them. An in-progress marker never claims the package passed.
-    owner.write_text(json.dumps({"builder": TOOL_ID, "status": "building",
-                                "ownedFiles": sorted(names)}, indent=2) + "\n", encoding="utf-8")
+    write_generated_text(owner, json.dumps({"builder": TOOL_ID, "status": "building",
+                                           "ownedFiles": sorted(names)}, indent=2) + "\n", reuse)
     assets = []
     process = subprocess.Popen(["git", "-c", f"safe.directory={ROOT.as_posix()}",
                                 "-C", str(ROOT), "cat-file", "--batch"],
@@ -978,7 +1143,7 @@ def build(output, receipt):
             require(len(data) == size and process.stdout.read(1) == b"\n", f"Incomplete Git blob: {name}")
             target = safe_path(output, name)
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(data)
+            write_generated(target, data, reuse)
             assets.append({"path": name, "gitBlob": blob, "sha256": sha(data), "bytes": size,
                            "source": "exact HEAD Git blob"})
         process.stdin.close()
@@ -992,12 +1157,12 @@ def build(output, receipt):
         require(len(data) == record["bytes"] and sha(data) == record["sha256"], "Original changed during build")
         target = safe_path(output, record["path"])
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(data)
+        write_generated(target, data, reuse)
         assets.append({**record, "source": record["source"]})
     for name, data in payloads.items():
         target = safe_path(output, name)
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(data)
+        write_generated(target, data, reuse)
     assets_by_path = {}
     for record in assets:
         if record["path"] in assets_by_path:
@@ -1034,11 +1199,19 @@ def build(output, receipt):
               "canonicalAssetCount": len(entries), "preservedOriginalCount": len(records),
               "assetBytes": sum(record["bytes"] for record in assets), "ownedFiles": sorted(names),
               "limitations": limitations}
-    owner.write_text(json.dumps(public, indent=2) + "\n", encoding="utf-8")
+    if reuse is not None:
+        reuse.verify_donor()
+        require(owned_inventory(output) == sorted(names), "Reuse output inventory differs from strict ownership")
+    write_generated_text(owner, json.dumps(public, indent=2) + "\n", reuse)
     result = {**public, "builtAtUTC": datetime.now(timezone.utc).isoformat(),
               "output": str(output), "originalsReceiptSHA256": originals_hash,
               "runtimeSources": sources,
               "assets": assets, "checks": checks, "publication": "local generated draft; no push or deployment"}
+    if reuse is not None:
+        result["ownedReuse"] = {"donor": str(reuse.donor), "ownerSHA256": reuse_owner_sha256,
+                                "linkedPayloadFiles": reuse.linked, "identicalWritesSkipped": reuse.skipped,
+                                "newBytesWritten": reuse.written_bytes, "donorUnchanged": True,
+                                "immutableAssetLinks": True, "changedPathsAtomicallyReplaced": True}
     receipt.parent.mkdir(parents=True, exist_ok=True)
     receipt.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"output": str(output), "receipt": str(receipt), "sourceCommit": head,
@@ -1050,5 +1223,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--receipt", type=Path, required=True)
+    parser.add_argument("--reuse-owned", type=Path,
+                        help="Verify and hardlink an exact owned donor into a fresh low-space output")
+    parser.add_argument("--reuse-owner-sha256",
+                        help="Required exact SHA-256 of the previously verified donor ownership marker")
     args = parser.parse_args()
-    build(args.output, args.receipt)
+    build(args.output, args.receipt, args.reuse_owned, args.reuse_owner_sha256)

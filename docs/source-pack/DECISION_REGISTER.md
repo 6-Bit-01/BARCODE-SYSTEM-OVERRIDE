@@ -1,3 +1,7 @@
+## October 7, 2026 — approved full Mac chapter polish
+
+The owner answered “Awesome. Proceed” to the enemy/encounter, boss and integrated-story pass. Extend the existing private chapter rather than starting another engine or redrawing accepted sprites. Prioritize the later four city districts, distinct fair enemy patterns, useful destruction, committed readable warnings and punishable boss recovery. Retain exactly two meaningful optional Kave choices and all approved scenes. Gameplay reactions belong to the existing local radio owner and must follow earned events. Preserve direct mobile controls and original artwork/audio/save identities. Prepare and deploy the existing private review branches; do not infer a production merge from implementation approval.
+
 ## October 7, 2026 — guard attachment follow-up
 
 The owner rejected the five reused sideways melee guard holds. Each corrected attachment uses the measured bare-fist contact, its own defensive angle/layer and original whole-cel palm overlap, across all four guard cels in both directions. Existing gun/disc guard contact and all native bitmaps remain. Fresh responsive gameplay fits the window; the earlier off-center black area did not reproduce, and its cause remains unproven.

@@ -201,4 +201,128 @@ const instant = story.createIntro({ instantText: true, artPaths: { delivered: 'a
 assert.equal(instant.snapshot().revealed, true);
 assert.equal(instant.snapshot().asset, 'assets/private-test.png');
 assert.equal(instant.advance().action, 'line');
-console.log('Mac street story passed: eight stable scenes, one Kave opening choice plus one optional earned studio choice, all 19 core lines, reveal/advance, reconvergence, skip/reset and no campaign or host side effects.');
+
+// The narration runs against real combat receipts, never snapshot polling or
+// another update owner. Actual chapter entry verifies the shared event shape.
+const combatFilename = 'src/game/mac-street-combat.js';
+vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', combatFilename), 'utf8'), { window }, { filename: combatFilename });
+const combat = window.BARCODE.MacStreetCombat.create();
+combat.handleInput({move_x:1});
+const initialEvents = [];
+for (let frame = 0; frame < 20 && !initialEvents.some(event => event.type === 'zone-enter'); frame++) {
+  combat.update(100); initialEvents.push(...combat.drainEvents());
+}
+const initialState = combat.getSnapshot();
+assert(initialEvents.some(event => event.type === 'zone-enter' && event.zoneId === 'service-alley'));
+const initialCues = story.gameplayCues(initialEvents, initialState);
+assert.deepEqual(copy(initialCues.cues.map(cue => cue.id)), ['city.arrival.service-alley']);
+assert.equal(initialCues.cues[0].zoneId, initialState.zone.id);
+assert.equal(story.gameplayCues([], initialState).cues.length, 0, 'Snapshot polling cannot earn a bark');
+assert.equal(story.gameplayCues(initialEvents, initialState, initialCues.seenIds).cues.length, 0, 'Repeated arrival/retry cannot repeat a consumed line');
+assert.deepEqual(copy(combat.getSnapshot()), copy(initialState), 'Narration cannot mutate the combat owner');
+
+const districtIds = ['service-alley','night-market','transit-concourse','relay-canal','rooftop-relay','broadcast-plaza'];
+const frozen = value => {
+  if (value && typeof value === 'object') { for (const child of Object.values(value)) frozen(child); Object.freeze(value); }
+  return value;
+};
+const stateFor = (zoneId, extra = {}) => ({player:{hp:200}, status:'playing', zone:{id:zoneId,cleared:false},
+  city:{clearedZones:[],completedWaves:0,complete:false},props:[],...extra});
+assert(Object.isFrozen(story));
+assert(Object.isFrozen(story.gameplayCueIds));
+assert.equal(story.gameplayCueIds.length, 16);
+assert.equal(new Set(story.gameplayCueIds).size, 16);
+for (const zoneId of districtIds) {
+  const inputState = frozen(stateFor(zoneId));
+  const inputEvents = frozen([{type:'zone-enter',zoneId}]);
+  const earned = story.gameplayCues(inputEvents, inputState);
+  assert.equal(earned.cues.length, 1, zoneId);
+  assert.equal(earned.cues[0].id, `city.arrival.${zoneId}`);
+  assert.equal(earned.cues[0].zoneId, zoneId);
+  assert(earned.cues[0].text.length <= 100, 'Action text stays short');
+  for (const value of [earned,earned.cues,earned.cues[0],earned.seenIds]) assert(Object.isFrozen(value));
+  assert.throws(() => Object.defineProperty(earned.cues[0], 'text', {value:'Edited'}), TypeError);
+  assert.equal(story.gameplayCues([{type:'zone-enter',zoneId:'wrong-district'}], inputState).cues.length, 0);
+  assert.equal(story.gameplayCues(inputEvents, {...inputState,player:{hp:0},status:'defeated'}).cues.length, 0);
+}
+for (const invalid of [null, undefined, {}, 'zone-enter']) assert.equal(story.gameplayCues(invalid, null).cues.length, 0);
+assert.deepEqual(copy(story.gameplayCues([], initialState, ['unknown',initialCues.seenIds[0],initialCues.seenIds[0]]).seenIds),
+  ['city.arrival.service-alley'], 'Seen IDs remain bounded to authored chapter cues');
+
+for (const zoneId of ['transit-concourse','rooftop-relay']) {
+  const event = {type:'zone-cleared',zoneId};
+  assert.equal(story.gameplayCues([event], stateFor(zoneId)).cues.length, 0, 'A clear event cannot overrule an uncleared snapshot');
+  const state = stateFor(zoneId,{zone:{id:zoneId,cleared:true},city:{clearedZones:[zoneId]}});
+  assert.equal(story.gameplayCues([event], state).cues[0].id, `city.clear.${zoneId}`);
+}
+const market = stateFor('night-market',{zone:{id:'night-market',cleared:true},city:{clearedZones:['night-market']},
+  relay:{available:true,restored:false}});
+const readyEvent = {type:'relay-ready',id:'market-relay'};
+assert.equal(story.gameplayCues([readyEvent], market).cues[0].text,
+  'Market relay is clear. Link it and give Kave his signal back.');
+assert.equal(story.gameplayCues([readyEvent], {...market,relay:{available:false,restored:false}}).cues.length, 0);
+const restoredMarket = {...market,relay:{available:false,restored:true}};
+const restoredEvent = {type:'relay-restored',id:'market-relay'};
+const restored = story.gameplayCues([restoredEvent], restoredMarket);
+assert.deepEqual(copy(restored.cues.map(cue => [cue.speaker,cue.text])), [
+  ['9 BIT','Local signal restored. Your track. Their speakers.'],
+  ['KAVE','There you are, Modem. Keep that signal moving.']
+]);
+assert.equal(story.gameplayCues([restoredEvent], market).cues.length, 0, 'A relay claim requires the real restored result');
+assert.equal(story.gameplayCues([readyEvent], restoredMarket).cues.length, 0, 'A restored relay cannot ask for another Link');
+assert(restored.cues.every(cue => !/outbound|first play/i.test(cue.text)), 'Local relay is not an earned outbound feed claim');
+
+const fixture = {id:'transit-terminal',kind:'terminal',zoneId:'transit-concourse',broken:true};
+const fixtureState = stateFor('transit-concourse',{props:[fixture]});
+const dischargeEvent = {type:'fixture-discharge',id:fixture.id,kind:fixture.kind,enemyIds:['enemy-1']};
+const discharged = story.gameplayCues([dischargeEvent], fixtureState);
+assert.equal(discharged.cues[0].id, 'city.fixture-discharge');
+assert.equal(discharged.cues[0].zoneId, fixtureState.zone.id);
+for (const invalidEvent of [{...dischargeEvent,enemyIds:[]},{...dischargeEvent,id:'wrong-prop'},
+  {...dischargeEvent,kind:'crate'},{type:'prop-hit',id:fixture.id,kind:fixture.kind}])
+  assert.equal(story.gameplayCues([invalidEvent], fixtureState).cues.length, 0, 'A fixture reaction requires real enemy contact and the broken authored fixture');
+assert.equal(story.gameplayCues([dischargeEvent], {...fixtureState,props:[{...fixture,broken:false}]}).cues.length, 0);
+assert.equal(story.gameplayCues([dischargeEvent], fixtureState, discharged.seenIds).cues.length, 0);
+const car = {id:'market-car',kind:'car',zoneId:'night-market',broken:true};
+const carEvent = {type:'prop-break',id:car.id,kind:car.kind};
+const mixedMarket = frozen({...restoredMarket,props:[car,{id:'market-test-fixture',kind:'terminal',zoneId:'night-market',broken:true}]});
+const mixedEvents = frozen([carEvent,{type:'zone-enter',zoneId:'night-market'},
+  {type:'fixture-discharge',id:'market-test-fixture',kind:'terminal',enemyIds:['actual-victim']},restoredEvent]);
+const selected = story.gameplayCues(mixedEvents, mixedMarket);
+assert.deepEqual(copy(selected.cues.map(cue => cue.id)), copy(restored.cues.map(cue => cue.id)), 'The useful relay pair takes priority over incidental jokes');
+assert.deepEqual(copy(selected.seenIds), copy(restored.seenIds), 'Only the two returned cues acquire seen IDs');
+const wrecked = story.gameplayCues([carEvent], mixedMarket);
+assert.equal(wrecked.cues[0].speaker, 'Dr3wBaby / COMMS');
+assert.equal(wrecked.cues[0].zoneId, 'night-market');
+assert.equal(story.gameplayCues([{...carEvent,type:'prop-hit'}], mixedMarket).cues.length, 0, 'A car bounce is not a wreck payoff');
+
+const boss = {id:'regent-1',kind:'null_regent',hp:100,phase:2,defeated:false};
+const plaza = stateFor('broadcast-plaza',{boss});
+for (const phase of [2,3]) {
+  const event = {type:'boss-phase',id:boss.id,phase};
+  const state = {...plaza,boss:{...boss,phase}};
+  const phaseCues = story.gameplayCues([event], state);
+  assert.equal(phaseCues.cues[0].id, `city.regent.phase${phase}`);
+  assert.equal(story.gameplayCues([event], {...state,boss:{...state.boss,id:'different'}}).cues.length, 0);
+  assert.equal(story.gameplayCues([event], {...state,boss:{...state.boss,phase:1}}).cues.length, 0, 'A stale phase cannot overwrite the current fight');
+  assert.equal(story.gameplayCues([event], {...state,boss:{...state.boss,hp:0,defeated:true}}).cues.length, 0);
+}
+const defeatEvent = {type:'enemy-defeated',id:boss.id,kind:'null_regent'};
+assert.equal(story.gameplayCues([defeatEvent], plaza).cues.length, 0, 'An event alone cannot grant a city endpoint');
+const endpoint = frozen({...plaza,status:'desk-ready',boss:{...boss,hp:0,defeated:true},
+  desk:{unlocked:true},zone:{id:'broadcast-plaza',cleared:true},
+  city:{complete:true,completedWaves:12,clearedZones:districtIds}});
+const endpointCues = story.gameplayCues([defeatEvent], endpoint);
+assert.equal(endpointCues.cues[0].id, 'city.regent.defeated');
+assert(endpointCues.cues[0].text.includes("let's check the outbound feed"));
+for (const incomplete of [{...endpoint,desk:{unlocked:false}},
+  {...endpoint,city:{...endpoint.city,completedWaves:11}},
+  {...endpoint,city:{...endpoint.city,clearedZones:districtIds.slice(1)}},
+  {...endpoint,status:'playing'},{...endpoint,boss:{...endpoint.boss,defeated:false}}])
+  assert.equal(story.gameplayCues([defeatEvent], incomplete).cues.length, 0, 'Only the earned six-district endpoint authorizes the payoff');
+assert.equal(story.gameplayCues([], endpoint).cues.length, 0, 'Reading/reviewing a completed snapshot is not a new event');
+assert.equal(story.gameplayCues([defeatEvent], endpoint, endpointCues.seenIds).cues.length, 0);
+assert.deepEqual(copy(story.sceneIds), expectedIds, 'Gameplay narration preserves every approved scene');
+assert.deepEqual(readAll(story.createIntro()).choices, ['delivery-question']);
+assert.deepEqual(readAll(story.createDesk()).choices, ['desk-question']);
+console.log('Mac street story passed: eight stable scenes, exactly two optional Kave choices, all 19 core lines, reveal/advance/reconvergence/skip/reset, and 16 sparse immutable gameplay cues gated by actual events and snapshots without campaign or host side effects.');

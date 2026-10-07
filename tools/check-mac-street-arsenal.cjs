@@ -199,7 +199,13 @@ check('calibrated long rifle muzzle still hits a point-blank opponent in its fir
   const closeRange=origins['coil-rifle'].forward*.55,walkRange=closeRange*.65;
   r.until(s=>!s.player.hurtMs&&s.enemies.some(e=>e.hp&&e.phase==='windup'&&Math.abs(e.x-s.player.x)<closeRange&&Math.abs(e.laneY-s.player.laneY)<30),s=>{
     const foe=s.enemies.filter(e=>e.hp).sort((a,b)=>Math.abs(a.x-s.player.x)-Math.abs(b.x-s.player.x))[0];
-    return {move_x:Math.abs(foe.x-s.player.x)>walkRange?Math.sign(foe.x-s.player.x):0,move_y:Math.abs(foe.laneY-s.player.laneY)>8?Math.sign(foe.laneY-s.player.laneY):0,guard:{held:true}};
+    // Close at ordinary walking speed. A permanent guard during approach
+    // invites the guard's genuine overhead response and takes an avoidable hit
+    // before this rifle fixture can reach its calibrated point-blank sample.
+    // Respect the locked response once a real guardable attack is announced.
+    return {move_x:Math.abs(foe.x-s.player.x)>walkRange?Math.sign(foe.x-s.player.x):0,
+      move_y:Math.abs(foe.laneY-s.player.laneY)>8?Math.sign(foe.laneY-s.player.laneY):0,
+      guard:{held:['windup','active'].includes(foe.phase)&&foe.attackSpec.guardable!==false}};
   },15000);
   assert.equal(r.view().player.weapon.kind,'coil-rifle');r.step(press('strike'));
   const eventStart=r.events.length;r.until(()=>r.events.slice(eventStart).some(e=>e.type==='weapon-fired'),{},1000);
@@ -212,7 +218,11 @@ check('calibrated long rifle muzzle still hits a point-blank opponent in its fir
 let street;
 check('a box carries beyond3s, pause drops safely, and a real throw hits a car once',()=>{
   const r=street=rig();r.equipped=new Set(Object.keys(M.weapons));r.used=new Set(Object.keys(M.weapons));
-  r.until(s=>s.zone.state==='zone-clear'||s.status==='defeated',s=>routeInput(r,s),100000);assert.notEqual(r.view().status,'defeated');
+  // Fight along the upper lane to preserve the lower exit crate for this
+  // carry/throw fixture. The actual crowd's launched bodies can now destroy
+  // both central boxes during the ordinary route; that is valid combat.
+  r.until(s=>s.zone.state==='zone-clear'||s.status==='defeated',s=>({...routeInput(r,s),
+    move_y:s.player.laneY>M.constants.laneMin+3?-1:0}),100000);assert.notEqual(r.view().status,'defeated');
   const crate=r.view().props.find(p=>p.carryable&&!p.broken);assert(crate,'earned first street has a usable prop');walkTo(r,crate.x,crate.laneY);
   r.until(()=>r.game.getControlState().throw.ready&&r.game.getControlState().throw.targetType==='prop');r.step(press('throw'));
   assert(r.view().player.carry);assert.equal(r.view().player.carry.maxHoldMs,null);assert.equal(r.view().props.find(p=>p.id===crate.id).heldBy,'mac');
