@@ -84,27 +84,146 @@ MAC_RIG_ASSETS = {"assets/mac-combat-rigs/" + name for name in (
     "shock_mantid-v1.png", "shock_mantid-v1-rig.json",
     "null_regent-v1.png", "null_regent-v1-rig.json")}
 MAC_FRAME_ROOT = "assets/mac-combat-frames/"
+MAC_DYNAMIC_ROOT = "assets/mac-street-dynamic/"
+MAC_DYNAMIC_SHEETS = {
+    "dyn_guard": "mac-guard-v1.png", "dyn_run": "mac-run-v1.png",
+    "dyn_hold": "mac-hold-carry-v1.png", "dyn_weapon": "mac-weapon-poses-v1.png"}
+MAC_DYNAMIC_FRAMES = {
+    "guard_brace", "guard_step_a", "guard_step_b", "guard_impact",
+    "run_contact_a", "run_pass_a", "run_contact_b", "run_pass_b",
+    "grab_reach", "grab_hold", "pummel_load", "pummel_contact",
+    "pickup_load", "carry_hold", "carry_step_a", "carry_step_b",
+    "melee_load", "melee_contact", "melee_follow", "fire_aim", "fire_recoil", "fire_ready"}
+MAC_DYNAMIC_CLIPS = {"guard", "guard-walk", "run", "grab-start", "grab-hold", "carry", "carry-walk"} | {
+    f"{action}.{phase}" for action in ("pummel", "melee", "fire") for phase in ("windup", "active", "recovery")}
+MAC_DYNAMIC_LOOPS = {"guard", "guard-walk", "run", "grab-hold", "carry", "carry-walk"}
 MAC_POWER_ROOT = "assets/mac-street-power/"
+MAC_POWER_SHEETS = {
+    "props": "street-props-v1.png", "blood": "street-blood-v1.png",
+    "equipment": "street-weapons-v1.png", "cars": "street-cars-v1.png",
+    "fixtures": "street-fixtures-v1.png", "cores": "street-powerups-v1.png"}
 MAC_POWER_CELLS = {"crate_intact", "crate_cracked", "crate_broken",
                    "stall_intact", "stall_cracked", "stall_broken",
                    "relay_off", "relay_on", "pickup_health"} | {
     f"blood_{color}_{kind}" for color in ("red", "green", "purple")
-    for kind in ("impact", "heavy", "floor")}
+    for kind in ("impact", "heavy", "floor")} | {
+    "weapon_" + kind for kind in ("pipe", "crowbar", "shock-baton", "energy-blade", "gravity-hammer",
+                                    "scatter-blaster", "coil-rifle", "plasma-disc")} | {
+    f"{kind}_{state}" for kind in ("car", "car_van", "barrel", "fixture_streetlight", "fixture_terminal")
+    for state in ("intact", "cracked", "broken")} | {
+    "pickup_overdrive", "pickup_barrier", "pickup_impact",
+    "projectile_scatter-bolt", "projectile_coil-bolt", "projectile_plasma-disc"}
+
+
+def native_frame_image(output, sheet, name):
+    image = safe_path(output, name).read_bytes()
+    require(sha(image) == sheet.get("sourceSHA256"), "Changed selected native PNG")
+    require(image[:8] == b"\x89PNG\r\n\x1a\n" and image[24:29] == bytes((8, 6, 0, 0, 0)),
+            "Selected source must retain native transparent RGBA8 PNG")
+    size = {"width": int.from_bytes(image[16:20], "big"), "height": int.from_bytes(image[20:24], "big")}
+    require(sheet.get("dimensions") == size, "Native atlas dimensions changed")
+    return size
+
+
+def native_rect(rect, size):
+    return all(type(rect.get(key)) is int and rect[key] >= (1 if key in ("width", "height") else 0)
+               for key in ("x", "y", "width", "height")) and \
+        rect["x"] + rect["width"] <= size["width"] and rect["y"] + rect["height"] <= size["height"]
+
+
+def native_anchor(anchor, rect):
+    return all(type(anchor.get(key)) in (int, float) and math.isfinite(anchor[key]) and
+               0 <= anchor[key] <= rect["width" if key == "x" else "height"] for key in ("x", "y"))
+
+
+def crops_overlap(a, b):
+    return min(a["x"] + a["width"], b["x"] + b["width"]) > max(a["x"], b["x"]) and \
+        min(a["y"] + a["height"], b["y"] + b["height"]) > max(a["y"], b["y"])
+
+
+def supplemental_frame_files(output, actor, base):
+    name = MAC_DYNAMIC_ROOT + "mac-modem-actions-v1.json"
+    selection = actor.get("supplemental", {})
+    require(selection.get("registration") == name, "Missing selected Mac supplemental registration")
+    data = safe_path(output, name).read_bytes()
+    require(sha(data) == selection.get("registrationSHA256"), "Changed supplemental registration")
+    registration = json.loads(data)
+    require(registration.get("schemaVersion") == 1 and registration.get("actor") == "mac" and
+            registration.get("facing") == "right", "Invalid supplemental complete-character identity")
+    require(registration.get("baseRegistration") == actor["registration"] and
+            registration.get("baseRegistrationSHA256") == actor["registrationSHA256"],
+            "Supplemental poses must use the selected unchanged Mac base registration")
+    sheets = registration.get("sheets", [])
+    require(len(sheets) == 4 and {sheet.get("id") for sheet in sheets} == set(MAC_DYNAMIC_SHEETS),
+            "Supplemental poses require exactly four selected native sheets")
+    selected, dimensions, crops = {name}, {}, {}
+    for sheet in sheets:
+        image_name = MAC_DYNAMIC_ROOT + MAC_DYNAMIC_SHEETS[sheet["id"]]
+        require(sheet.get("sourceImage") == image_name, "Unselected supplemental native PNG")
+        dimensions[sheet["id"]] = native_frame_image(output, sheet, image_name)
+        selected.add(image_name)
+    frames = registration.get("frames", [])
+    require(len(frames) == 22 and {frame.get("id") for frame in frames} == MAC_DYNAMIC_FRAMES,
+            "Supplemental poses require all 22 selected whole-body cels")
+    by_id = {frame["id"]: frame for frame in frames}
+    for frame in frames:
+        sheet, rect = frame.get("sheet"), frame.get("source", {})
+        require(sheet in dimensions and native_rect(rect, dimensions[sheet]), "Invalid supplemental native crop")
+        require(native_anchor(frame.get("feetPivot", {}), rect) and
+                native_anchor(frame.get("gripAnchor", {}), rect) and frame.get("baselineLift") == 0,
+                "Supplemental complete-body cel must retain grounded feet and registered grip")
+        angle = frame.get("weaponAngle")
+        require(type(angle) in (int, float) and math.isfinite(angle) and abs(angle) <= math.pi,
+                "Invalid native weapon angle")
+        require(not any(crops_overlap(rect, old) for old in crops.get(sheet, [])), "Supplemental crops overlap")
+        crops.setdefault(sheet, []).append(rect)
+    for sheet in sheets:
+        scale = sheet.get("pixelScale", {})
+        reference = by_id.get(scale.get("referenceFrame"), {})
+        require(type(scale.get("standingVisibleHeight")) in (int, float) and
+                math.isfinite(scale["standingVisibleHeight"]) and scale["standingVisibleHeight"] > 0 and
+                reference.get("sheet") == sheet["id"], "Invalid supplemental sheet scale reference")
+        excluded = []
+        for region in sheet.get("excludedRegions", []):
+            rect = region.get("source", {})
+            require(native_rect(rect, dimensions[sheet["id"]]) and isinstance(region.get("reason"), str) and
+                    region["reason"].strip(), "Invalid excluded native region")
+            require(not any(crops_overlap(rect, old) for old in crops.get(sheet["id"], []) + excluded),
+                    "Excluded supplemental region overlaps a selected cel")
+            excluded.append(rect)
+    clips = registration.get("clips", {})
+    require(MAC_DYNAMIC_CLIPS <= set(clips) <= MAC_DYNAMIC_CLIPS | {"pickup", "guard-impact", "carry-throw"},
+            "Unselected or missing supplemental animation clip")
+    for key, clip in clips.items():
+        require(clip.get("loop") is (key in MAC_DYNAMIC_LOOPS) and isinstance(clip.get("frames"), list) and
+                clip["frames"], "Invalid supplemental clip sequence")
+        for entry in clip["frames"]:
+            require(entry.get("frame") in by_id and type(entry.get("holdMs")) in (int, float) and
+                    math.isfinite(entry["holdMs"]) and entry["holdMs"] > 0, "Invalid supplemental clip timing")
+    base_frames = {frame["id"]: frame for frame in base.get("frames", [])}
+    anchors = registration.get("baseGripAnchors", {})
+    require(isinstance(anchors, dict) and anchors, "Missing selected base-cel weapon grips")
+    for frame_id, anchor in anchors.items():
+        angle = anchor.get("weaponAngle", 0)
+        require(frame_id in base_frames and native_anchor(anchor.get("gripAnchor", {}), base_frames[frame_id]["source"]) and
+                type(angle) in (int, float) and math.isfinite(angle) and abs(angle) <= math.pi,
+                "Invalid base-cel weapon grip")
+    return selected
 
 
 def street_power_files(output):
-    """Select only the two native power atlases and their measured cells."""
+    """Select only the six native power atlases and their measured cells."""
     manifest_name = MAC_POWER_ROOT + "mac-street-power-v1.json"
     manifest = json.loads(safe_path(output, manifest_name).read_text(encoding="utf-8"))
     require(manifest.get("schema") == 1 and set(manifest.get("cells", {})) == MAC_POWER_CELLS,
             "Street power requires every registered prop and all three damage palettes")
     sheets = manifest.get("sheets", [])
-    require(len(sheets) == 2 and len({sheet.get("id") for sheet in sheets}) == 2,
-            "Street power must select exactly two native atlases")
+    require(len(sheets) == 6 and {sheet.get("id") for sheet in sheets} == set(MAC_POWER_SHEETS),
+            "Street power must select exactly six native atlases")
     selected, dimensions = {manifest_name}, {}
     for sheet in sheets:
         name = sheet.get("sourceImage", "")
-        require(re.fullmatch(re.escape(MAC_POWER_ROOT) + r"[a-z0-9_-]+-v[0-9]+\.png", name),
+        require(name == MAC_POWER_ROOT + MAC_POWER_SHEETS[sheet["id"]],
                 "Power atlas must be a selected native PNG sibling")
         image = safe_path(output, name).read_bytes()
         require(sha(image) == sheet.get("sourceSHA256"), "Power atlas bytes changed")
@@ -114,7 +233,7 @@ def street_power_files(output):
         require(sheet.get("dimensions") == size, "Power atlas dimensions changed")
         dimensions[sheet["id"]] = size
         selected.add(name)
-    require(len(selected) == 3, "Power atlases must have distinct paths")
+    require(len(selected) == 7, "Power atlases must have distinct paths")
     crops = []
     for name, cell in manifest["cells"].items():
         sheet, rect, pivot = cell.get("sheet"), cell.get("source", {}), cell.get("pivot", {})
@@ -125,8 +244,11 @@ def street_power_files(output):
                 rect["y"] + rect["height"] <= dimensions[sheet]["height"], "Power crop escapes native atlas")
         require(all(isinstance(pivot.get(key), (int, float)) and math.isfinite(pivot[key]) and
                     0 <= pivot[key] <= rect["width" if key == "x" else "height"] for key in ("x", "y"))
-                and isinstance(cell.get("displayHeight"), (int, float)) and 0 < cell["displayHeight"] <= 500,
+                and isinstance(cell.get("displayHeight"), (int, float)) and
+                0 < cell["displayHeight"] <= (520 if name.startswith("fixture_streetlight_") else 500),
                 "Invalid power cell registration")
+        for key in ("grip", "muzzle"):
+            require(key not in cell or native_anchor(cell[key], rect), "Invalid native weapon " + key)
         for other_sheet, other in crops:
             require(sheet != other_sheet or min(rect["x"] + rect["width"], other["x"] + other["width"]) <= max(rect["x"], other["x"])
                     or min(rect["y"] + rect["height"], other["y"] + other["height"]) <= max(rect["y"], other["y"]),
@@ -164,13 +286,17 @@ def combat_frame_files(output):
                     "Frame source must preserve native transparent RGBA8 PNG")
             require(sheet.get("dimensions") == {"width": int.from_bytes(image[16:20], "big"),
                     "height": int.from_bytes(image[20:24], "big")}, "Native frame dimensions changed")
+        if actor["kind"] == "mac":
+            selected.update(supplemental_frame_files(output, actor, registration))
+        else:
+            require("supplemental" not in actor, "Only Mac has selected supplemental poses")
     require(sorted(bank.get("files", [])) == sorted(selected), "Unregistered file in frame bank")
     return selected
 
 
 def verify_combat_frames(output, files):
     selected = combat_frame_files(output)
-    require({name for name in files if name.startswith(MAC_FRAME_ROOT)} == selected,
+    require({name for name in files if name.startswith((MAC_FRAME_ROOT, MAC_DYNAMIC_ROOT))} == selected,
             "Only registered complete-character assets may enter the game")
     return {"selectedActors": 8, "assetCount": len(selected), "registeredFiles": sorted(selected),
             "nativeHashesAndDimensions": True, "runtimeAcceptance": "not established by packaging"}
@@ -654,7 +780,7 @@ def verify_texture_bank(output, files):
             {name for name in files if name.startswith("assets/mac-combat-rigs/")} == MAC_RIG_ASSETS,
             "The articulated Mac combat bank must include exactly its 17 selected runtime assets")
     frame_files = combat_frame_files(output)
-    require({name for name in files if name.startswith(MAC_FRAME_ROOT)} == frame_files,
+    require({name for name in files if name.startswith((MAC_FRAME_ROOT, MAC_DYNAMIC_ROOT))} == frame_files,
             "The game contains an unregistered complete-character sprite asset")
     power_files = street_power_files(output)
     require({name for name in files if name.startswith(MAC_POWER_ROOT)} == power_files,

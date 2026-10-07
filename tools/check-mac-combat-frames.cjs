@@ -183,20 +183,29 @@ check('actual moving strike, aerial kick and earned guard-counter select distinc
   r.step({strike:{pressed:true,held:true}});r.until(s=>!!s.player.attack);actionPhases(r,'counter');
 });
 check('actual throw release at 140ms, recovery at 280ms and 420ms commitment use authored holds',()=>{
-  const r=rig();r.until(()=>r.game.getControlState().throw.ready,{move_x:1});r.step({throw:{pressed:true,held:true}});
+  const r=rig();r.until(()=>{const control=r.game.getControlState().throw;return control.ready&&control.targetType==='enemy';},{move_x:1});r.step({throw:{pressed:true,held:true}});
+  const victimId=r.view().player.grapple.targetId;
+  for(let i=0;i<24;i++)r.step({throw:{held:true}});
+  const held=r.view().player.grapple;
+  assert.equal(held.phase,'hold');assert(held.elapsedMs>=180);assert.equal(held.releaseAgeMs,0);
+  assert.equal(r.view().enemies.find(e=>e.id===victimId).launched,false);
+  r.step({throw:{held:false,released:true}});
   let beforeRelease=false,released=false,recovery=false;
   for(let i=0;i<65;i++){
     const s=r.view(),g=s.player.grapple;if(!g)break;const p=pose(s.player);
     assert.equal(p.committedKey,'throw');
-    if(!g.released){beforeRelease=true;assert(g.elapsedMs<140);assert.notEqual(p.frameId,'throw_release');}
-    else if(g.elapsedMs+1e-7<280){released=true;assert.equal(p.frameId,'throw_release');}
+    assert(g.elapsedMs>=held.elapsedMs);assert.equal(p.clipTimeMs,g.releaseAgeMs);
+    if(g.releaseAgeMs+1e-7<140){beforeRelease=true;assert(!g.thrown);assert.notEqual(p.frameId,'throw_release');}
+    else if(g.releaseAgeMs+1e-7<280){released=true;assert.equal(g.thrown,true);assert.equal(p.frameId,'throw_release');}
     else{recovery=true;assert.equal(p.frameId,'idle_a');}r.step();
   }
   assert(beforeRelease&&released&&recovery);assert.equal(r.view().player.grapple,null);
 });
 check('a real thrown enemy draws its authored fall in flight and down cel on the actual ground',()=>{
-  const r=rig();r.until(()=>r.game.getControlState().throw.ready,{move_x:1});r.step({throw:{pressed:true,held:true}});
+  const r=rig();r.until(()=>{const control=r.game.getControlState().throw;return control.ready&&control.targetType==='enemy';},{move_x:1});r.step({throw:{pressed:true,held:true}});
   const victimId=r.view().player.grapple.targetId;const compiled=F.compile(registration('chitin_scuttler'),{complete:true});
+  for(let i=0;i<24;i++)r.step({throw:{held:true}});
+  assert.equal(r.view().player.grapple.phase,'hold');r.step({throw:{held:false,released:true}});
   const flying=r.until(s=>s.enemies.some(e=>e.id===victimId&&e.launched));
   const actor=flying.enemies.find(e=>e.id===victimId);assert(actor.elevation>0);assert.equal(pose(actor,compiled).frameId,'fall');
   const landed=r.until(s=>s.enemies.some(e=>e.id===victimId&&!e.launched&&e.knockdownMs>0));

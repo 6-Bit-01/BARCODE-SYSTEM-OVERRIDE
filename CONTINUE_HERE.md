@@ -1,5 +1,11 @@
 # Continue here — existing BARCODE website hosting
 
+## October 6, 2026 — current private Modem weapons and city pass
+
+Continue from source draft PR189 / website draft PR485. The owner expanded the power2 preview with eight weapons, held enemy grabs/pummels, liftable and throwable boxes/barrels, futuristic car wrecking, attached destructible city fixtures, corrected shared prop proportions, complete-character guard/run/item drawings and three temporary powerups. Guard creep is 0.22x speed; double-tap/outer joystick run is 1.65x. L holds enemies up to three seconds by strength, pummelling is capped at one second, and props stay carried until release or interruption. Existing controls remain direct, with a skippable action-driven tutorial.
+
+See docs/source-pack/review-mac-street-dynamic/PRODUCTION_REVIEW.md and art-provenance.md. Final source/site commits, checks, hosted observations and exact v5 source archive are in project-root/verification/mac-street-dynamic-20261006 and its delivery receipts. The prior verified power2 source58efb9a/site5451664 archive is preserved. All six districts, twelve waves, thirty enemies, boss, eight introduction scenes and both Kave choices remain. Owner playtesting, physical-phone FPS and final Mac music remain pending; earlier checkpoints below are historical where they conflict with this current pass.
+
 ## October 6, 2026 — current private Modem power pass
 
 Continue from source draft PR189 and website draft PR485. The private Mac city now uses complete drawn character cels, with the first two districts receiving body throws/finisher launches, destructible props, recovery, coordinated positioning, native damage art and a hands-on skippable tutorial. Inspect/Link restores the market relay with 9 Bit/Kave reactions. All six districts, twelve waves, thirty enemies and both Kave choices remain playable. See [the power pass](docs/source-pack/MAC_STREET_POWER_PASS.md); exact source/site commits, checks, hosted observations and current v5 archive are in project-root/verification/mac-street-power-20261006 and its delivery receipts. Owner playtesting and final Mac music remain pending. Earlier Makko and Level 2-only continuation instructions below are historical for this private branch.

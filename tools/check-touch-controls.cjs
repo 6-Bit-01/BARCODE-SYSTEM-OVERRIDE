@@ -441,6 +441,42 @@ function run(){
   r.B.LevelDifficulty.open=true;r.B.LevelDifficulty.selected=1;T.sync();assert.match(T.readout.textContent,/STANDARD/);
   r.B.LevelDifficulty.selected=2;T.sync();assert.match(T.readout.textContent,/OVERCLOCKED/);
  });
+ const macRig=()=>{
+  const r=touchRig(),view={move:{running:false},strike:{label:'Strike',ready:true},guard:{held:false},throw:{enabled:true,label:'Grab',ready:true,targetType:'enemy',holding:false,holdRemainingMs:null}},releases=[];
+  r.B.MacCombatPreview={active:true,status:'playing',phase:'street',dialogue:()=>false,keyDown:()=>false,keyUp(){},handleActions(){},getControlState:()=>view,
+   combat:{getSnapshot:()=>({desk:{unlocked:false},player:{x:200}})},releaseInputs:reason=>releases.push(reason)};
+  r.T.sync();return Object.assign(r,{view,releases});
+ };
+ check('Mac outer-stick running covers either lane axis and reports actual guarded movement',()=>{
+  const r=macRig();r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,90,617);
+  let actions=r.frame();assert(actions.move_up.held&&actions.run.held&&!actions.move_left.held&&!actions.move_right.held,'Outer vertical travel requests the existing run action');
+  r.view.move.running=true;r.T.sync();assert.equal(r.T.stickLabel.textContent,'RUN');
+  r.view.move.running=false;r.view.guard.held=true;r.T.sync();assert.equal(r.T.stickLabel.textContent,'MOVE','An outer thumb cannot claim RUN while combat guard stops running');
+  r.pointer(r.stick,'pointermove',1,117,697);actions=r.frame();assert(actions.move_right.held&&actions.move_down.held&&!actions.run.held,'Inner diagonal travel stays walking');
+  r.pointer(r.stick,'pointerup',1,117,697);assert(!r.frame().run.held);assert(!r.T.buttons.has('run')&&!r.T.buttons.has('ui:more'));assert.deepEqual(r.work,r.before);
+ });
+ check('Mac held context button updates Grab to Throw with a real deadline without stealing either thumb',()=>{
+  const r=macRig(),button=r.button('road_disrupt');r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,115,670);r.press('road_disrupt',2);
+  assert(r.frame().road_disrupt.held);r.view.throw={enabled:true,label:'Throw',holding:true,holdRemainingMs:2750,targetType:'enemy'};r.view.strike={label:'Pummel',ready:true};r.T.sync();
+  assert.equal(r.button('road_disrupt'),button,'Captured semantic action keeps its native button');assert.equal(r.T.buttons.get('road_disrupt').label.textContent,'Throw');assert.equal(r.T.buttons.get('road_disrupt').status.textContent,'2.8s');
+  assert.equal(r.T.buttons.get('road_attack').label.textContent,'Pummel');let actions=r.frame();assert(actions.road_disrupt.held&&actions.move_right.held&&!actions.road_disrupt.pressed,'Copy updates cannot emit another press');
+  r.view.throw.holdRemainingMs=null;r.T.sync();assert.equal(r.T.buttons.get('road_disrupt').status.textContent,'Release','Props explain release without a false enemy deadline');
+  r.release('road_disrupt',2);actions=r.frame();assert(actions.road_disrupt.released&&!actions.road_disrupt.held&&actions.move_right.held);
+ });
+ check('Mac input reset and browser interruptions cancel holds through the existing touch release owner',()=>{
+  for(const kind of ['input-reset','blur','visibilitychange','resize']){
+   const r=macRig();r.press('road_disrupt',2);r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,144,670);assert(r.frame().road_disrupt.held);
+   r.releases.length=0;
+   if(kind==='input-reset')r.manager.resetActionEdges();else if(kind==='visibilitychange'){r.doc.hidden=true;r.doc.dispatchEvent({type:kind});}else r.w.dispatchEvent({type:kind});
+   assert(r.releases.length>0,'Existing interruption reaches the Mac cancellation API: '+kind);assert.equal(r.T.pointers.size,0);assert.equal(r.manager.actionInput.virtualOwners.size,0);
+   const actions=r.frame();assert(!actions.road_disrupt.pressed&&!actions.road_disrupt.held&&!actions.run.held);assert.deepEqual(r.work,r.before);
+  }
+ });
+ check('Mac cancelled context capture drops the hold while retaining independent steering ownership',()=>{
+  const r=macRig();r.pointer(r.stick,'pointerdown',1,90,670);r.pointer(r.stick,'pointermove',1,117,670);r.press('road_disrupt',2);assert(r.frame().road_disrupt.held);r.releases.length=0;
+  r.release('road_disrupt',2,'pointercancel');assert.deepEqual(r.releases,['pointer-cancel']);const actions=r.frame();assert(actions.move_right.held&&!actions.road_disrupt.held&&!actions.road_disrupt.pressed);
+  assert.equal(r.T.pointers.size,1,'A cancelled context action cannot steal the other thumb');assert.deepEqual(r.work,r.before);
+ });
  console.log('PASS: '+count+' touch action contracts');
 }
 if(require.main===module)run();

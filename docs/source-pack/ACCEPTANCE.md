@@ -1,5 +1,21 @@
 # Acceptance and Test Status
 
+## October 6, 2026 — weapons, held grabs and a destructible city
+
+The owner requested eight distinct weapon types, liftable boxes/props, wreckable futuristic cars, destructible fixtures attached to the city, coherent proportions, a stronger complete-character guard, very slow guarded walking, strength-based held grabs capped at three seconds, a one-second pummel allowance, double-tap running and dynamic power-ups. This continues the existing private Mac review (source PR189 / website PR485), preserving the verified source58efb9a/site5451664 power2 source archive as a recoverable checkpoint.
+
+Grounded Strike uses the equipped pipe, crowbar, shock baton, energy blade, gravity hammer, scatter blaster, coil rifle or plasma disc. They have different reach, commitments and contact rules: pull/shield break, stun, cleave, launch, spread, piercing and returning disc. Durability/ammo is finite and visible. Actual unblocked hurt knocks equipment onto the floor with its remaining charges; guard, parry and Barrier absorption preserve it. Grip/carry poses sheath the inventory weapon.
+
+L is contextual: hold an exposed enemy, lift a carryable crate/barrel, or equip a nearby weapon. Enemy strength limits the hold to one–three seconds; release or timeout commits the throw. Strike while holding pummels for at most one second total per grip. An actual hit breaks the grip; pause, input cancellation, checkpoint retry and zone exit drop safely. Carryable props stay held while L stays held, with reduced movement and no arbitrary three-second limit. Thrown props have real ballistic flight and deduplicated contacts with enemies/cars/fixtures.
+
+Double-tap a horizontal direction within 280 simulation milliseconds to run at 1.65 times normal speed; the phone joystick's outer travel and the existing run action supply the same intent. Guarded walking is 0.22 times normal speed with raised forearms and small careful steps. Grip/carry/guard commitments suppress running. The expanded skippable tutorial follows real combat receipts and names the active keyboard/controller/phone controls; no More menu or added action surface is required.
+
+Futuristic coupe/van damage states, barrels, streetlights and wall-backed terminals enter the existing scene/depth owner. Fixture destruction retains its wall recess/base. Cars appear only in suitable outdoor streets, canal service road and plaza, with no cars on the rooftop or inside the concourse. Whole prop families share a single scale across intact/cracked/broken states against the accepted 260-unit Mac. Overdrive speeds attacks temporarily, Barrier absorbs a hit, and Impact gives a one-use airborne finisher pulse through existing controls.
+
+The original eight actor banks, 126 complete base cels, twelve native PNGs, six district backdrops, story portraits, eight introduction scenes, both Kave choices and original artwork/audio seal are preserved. Twenty-two new complete Mac action cels supplement the accepted bank; whole native equipment attaches at calibrated grips. The power manifest registers six native sheets and forty-seven cells. No body-part renderer, additional frame loop, save/award writer, music transport owner or permanent new button is introduced.
+
+Focused combat, frame, native registration, touch and real-wrapper results, followed by final full-suite, strict-package, exact-head cloud, hosted browser and archive evidence, are retained under project-root/verification/mac-street-dynamic-20261006. Technical validation does not establish owner visual/gameplay acceptance or physical-phone FPS. This is a private playable preview; both PRs remain unmerged and final Mac music remains pending. See [production review](review-mac-street-dynamic/PRODUCTION_REVIEW.md) and [native art and prompt provenance](review-mac-street-dynamic/art-provenance.md).
+
 ## October 6, 2026 — Modem power pass and hands-on tutorial
 
 The owner approved the gameplay pass, tutorial and stronger damage presentation. The first two districts now have flying-body crowd contacts, finisher launches, knockdowns, destructible crates/stall, automatic grounded recovery, coordinated melee positioning and ranged retreat. A small skippable coach follows actual moves and uses keyboard, controller or touch prompts. Existing contextual Throw and Inspect/Link remain direct actions.

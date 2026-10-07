@@ -23,6 +23,7 @@ function rig(){
 }
 function tactical(r,s){
   const controls=r.game.getControlState(),p=s.player,input={};
+  if(p.grapple||p.carry)return {};// Actual L release starts its committed throw.
   const foe=s.enemies.filter(e=>e.hp>0&&e.phase!=='dormant').sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x))[0];
   if(!foe){input.move_x=1;return input;}
   const dx=foe.x-p.x,direction=Math.sign(dx)||p.facing;
@@ -33,13 +34,15 @@ function tactical(r,s){
     .sort((a,b)=>(a.tellMs-a.phaseMs)-(b.tellMs-b.phaseMs))[0];
   const remaining=warning?warning.tellMs-warning.phaseMs:Infinity;
   if(incoming&&controls.jump.ready){input.jump={pressed:true,held:true};return input;}
-  if(warning&&remaining<310&&!p.attack&&!p.throwMs){
+  // A human stops committing a multi-hit combo before the Regent's long cleave,
+  // then times the same final parry/jump edge. No encounter stats are modified.
+  if(warning&&remaining<(warning.kind==='null_regent'?650:310)&&(warning.kind==='null_regent'||!p.attack&&!p.throwMs)){
     if(!warning.attackTell.guardable&&remaining<250&&controls.jump.ready)input.jump={pressed:true,held:true};
     else if(warning.attackTell.guardable&&remaining<105)input.guard={held:true};
     else if(!warning.attackTell.guardable&&!p.elevation)input.move_y=p.laneY>875?-1:1;
     input.move_x=0;return input;
   }
-  if(controls.throw.ready&&!r.lastThrow)input.throw={pressed:true,held:true};
+  if(controls.throw.ready&&controls.throw.targetType==='enemy'&&!r.lastThrow)input.throw={pressed:true,held:true};
   else if(controls.strike.ready&&!r.lastStrike&&Math.abs(dx)<=100&&Math.abs(foe.laneY-p.laneY)<=35)
     input.strike={pressed:true,held:true};
   r.lastThrow=!!input.throw;r.lastStrike=!!input.strike;return input;
@@ -74,7 +77,7 @@ check('earned route retains six districts, twelve waves, thirty foes and reachab
     }
     return tactical(route,s);
   },480000);
-  const s=route.view();assert.equal(s.status,'desk-ready');assert.equal(s.kills,30);assert.equal(s.city.completedWaves,12);
+  const s=route.view();assert.equal(s.status,'desk-ready',JSON.stringify({zone:s.zone.index,wave:s.wave.index,kills:s.kills,lastHits:route.events.filter(e=>e.type==='player-hit').slice(-4)}));assert.equal(s.kills,30);assert.equal(s.city.completedWaves,12);
   assert.equal(s.city.clearedZones.length,6);assert(restored);assert(s.relay.restored);assert(!route.game.interact());
   assert(seenAdvance,'second fights are earned farther down the first two streets');
   assert(seenFlight&&seenKnockdown,'real throws fly, land, and recover');assert.equal(maxMelee,1,'melee commits are coordinated');
@@ -95,8 +98,10 @@ check('launched bodies damage each secondary victim or prop once per flight',()=
 });
 check('ordinary strikes break a crate and its health pickup waits for grounded proximity',()=>{
   const r=rig();r.until(s=>s.enemies[0].phase==='windup',{move_x:1});r.until(s=>s.player.hp<100);
-  r.until(s=>Math.abs(s.player.x-1060)<4&&Math.abs(s.player.laneY-832)<4,s=>({
-    move_x:Math.abs(s.player.x-1060)>3?Math.sign(1060-s.player.x):0,
+  // Props now have a real footprint; strike the near edge while keeping outside
+  // pickup radius even if an attacker causes an ordinary short knockback.
+  r.until(s=>Math.abs(s.player.x-1020)<4&&Math.abs(s.player.laneY-832)<4,s=>({
+    move_x:Math.abs(s.player.x-1020)>3?Math.sign(1020-s.player.x):0,
     move_y:Math.abs(s.player.laneY-832)>3?Math.sign(832-s.player.laneY):0,guard:{held:true}}));
   r.until(s=>s.props.find(prop=>prop.id==='alley-health-crate').broken,s=>
     r.game.getControlState().strike.ready&&!s.player.attack?press('strike'):{});

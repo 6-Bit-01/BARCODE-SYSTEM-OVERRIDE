@@ -63,7 +63,7 @@ function combatInput(r,s){
     else if(warning.attackTell.guardable===false&&p.elevation===0)input.move_y=p.laneY>875?-1:1;
     input.move_x=0;return input;
   }
-  if(controls.throw.ready&&!r.lastThrow)input.throw={pressed:true,held:true};
+  if(controls.throw.ready&&controls.throw.targetType==='enemy'&&!r.lastThrow)input.throw={pressed:true,held:true};
   else if(controls.strike.ready&&!r.lastStrike&&Math.abs(dx)<=100&&Math.abs(foe.laneY-p.laneY)<=35)
     input.strike={pressed:true,held:true};
   r.lastThrow=!!input.throw;r.lastStrike=!!input.strike;
@@ -203,19 +203,22 @@ check('contextual nearby throw has commitment, cooldown and one held activation'
   r.step(press('throw')); r.run(100); assert.equal(r.events.filter(e => e.type === 'throw').length, 0);
   near(r); const id = r.game.getControlState().throw.targetId;
   assert.equal(id, 'service-alley-w1-0-chitin_scuttler'); const hp = r.view().enemies[0].hp;
-  r.step(press('throw')); assert.equal(r.view().player.mode, 'throw');
+  r.step(press('throw')); assert.equal(r.view().player.mode, 'grab-hold');
   assert.equal(r.view().enemies[0].hp,hp,'grab is visibly committed before it deals damage');
-  assert.equal(r.view().player.grapple.phase,'grab');assert.equal(r.view().enemies[0].phase,'grappled');
+  assert.equal(r.view().player.grapple.phase,'hold');assert.equal(r.view().enemies[0].phase,'grappled');
   assert(Math.abs(r.view().enemies[0].animation.motion.vx)>0,'grab reports its actual pulling motion');
   const committedX=r.view().player.x;
   r.run(100,{move_x:-1,throw:{held:true}});
-  assert.equal(r.view().player.x,committedX,'throw cannot slide or reverse during the grab');
-  assert.equal(r.view().enemies[0].hp,hp,'damage is not applied before the140ms release');
-  r.until(s=>s.player.grapple?.released,{throw:{held:true}},100);
+  assert(r.view().player.x<committedX&&r.view().player.x>committedX-20,'holding walks slowly and retains committed facing');
+  assert.equal(r.view().player.facing,1);assert.equal(r.view().enemies[0].hp,hp,'holding itself does not deal damage');
+  r.step();assert(r.view().player.grapple.released);assert.equal(r.view().player.mode,'throw');
+  const releasedX=r.view().player.x;r.run(100,{move_x:-1});assert.equal(r.view().player.x,releasedX,'actual throw release has immobile commitment');
+  assert.equal(r.view().enemies[0].hp,hp,'damage waits140ms after release');
+  r.until(()=>r.events.some(e=>e.type==='throw-release'),{},100);
   assert.equal(r.view().enemies[0].hp, hp - 28);
   assert(r.events.some(e=>e.type==='throw-release'&&e.damage===28));
   assert.equal(r.game.getControlState().throw.ready, false);
-  r.run(1000, {throw: {held: true}});
+  r.run(1000);
   assert.equal(r.events.filter(e => e.type === 'throw').length, 1);
   assert(r.view().enemies[0].x > r.view().player.x + 100, 'throw creates room');
 });
