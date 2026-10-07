@@ -198,10 +198,20 @@ function assertNativeShots(r) {
   const mac=r.B.MacCombatPreview,s=mac.combat.getSnapshot(),p=s.player,shots=s.projectiles.filter(shot=>shot.owner==='player'&&shot.ageMs<=25&&shot.weaponKind===p.attack?.weaponKind);
   if(!shots.length)return;
   const art=mac.frameArt.get('mac'),pose=r.B.MacCombatFrames.sample(p,{player:true,compiled:art.compiled,supplemental:art.supplemental});
-  assert.equal(pose.clipKey,'fire.active');assert(pose.gripAnchor);const cell=mac.powerArt.cells['weapon_'+p.attack.weaponKind],scale=cell.displayHeight/cell.source.height,bodyScale=260/pose.standingHeight;
-  const muzzle=cell.muzzle||cell.grip,angle=pose.weaponAngle,dx=(muzzle.x-cell.grip.x)*scale,dy=(muzzle.y-cell.grip.y)*scale;
-  const forward=(pose.gripAnchor.x-pose.frame.feetPivot.x)*bodyScale+dx*Math.cos(angle)-dy*Math.sin(angle);
-  const elevation=(pose.frame.feetPivot.y-pose.gripAnchor.y)*bodyScale+pose.frame.baselineLift-dx*Math.sin(angle)-dy*Math.cos(angle);
+  const kind=p.attack.weaponKind,owned=art.supplemental?.clips['weapon_'+kind+'.active'],bodyScale=260/pose.standingHeight;
+  let forward,elevation;
+  if(owned) {
+    assert.equal(pose.clipKey,'weapon_'+kind+'.active');assert.equal(pose.frame.embeddedWeapon,kind);
+    assert.equal(pose.weaponStowed,false);assert(pose.shotAnchor);assert.equal(pose.shotAnchor,pose.frame.shotAnchor);
+    forward=(pose.shotAnchor.x-pose.frame.feetPivot.x)*bodyScale;
+    elevation=(pose.frame.feetPivot.y-pose.shotAnchor.y)*bodyScale+pose.frame.baselineLift;
+  } else {
+    assert.equal(pose.clipKey,'fire.active');assert(pose.gripAnchor);
+    const cell=mac.powerArt.cells['weapon_'+kind],scale=cell.displayHeight/cell.source.height;
+    const muzzle=cell.muzzle||cell.grip,angle=pose.weaponAngle,dx=(muzzle.x-cell.grip.x)*scale,dy=(muzzle.y-cell.grip.y)*scale;
+    forward=(pose.gripAnchor.x-pose.frame.feetPivot.x)*bodyScale+dx*Math.cos(angle)-dy*Math.sin(angle);
+    elevation=(pose.frame.feetPivot.y-pose.gripAnchor.y)*bodyScale+pose.frame.baselineLift-dx*Math.sin(angle)-dy*Math.cos(angle);
+  }
   for(const shot of shots) {
     assert(Math.abs(shot.elevation-elevation)<.01,'Actual player shot starts at the registered native muzzle height');
     const origin=shot.x-shot.vx*shot.ageMs/1000;
@@ -343,6 +353,16 @@ async function run() {
     for(const kind of R.weapons)for(const scene of R.scenes)for(const facing of [-1,1]){
       r.work.lastCels=[];r.work.lastDraws=[];
       const placed=R.drawWeapon(ctx,kind,scene,facing,{x:420,feet:390,height:260}),pose=placed.pose;
+      const owned=r.B.MacCombatFrames.embeddedWeapons.includes(kind)&&art.supplemental.clips['weapon_'+kind+'.idle'];
+      if(owned)assert(pose.frame.embeddedWeapon===kind||pose.weaponStowed,
+        'Owned gun/disc must use its complete cel or an explicit temporary stow; generic detached hands are rejected');
+      if(pose.weaponStowed) {
+        assert(owned);assert.equal(placed.item,null,'Temporary stow never attaches a floating weapon');
+        assert.notEqual(pose.frame.embeddedWeapon,kind);assert.equal(r.work.lastCels.length,1);
+        assert.equal(r.work.lastDraws.length,1,'Accepted exception paints only its whole actor cel');
+        assert.equal(r.work.lastCels[0].clipRegion,null);assert.equal(r.work.lastCels[0].rotation,0);
+        painted++;continue;
+      }
       if(pose.frame.embeddedWeapon){
         assert.equal(pose.frame.embeddedWeapon,kind);assert.equal(placed.item,null,'Painted-in weapon has no external overlay');
         assert.equal(r.work.lastCels.length,1,'Embedded weapon and actor draw as one complete authored cel');

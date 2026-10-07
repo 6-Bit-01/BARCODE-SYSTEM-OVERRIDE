@@ -30,6 +30,27 @@ function fixture(){
     baseGripAnchors:{chamber:{gripAnchor:{x:100,y:120},weaponAngle:.2},throw_grab:{gripAnchor:{x:210,y:120},weaponAngle:0}}};
 }
 const registration=fixture(),supplemental=F.compileSupplemental(registration,{baseCompiled:base});
+function embeddedFixture(){
+  const r=fixture();
+  for(const [index,kind]of F.embeddedWeapons.entries()) {
+    const stem=kind.replaceAll('-','_'),sheet='dyn_'+stem,last=kind==='plasma-disc'?'followthrough':'hurt';
+    const ids=['ready','aim','recoil','walk_a','walk_b','run_a','run_b','guard',last];
+    r.sheets.push({id:sheet,sourceImage:'assets/mac-street-dynamic/'+stem+'-fixture.png',
+      sourceSHA256:String(index+1).repeat(64),dimensions:{width:300,height:300},
+      pixelScale:{standingVisibleHeight:70,referenceFrame:stem+'_ready'}});
+    for(const [i,id]of ids.entries())r.frames.push({id:stem+'_'+id,sheet,
+      source:{x:(i%3)*100,y:Math.floor(i/3)*100,width:90,height:90},feetPivot:{x:40,y:85},
+      baselineLift:0,embeddedWeapon:kind,...(id==='recoil'?{shotAnchor:{x:80,y:30}}:{})});
+    const key=action=>'weapon_'+kind+'.'+action;
+    const clip=(ids,loop)=>({loop,frames:ids.map(id=>({frame:stem+'_'+id,holdMs:100}))});
+    r.clips[key('idle')]=clip(['ready'],true);r.clips[key('walk')]=clip(['walk_a','walk_b'],true);
+    r.clips[key('run')]=clip(['run_a','run_b'],true);r.clips[key('guard')]=clip(['guard'],true);
+    r.clips[key('hurt')]=clip([kind==='plasma-disc'?'ready':'hurt'],false);
+    r.clips[key('windup')]=clip(['aim'],false);r.clips[key('active')]=clip(['recoil'],false);
+    r.clips[key('recovery')]=clip([kind==='plasma-disc'?'followthrough':'ready'],false);
+  }
+  return r;
+}
 const actor=(action,extra={})=>({hp:100,facing:1,animation:{action,ageMs:0,motion:{speed:0,stridePhase:0}},...extra});
 const pose=(value,extra={})=>F.sample(value,{player:true,compiled:base,supplemental,...extra});
 check('supplemental compile preserves the original accepted Mac registration and clips',()=>{
@@ -93,6 +114,103 @@ check('pipe-specific complete swings follow the committed weapon and phase witho
   }
   const invalid=plain(r);invalid.frames.at(-1).embeddedWeapon='unregistered-weapon';
   assert.throws(()=>F.compileSupplemental(invalid,{baseCompiled:base}),/unknown embedded weapon/);
+});
+check('each embedded gun and disc retains its own complete ready gait run and guard cels in both facings',()=>{
+  const bank=F.compileSupplemental(embeddedFixture(),{baseCompiled:base});
+  for(const kind of F.embeddedWeapons)for(const facing of [-1,1]) {
+    const stem=kind.replaceAll('-','_');
+    for(const [action,stride,id]of [['idle',0,'ready'],['walk',.1,'walk_a'],['walk',.6,'walk_b'],
+      ['run',.1,'run_a'],['run',.6,'run_b'],['guard',0,'guard'],['guard-creep',.6,'guard']]) {
+      const result=pose(actor(action,{facing,weapon:{kind},animation:{action,ageMs:50,motion:{speed:80,stridePhase:stride}}}),
+        {supplemental:bank,guardImpactAgeMs:20});
+      assert.equal(result.frameId,stem+'_'+id);assert.equal(result.frame.embeddedWeapon,kind);
+      assert.equal(result.supplemental,true);assert.equal(result.facing,facing);
+      assert.equal(result.gripAnchor,null);assert.equal(result.handOcclusion,null);
+      assert.equal(result.frame.itemBindings,undefined);assert.equal(result.shotAnchor,null);
+      assert.equal(result.weaponStowed,false,'Authored owned weapon cels remain visible');
+    }
+  }
+  assert.equal(pose(actor('walk'),{supplemental:bank}).supplemental,false);
+  assert.equal(pose(actor('weapon-melee',{weapon:{kind:'crowbar'},attack:{kind:'crowbar',weaponKind:'crowbar',phase:'active',phaseProgress:.5}}),
+    {supplemental:bank}).clipKey,'melee.active');
+});
+check('committed embedded attacks select the actual weapon and expose a frozen crop-local shot origin',()=>{
+  const bank=F.compileSupplemental(embeddedFixture(),{baseCompiled:base});
+  for(const kind of F.embeddedWeapons)for(const facing of [-1,1])for(const phase of ['windup','active','recovery']) {
+    const action=kind==='plasma-disc'?'weapon-disc':'weapon-fire',stem=kind.replaceAll('-','_');
+    const attack={kind,weaponKind:kind,phase,phaseProgress:.5};
+    const result=pose(actor(action,{facing,weapon:{kind:'pipe'},attack,
+      animation:{action,weaponKind:'pipe',ageMs:0,motion:{speed:0,stridePhase:0}}}),{supplemental:bank});
+    assert.equal(result.clipKey,'weapon_'+kind+'.'+phase);assert.equal(result.frame.embeddedWeapon,kind);
+    assert.equal(result.weaponKind,kind);assert.equal(result.attackType,kind);assert.equal(result.phaseProgress,.5);assert.equal(result.gripAnchor,null);
+    assert.equal(result.weaponStowed,false);
+    if(phase==='active') {
+      assert.deepEqual(plain(result.shotAnchor),{x:80,y:30});assert(Object.isFrozen(result.shotAnchor));
+      assert.equal(result.shotAnchor,result.frame.shotAnchor);
+      const forward=(result.shotAnchor.x-result.frame.feetPivot.x)*260/result.standingHeight;
+      const elevation=(result.frame.feetPivot.y-result.shotAnchor.y)*260/result.standingHeight+result.frame.baselineLift;
+      assert.equal(forward,40*260/70);assert.equal(elevation,55*260/70);
+      assert.equal(result.frameId,stem+'_recoil');
+      const spent=pose(actor(action,{facing,weapon:null,attack}),{supplemental:bank});
+      assert.equal(spent.frameId,result.frameId,'Last charge keeps the committed complete weapon cel');
+    }
+  }
+});
+check('embedded hurt follows actual hurt age while defeat carry and grapple preserve their authoritative cels',()=>{
+  const bank=F.compileSupplemental(embeddedFixture(),{baseCompiled:base});
+  for(const kind of F.embeddedWeapons) {
+    const hurt=pose(actor('run',{hurtMs:100,weapon:{kind},hitFeedback:{ageMs:17},attack:{kind,weaponKind:kind,phase:'invalid'}}),{supplemental:bank});
+    assert.equal(hurt.action,'hurt');assert.equal(hurt.clipKey,'weapon_'+kind+'.hurt');
+    assert.equal(hurt.clipTimeMs,17);assert.equal(hurt.frame.embeddedWeapon,kind);
+    assert.equal(pose(actor('run',{hp:0,weapon:{kind},attack:{kind,weaponKind:kind,phase:'invalid'}}),{supplemental:bank}).clipKey,'defeat');
+    assert.equal(pose(actor('carry',{weapon:{kind},carry:{kind:'crate',elapsedMs:500}}),{supplemental:bank}).clipKey,'carry');
+    assert.equal(pose(actor('grab-hold',{weapon:{kind},grapple:{elapsedMs:500}}),{supplemental:bank}).clipKey,'grab-hold');
+    for(const phase of ['windup','active','recovery'])assert.equal(pose(actor('running-kick',{weapon:{kind},
+      attack:{kind:'running-kick',phase,phaseProgress:.5}}),{supplemental:bank}).clipKey,'air-kick.'+phase);
+  }
+});
+check('partial embedded banks wrong weapon identities detached hands and unsafe shot anchors fail registration',()=>{
+  const bad=edit=>{const r=embeddedFixture();edit(r);assert.throws(()=>F.compileSupplemental(r,{baseCompiled:base}),/Whole-character frames/);};
+  bad(r=>delete r.clips['weapon_coil-rifle.guard']);
+  bad(r=>r.clips['weapon_scatter-blaster.active'].frames[0].frame='coil_rifle_recoil');
+  bad(r=>r.frames.find(f=>f.id==='coil_rifle_recoil').shotAnchor.x=91);
+  bad(r=>delete r.frames.find(f=>f.id==='coil_rifle_recoil').shotAnchor);
+  bad(r=>r.frames.find(f=>f.id==='coil_rifle_guard').gripAnchor={x:40,y:30});
+  bad(r=>r.clips['weapon_plasma-disc.guard'].loop=false);
+  bad(r=>r.clips['weapon_coil-rifle.hurt'].loop=true);
+  bad(r=>r.clips['weapon_coil-rifle.walk'].frames.pop());
+  bad(r=>r.clips['weapon_coil-rifle.active'].frames.push({...r.clips['weapon_coil-rifle.active'].frames[0]}));
+});
+check('unsupported gun and disc airborne kicks landing defeat carry and grapple explicitly stow without changing inventory',()=>{
+  const bank=F.compileSupplemental(embeddedFixture(),{baseCompiled:base});
+  for(const kind of F.embeddedWeapons)for(const facing of [-1,1]) {
+    const weapon={kind,charges:7,maxCharges:8},values=[
+      [actor('jump',{facing,weapon,elevation:90,velocityZ:300}),{}],
+      [actor('jump',{facing,weapon,elevation:90,velocityZ:-300}),{}],
+      [actor('idle',{facing,weapon}),{landingAgeMs:35}],
+      [actor('walk',{facing,weapon,animation:{action:'walk',motion:{speed:80,stridePhase:.6}}}),{landingAgeMs:35}],
+      [actor('run',{facing,weapon,hp:0}),{}],
+      [actor('carry',{facing,weapon,carry:{kind:'crate',elapsedMs:500}}),{}],
+      [actor('grab-hold',{facing,weapon,grapple:{elapsedMs:500}}),{}],
+      [actor('throw',{facing,weapon,grapple:{phase:'release',releaseAgeMs:40,elapsedMs:1500}}),{}]
+    ];
+    for(const move of ['air-kick','counter','running-kick'])for(const phase of ['windup','active','recovery'])
+      values.push([actor(move==='running-kick'?move:'strike',{facing,weapon,
+        attack:{kind:move,phase,phaseProgress:.5}}),{}]);
+    for(const [value,extra]of values) {
+      const before=plain(value),result=pose(value,{supplemental:bank,...extra});
+      assert.equal(result.weaponStowed,true,'Empty generic hands cannot request a detached '+kind+' on '+result.clipKey);
+      assert.equal(result.frame.embeddedWeapon,undefined);assert.deepEqual(plain(value),before);
+      assert.deepEqual(plain(value.weapon),weapon,'Temporary stow retains every charge and inventory identity');
+    }
+    const ready=pose(actor('idle',{facing,weapon}),{supplemental:bank,landingAgeMs:100});
+    assert.equal(ready.clipKey,'weapon_'+kind+'.idle');assert.equal(ready.weaponStowed,false);
+    assert.equal(ready.frame.embeddedWeapon,kind,'Completed landing restores the proper whole weapon ready cel');
+  }
+  const melee=pose(actor('jump',{weapon:{kind:'pipe'},elevation:90,velocityZ:300}),{supplemental:bank});
+  assert.equal(melee.weaponStowed,false,'Existing melee attachments retain their authored route');
+  assert.equal(pose(actor('jump',{weapon:{kind:'coil-rifle'},elevation:90,velocityZ:300})).weaponStowed,false,
+    'Legacy fixtures without the complete profile keep their existing explicitly registered route');
 });
 check('air kick and flight retain accepted complete cels with supplemental item anchors only',()=>{
   const result=pose(actor('strike',{weapon:{kind:'pipe'},attack:{kind:'air-kick',phase:'active',phaseProgress:.5}}));
@@ -212,6 +330,16 @@ function rgba(bytes){
 if(options.registration)check('actual supplemental registration matches native hashes crops ground and uniform scale',()=>{
   const file=path.isAbsolute(options.registration)?options.registration:inside(options.registration);
   const bytes=fs.readFileSync(file),r=JSON.parse(bytes),compiled=F.compileSupplemental(r,{baseCompiled:base});
+  const priorFrames=['guard_brace','guard_step_a','guard_step_b','guard_impact','run_contact_a','run_pass_a','run_contact_b','run_pass_b',
+    'grab_reach','grab_hold','pummel_load','pummel_contact','pickup_load','carry_hold','carry_step_a','carry_step_b',
+    'melee_load','melee_contact','melee_follow','fire_aim','fire_recoil','fire_ready',
+    'pipe_swing_load','pipe_swing_uncoil','pipe_swing_contact','pipe_swing_through','pipe_swing_finish','pipe_swing_recover'];
+  for(const id of priorFrames)assert(compiled.frames[id],'Previous complete cel remains registered: '+id);
+  const pipeFrames=Object.values(compiled.frames).filter(frame=>frame.embeddedWeapon==='pipe');
+  assert.equal(pipeFrames.length,6);assert.deepEqual(pipeFrames.map(frame=>frame.id).sort(),priorFrames.slice(-6).sort());
+  const equipped=F.embeddedWeapons.some(kind=>compiled.clips['weapon_'+kind+'.idle']);
+  assert.equal(Object.keys(compiled.frames).length,equipped?55:28,'Only the selected old28 and optional27 new complete weapon cels belong to this bank');
+  assert.equal(compiled.sheetIds.length,equipped?8:5);
   assert.equal(r.baseRegistrationSHA256,sha(fs.readFileSync(basePath)),'Accepted base registration unchanged');
   assert.equal(inside(r.baseRegistration),basePath,'Supplemental names the actual accepted base');
   const images=new Map(),coverage=new Map(),measurements=[],excludedSource=[];
@@ -232,7 +360,7 @@ if(options.registration)check('actual supplemental registration matches native h
     assert(bottom<=frame.feetPivot.y+2,'Feet anchor above actual ground '+frame.id);
     measurements.push({id:frame.id,sheet:frame.sheet,visibleBounds:{x:left,y:top,width:right-left+1,height:bottom-top+1},
       inkPixels:ink,transparentPixels:transparent,gripAnchor:plain(frame.gripAnchor||null),
-      embeddedWeapon:frame.embeddedWeapon||null,worldScale:260/frame.standingHeight});
+      embeddedWeapon:frame.embeddedWeapon||null,shotAnchor:plain(frame.shotAnchor||null),worldScale:260/frame.standingHeight});
   }
   for(const sheet of Object.values(compiled.sheets)){
     const image=images.get(sheet.id),covered=coverage.get(sheet.id),reference=measurements.find(f=>f.id===sheet.referenceFrame&&f.sheet===sheet.id);

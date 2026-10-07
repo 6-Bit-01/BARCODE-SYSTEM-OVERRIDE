@@ -88,13 +88,19 @@ MAC_DYNAMIC_ROOT = "assets/mac-street-dynamic/"
 MAC_DYNAMIC_SHEETS = {
     "dyn_guard": "mac-guard-two-braids-v1.png", "dyn_run": "mac-run-two-braids-v1.png",
     "dyn_hold": "mac-hold-carry-two-braids-v1.png", "dyn_weapon": "mac-weapon-poses-two-braids-v1.png",
-    "dyn_pipe_swing": "mac-pipe-swing-two-braids-v1.png"}
+    "dyn_pipe_swing": "mac-pipe-swing-two-braids-v1.png",
+    "dyn_scatter_blaster": "mac-scatter-blaster-grips-v1.png",
+    "dyn_coil_rifle": "mac-coil-rifle-grips-v1.png",
+    "dyn_plasma_disc": "mac-plasma-disc-grips-v1.png"}
 MAC_DYNAMIC_IMAGE_HASHES = {
     "dyn_guard": "2a6ed176b8cefba33793f1d6633671322afc8555c01c725cbe8a9ca306e3ed85",
     "dyn_run": "b78e958967d49d32eccb85a19594691e244e6023c34371a002099f3ec0cc4a23",
     "dyn_hold": "c832b0a3cdfd58ce9c117beb9160c876b3df1d6cd4aa92cdb436e16527c916c9",
     "dyn_weapon": "f4d2a4c8d5f602691fa787c08b01680ab1bc19461a035cf0789a336c4969ec93",
-    "dyn_pipe_swing": "a22a5f4787d339614af5c2fc51a548affe55628e057bb54cdeffbdb1e21c83af"}
+    "dyn_pipe_swing": "a22a5f4787d339614af5c2fc51a548affe55628e057bb54cdeffbdb1e21c83af",
+    "dyn_scatter_blaster": "36667f70a3e14bfba05baf4bdf86dda013bc83cb826d340bc3216faf97c274e7",
+    "dyn_coil_rifle": "cd1fd6a52cf1df9fd9ff43a1a047768dc8b4285f6b7488685a45f565e1ecb297",
+    "dyn_plasma_disc": "ad23988027d373b8ca10af1f8e4b99e3adb1cb441c1040b37b9b533e7a8ef8e8"}
 MAC_DYNAMIC_HISTORICAL_IMAGES = {
     "mac-guard-v1.png": "f3410efa856aa1ea7fcedf69bd1e37f8c259af8cfb315282fc81f08b235ca0ee",
     "mac-run-v1.png": "711c9993b6d39b0ce1fbc49897f154618c9d0baafad796a4bb236b2f6d9d4378",
@@ -111,6 +117,32 @@ MAC_PIPE_SWING_PHASES = {
     "active": (("pipe_swing_contact", 95),),
     "recovery": (("pipe_swing_through", 50), ("pipe_swing_finish", 70), ("pipe_swing_recover", 50))}
 MAC_PIPE_SWING_FRAMES = {frame for sequence in MAC_PIPE_SWING_PHASES.values() for frame, _ in sequence}
+MAC_EMBEDDED_WEAPON_SHEETS = {
+    "scatter-blaster": "dyn_scatter_blaster", "coil-rifle": "dyn_coil_rifle", "plasma-disc": "dyn_plasma_disc"}
+MAC_EMBEDDED_WEAPON_SUFFIXES = {
+    "scatter-blaster": ("ready", "aim", "recoil", "walk_a", "walk_b", "run_a", "run_b", "guard", "hurt"),
+    "coil-rifle": ("ready", "aim", "recoil", "walk_a", "walk_b", "run_a", "run_b", "guard", "hurt"),
+    "plasma-disc": ("ready", "windup", "release", "walk_a", "walk_b", "run_a", "run_b", "guard", "followthrough")}
+MAC_EMBEDDED_WEAPON_FRAMES = {
+    kind.replace("-", "_") + "_" + suffix: kind
+    for kind, suffixes in MAC_EMBEDDED_WEAPON_SUFFIXES.items() for suffix in suffixes}
+MAC_EMBEDDED_FRAME_KINDS = {**{frame: "pipe" for frame in MAC_PIPE_SWING_FRAMES}, **MAC_EMBEDDED_WEAPON_FRAMES}
+MAC_EMBEDDED_WEAPON_CLIPS = {}
+for _kind in MAC_EMBEDDED_WEAPON_SHEETS:
+    _prefix = _kind.replace("-", "_") + "_"
+    _sequences = {
+        "idle": (("ready", 160),), "walk": (("walk_a", 100), ("walk_b", 100)),
+        "run": (("run_a", 90), ("run_b", 90)), "guard": (("guard", 160),),
+        "hurt": (("ready" if _kind == "plasma-disc" else "hurt", 140),),
+        "windup": (("windup" if _kind == "plasma-disc" else "aim", 100),),
+        "active": (("release" if _kind == "plasma-disc" else "recoil", 100),),
+        "recovery": (("followthrough" if _kind == "plasma-disc" else "ready", 100),)}
+    for _action, _sequence in _sequences.items():
+        MAC_EMBEDDED_WEAPON_CLIPS[f"weapon_{_kind}.{_action}"] = {
+            "loop": _action in ("idle", "walk", "run", "guard"),
+            "frames": [{"frame": _prefix + suffix, "holdMs": hold} for suffix, hold in _sequence]}
+MAC_EMBEDDED_SHOT_FRAMES = {clip["frames"][0]["frame"] for key, clip in MAC_EMBEDDED_WEAPON_CLIPS.items()
+                            if key.endswith(".active")}
 MAC_DYNAMIC_CLIPS = {"guard", "guard-walk", "run", "grab-start", "grab-hold", "carry", "carry-walk"} | {
     f"{action}.{phase}" for action in ("pummel", "melee", "fire") for phase in ("windup", "active", "recovery")}
 MAC_DYNAMIC_LOOPS = {"guard", "guard-walk", "run", "grab-hold", "carry", "carry-walk"}
@@ -200,31 +232,39 @@ def supplemental_frame_files(output, actor, base):
             registration.get("baseRegistrationSHA256") == actor["registrationSHA256"],
             "Supplemental poses must use the selected unchanged Mac base registration")
     sheets = registration.get("sheets", [])
-    require(len(sheets) == 5 and {sheet.get("id") for sheet in sheets} == set(MAC_DYNAMIC_SHEETS),
-            "Supplemental poses require exactly five selected native sheets")
+    require(len(sheets) == 8 and {sheet.get("id") for sheet in sheets} == set(MAC_DYNAMIC_SHEETS),
+            "Supplemental poses require exactly eight selected native sheets")
     selected, dimensions, crops = {name}, {}, {}
     for sheet in sheets:
         image_name = MAC_DYNAMIC_ROOT + MAC_DYNAMIC_SHEETS[sheet["id"]]
         require(sheet.get("sourceImage") == image_name, "Unselected supplemental native PNG")
-        require(sheet.get("sourceSHA256") == MAC_DYNAMIC_IMAGE_HASHES[sheet["id"]],
+        require(sheet["id"] in MAC_DYNAMIC_IMAGE_HASHES and
+                sheet.get("sourceSHA256") == MAC_DYNAMIC_IMAGE_HASHES[sheet["id"]],
                 "Selected supplemental PNG differs from the pinned native candidate")
         dimensions[sheet["id"]] = native_frame_image(output, sheet, image_name)
         selected.add(image_name)
     frames = registration.get("frames", [])
-    require(len(frames) == 28 and {frame.get("id") for frame in frames} == MAC_DYNAMIC_FRAMES | MAC_PIPE_SWING_FRAMES,
-            "Supplemental poses require 22 attachment cels and six complete pipe swing cels")
+    require(len(frames) == 55 and {frame.get("id") for frame in frames} == MAC_DYNAMIC_FRAMES | set(MAC_EMBEDDED_FRAME_KINDS),
+            "Supplemental poses require 22 attachment cels, six complete pipe cels and nine cels per selected gun/disc")
     by_id = {frame["id"]: frame for frame in frames}
     for frame in frames:
         sheet, rect = frame.get("sheet"), frame.get("source", {})
         require(sheet in dimensions and native_rect(rect, dimensions[sheet]), "Invalid supplemental native crop")
         require(native_anchor(frame.get("feetPivot", {}), rect) and frame.get("baselineLift") == 0,
                 "Supplemental complete-body cel must retain grounded feet")
-        if frame["id"] in MAC_PIPE_SWING_FRAMES:
-            require(sheet == "dyn_pipe_swing" and frame.get("embeddedWeapon") == "pipe" and
+        embedded_kind = MAC_EMBEDDED_FRAME_KINDS.get(frame["id"])
+        if embedded_kind:
+            expected_sheet = "dyn_pipe_swing" if embedded_kind == "pipe" else MAC_EMBEDDED_WEAPON_SHEETS[embedded_kind]
+            require(sheet == expected_sheet and frame.get("embeddedWeapon") == embedded_kind and
                     not any(key in frame for key in ("gripAnchor", "weaponAngle", "itemBindings", "handOcclusion")),
-                    "Only the six complete pipe cels may suppress the external pipe")
+                    "Complete embedded weapon cels must match their selected weapon and suppress only its external item")
+            if frame["id"] in MAC_EMBEDDED_WEAPON_FRAMES:
+                require(frame["id"] not in MAC_EMBEDDED_SHOT_FRAMES or "shotAnchor" in frame,
+                        "Embedded gun/disc active cel must register its native shot origin")
+                if "shotAnchor" in frame:
+                    require(native_anchor(frame["shotAnchor"], rect), "Embedded shot origin escapes its native crop")
         else:
-            require(sheet != "dyn_pipe_swing" and "embeddedWeapon" not in frame and
+            require(sheet not in {"dyn_pipe_swing", *MAC_EMBEDDED_WEAPON_SHEETS.values()} and "embeddedWeapon" not in frame and
                     native_anchor(frame.get("gripAnchor", {}), rect), "Attachment cel must retain its registered grip")
             angle = frame.get("weaponAngle")
             require(type(angle) in (int, float) and math.isfinite(angle) and abs(angle) <= math.pi,
@@ -248,20 +288,26 @@ def supplemental_frame_files(output, actor, base):
             excluded.append(rect)
     clips = registration.get("clips", {})
     pipe_clips = {"pipe-swing." + phase for phase in MAC_PIPE_SWING_PHASES}
-    require(MAC_DYNAMIC_CLIPS | pipe_clips <= set(clips) <= MAC_DYNAMIC_CLIPS | pipe_clips | {"pickup", "guard-impact", "carry-throw"},
+    embedded_clips = {**{key: "pipe" for key in pipe_clips},
+                      **{key: key.removeprefix("weapon_").split(".")[0] for key in MAC_EMBEDDED_WEAPON_CLIPS}}
+    required_clips = MAC_DYNAMIC_CLIPS | set(embedded_clips)
+    loop_clips = MAC_DYNAMIC_LOOPS | {key for key, clip in MAC_EMBEDDED_WEAPON_CLIPS.items() if clip["loop"]}
+    require(required_clips <= set(clips) <= required_clips | {"pickup", "guard-impact", "carry-throw"},
             "Unselected or missing supplemental animation clip")
     for key, clip in clips.items():
-        require(clip.get("loop") is (key in MAC_DYNAMIC_LOOPS) and isinstance(clip.get("frames"), list) and
+        require(clip.get("loop") is (key in loop_clips) and isinstance(clip.get("frames"), list) and
                 clip["frames"], "Invalid supplemental clip sequence")
         for entry in clip["frames"]:
             require(entry.get("frame") in by_id and type(entry.get("holdMs")) in (int, float) and
                     math.isfinite(entry["holdMs"]) and entry["holdMs"] > 0, "Invalid supplemental clip timing")
-            require((entry["frame"] in MAC_PIPE_SWING_FRAMES) is (key in pipe_clips),
-                    "Embedded pipe cels may only belong to their committed pipe phases")
+            require(MAC_EMBEDDED_FRAME_KINDS.get(entry["frame"]) == embedded_clips.get(key),
+                    "Embedded weapon cels may only belong to their own committed weapon clips")
     for phase, sequence in MAC_PIPE_SWING_PHASES.items():
         require(clips["pipe-swing." + phase] == {"loop": False,
                 "frames": [{"frame": frame, "holdMs": hold} for frame, hold in sequence]},
                 "Pipe swing must preserve its exact six-cel phase order and bounded holds")
+    for key, clip in MAC_EMBEDDED_WEAPON_CLIPS.items():
+        require(clips[key] == clip, "Embedded gun/disc clip must preserve its exact native cels, order and bounded holds")
     base_frames = {frame["id"]: frame for frame in base.get("frames", [])}
     anchors = registration.get("baseGripAnchors", {})
     require(isinstance(anchors, dict) and anchors, "Missing selected base-cel weapon grips")

@@ -1,3 +1,21 @@
+## October 7, 2026 — resume saved grips4 refinement
+
+Continue the existing work; do not regenerate the saved native sheets or repeat matching completed checks. The working source selects **55 supplemental complete-character cels on eight sheets**: the previous 22 attachment cels, six bat3 pipe swing cels, and 27 new scatter-blaster, coil-rifle and plasma-disc cels. The bat3 measured ready grips and six-cel swing remain. The three new native PNGs, registration, production sampler/renderer, calibrated shot origins, updated review page and strict packaging pins are saved. See `docs/source-pack/MAC_WEAPON_GRIP_PROVENANCE_20261007.md`.
+
+Evidence is in project-root/verification/mac-weapon-grips-20261007. The saved 16-group strict registration probe and native 55-cel/eight-sheet packaging candidate check still match their recorded current input hashes. The nine production-rendered review cards cover all 27 new cels in both facings; all ten render inputs and image hashes match. These are still renders and candidate checks, not hosted gameplay or owner acceptance. The intermediate embedded sampler receipt is stale; the stow intermediate receipt has current sampler/checker code but describes the older 28-cel/five-sheet native registration.
+
+At this checkpoint the source remains a refinement of `0c702e6`; the website payload at `f5b19ef` still selects bat3's 28/five bank. The grips4 source commit, committed standalone build, website installation, exact-head CI, hosted observation and source archive remain pending. Preserve both previous verification folders, build folders and archives. Source PR189 and website PR485 remain drafts. The review revision is `grips4`; do not claim it is hosted until fresh receipts establish that.
+
+The focused final commands from the source root are below. The final native dynamic check has now passed 24 groups, the base-frame check passed 19, and real-wrapper integration passed 28; retain their saved receipts. The arsenal check reached its muzzle scenario but its old 110-unit setup did not guarantee a victim inside the new 95.588-unit rifle muzzle. Correct that public-input scenario while retaining the close-target and same-first-sweep assertions, then run only its final check.
+
+```text
+node tools/check-mac-dynamic-frames.cjs --registration assets/mac-street-dynamic/mac-modem-actions-v1.json --base assets/mac-combat-frames/mac-frames-v1.json --out ../verification/mac-weapon-grips-20261007/dynamic-frames-native.json
+node tools/check-mac-street-arsenal.cjs
+node tools/check-mac-street-integration.cjs
+```
+
+Keep `--equipment` out of this archival dynamic receipt: its equipment row has a different identity schema. Resume the commit/build/install/preview path after the remaining arsenal check; use final cloud validation for the full source suite rather than repeating the long local suite. Browser unavailability must remain explicitly recorded as an unobserved review checkpoint.
+
 ## October 7, 2026 — measured ready grips for bat3
 
 The owner's annotated bat location is the near tattooed hand, with the shaft upright beside the head. Its native wrapped-handle contact moves toward the butt to crop point (70,306), native sheet point (93,375); the floor pickup pivot stays unchanged. Both accepted idle cels have individually measured near-hand registrations and palm overlap. Crowbar, shock baton, energy blade and gravity hammer use that anatomical contact with separate reviewed orientations that keep the eyes readable. Firearms now retain the complete aiming cel for idle and recovery, replacing the separated-fist ready pose that visibly put a hand inside the barrel. Projectile muzzle profiles were recalculated from the current complete native recoil cel; existing damage, timing and collision sweeps stay intact.

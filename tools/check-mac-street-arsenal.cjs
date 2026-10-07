@@ -164,35 +164,50 @@ check('world props are human scale and only explicit street surfaces are targeta
 check('calibrated long rifle muzzle still hits a point-blank opponent in its first sweep',()=>{
   const native=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/mac-street-power/mac-street-power-v1.json'),'utf8'));
   const poses=JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/mac-street-dynamic/mac-modem-actions-v1.json'),'utf8'));
-  const frame=poses.frames.find(f=>f.id===poses.clips['fire.active'].frames[0].frame);
-  const sheet=poses.sheets.find(s=>s.id===frame.sheet),bodyScale=260/sheet.pixelScale.standingVisibleHeight;
+  const origins={};
   for(const kind of ['scatter-blaster','coil-rifle','plasma-disc']) {
-    const binding=frame.itemBindings[kind],cell=native.cells['weapon_'+kind];assert(binding&&cell);
-    let forward=(binding.gripAnchor.x-frame.feetPivot.x)*bodyScale;
-    let elevation=(frame.feetPivot.y-binding.gripAnchor.y)*bodyScale;
-    if(cell.muzzle) {
-      const itemScale=cell.displayHeight/cell.source.height,angle=binding.weaponAngle;
-      const dx=(cell.muzzle.x-cell.grip.x)*itemScale,dy=(cell.muzzle.y-cell.grip.y)*itemScale;
-      forward+=dx*Math.cos(angle)-dy*Math.sin(angle);
-      elevation-=dx*Math.sin(angle)+dy*Math.cos(angle);
+    const owned=poses.clips['weapon_'+kind+'.active'],clip=owned||poses.clips['fire.active'];
+    const frame=poses.frames.find(f=>f.id===clip.frames[0].frame);
+    const sheet=poses.sheets.find(s=>s.id===frame.sheet),bodyScale=260/sheet.pixelScale.standingVisibleHeight;
+    let forward,elevation;
+    if(owned) {
+      assert.equal(clip.frames.length,1);assert.equal(frame.embeddedWeapon,kind);assert(frame.shotAnchor);
+      forward=(frame.shotAnchor.x-frame.feetPivot.x)*bodyScale;
+      elevation=(frame.feetPivot.y-frame.shotAnchor.y)*bodyScale+frame.baselineLift;
+    } else {
+      const binding=frame.itemBindings[kind],cell=native.cells['weapon_'+kind];assert(binding&&cell);
+      forward=(binding.gripAnchor.x-frame.feetPivot.x)*bodyScale;
+      elevation=(frame.feetPivot.y-binding.gripAnchor.y)*bodyScale;
+      if(cell.muzzle) {
+        const itemScale=cell.displayHeight/cell.source.height,angle=binding.weaponAngle;
+        const dx=(cell.muzzle.x-cell.grip.x)*itemScale,dy=(cell.muzzle.y-cell.grip.y)*itemScale;
+        forward+=dx*Math.cos(angle)-dy*Math.sin(angle);
+        elevation-=dx*Math.sin(angle)+dy*Math.cos(angle);
+      }
     }
-    assert(Math.abs(M.weapons[kind].muzzleForward-forward)<=.0005,kind+' muzzle matches its selected native trigger grip');
+    origins[kind]={forward,elevation};
+    assert(Math.abs(M.weapons[kind].muzzleForward-forward)<=.0005,kind+' muzzle matches its selected native origin');
     assert(Math.abs(M.weapons[kind].muzzleElevation-elevation)<=.0005,kind+' muzzle matches its selected native height');
   }
   const r=rig();r.equipped=new Set();r.used=new Set();
   r.until(s=>s.player.weapon?.kind==='coil-rifle'||s.status==='defeated',s=>{
     for(const e of r.events){if(e.type==='weapon-equipped')r.equipped.add(e.kind);if(e.type==='strike'&&e.weaponKind)r.used.add(e.weaponKind);}
     return routeInput(r,s);},450000);assert.notEqual(r.view().status,'defeated');
-  r.until(s=>!s.player.hurtMs&&s.enemies.some(e=>e.hp&&e.phase==='windup'&&Math.abs(e.x-s.player.x)<110&&Math.abs(e.laneY-s.player.laneY)<30),s=>{
+  // Keep the public-input opponent comfortably inside the selected native muzzle,
+  // including movement during the rifle's actual windup; the old110/80 setup
+  // could hit beyond the new shorter barrel and never exercise its close sweep.
+  const closeRange=origins['coil-rifle'].forward*.55,walkRange=closeRange*.65;
+  r.until(s=>!s.player.hurtMs&&s.enemies.some(e=>e.hp&&e.phase==='windup'&&Math.abs(e.x-s.player.x)<closeRange&&Math.abs(e.laneY-s.player.laneY)<30),s=>{
     const foe=s.enemies.filter(e=>e.hp).sort((a,b)=>Math.abs(a.x-s.player.x)-Math.abs(b.x-s.player.x))[0];
-    return {move_x:Math.abs(foe.x-s.player.x)>80?Math.sign(foe.x-s.player.x):0,move_y:Math.abs(foe.laneY-s.player.laneY)>8?Math.sign(foe.laneY-s.player.laneY):0,guard:{held:true}};
+    return {move_x:Math.abs(foe.x-s.player.x)>walkRange?Math.sign(foe.x-s.player.x):0,move_y:Math.abs(foe.laneY-s.player.laneY)>8?Math.sign(foe.laneY-s.player.laneY):0,guard:{held:true}};
   },15000);
   assert.equal(r.view().player.weapon.kind,'coil-rifle');r.step(press('strike'));
   const eventStart=r.events.length;r.until(()=>r.events.slice(eventStart).some(e=>e.type==='weapon-fired'),{},1000);
   const shot=r.events.slice(eventStart).find(e=>e.type==='weapon-fired'),hit=r.events.slice(eventStart).find(e=>e.type==='enemy-hit'&&e.cause==='coil-rifle');
   assert(shot&&hit);assert.equal(hit.atMs,shot.atMs,'first physical sweep includes chest-to-muzzle segment');
   assert((hit.x-shot.x)*shot.facing>0&&(hit.x-shot.muzzleX)*shot.facing<0,'contact really was closer than the drawn barrel tip');
-  assert.equal(shot.elevation,222.909454413);assert(Math.abs((shot.muzzleX-shot.x)*shot.facing-169.159868331)<.001);
+  assert.equal(shot.elevation,Number(origins['coil-rifle'].elevation.toFixed(9)));
+  assert(Math.abs((shot.muzzleX-shot.x)*shot.facing-origins['coil-rifle'].forward)<.001);
 });
 let street;
 check('a box carries beyond3s, pause drops safely, and a real throw hits a car once',()=>{
