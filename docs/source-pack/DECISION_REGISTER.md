@@ -1,5 +1,15 @@
 # Decision Register
 
+## October 6, 2026 — complete drawn cels integrated into the playable private city
+
+The owner confirmed that work should continue into the game after accepting revised Walk and Air kick study revision 2. The private Mac wrapper now uses complete-character held drawings for Mac, six alien species and the four-armed Null Regent. It loads the exact eight hashed registrations and twelve native transparent PNGs from `assets/mac-combat-frames/mac-combat-frames-v1.json`; the entry launches `MacCombatFrames` instead of the rejected articulated renderer. The registered sibling bank adds exactly 21 assets, preserving the sealed 624 original artwork/audio identities, earlier city art and rejected rig history.
+
+Mac's accepted walk alternates the two opposite contact keys with passing cels at the existing movement speed. Jump pose progression follows real launch velocity/gravity, with constant pelvis registration applied to each complete airborne cel. The landing key follows the real land event. Kick contact starts with the actual active damage window. Enemy preparations and contacts follow their existing distinct attack types and delayed hit timing. Passing poses use visually registered waist projections; the mantid's aerial contact uses its hip rather than its low scythe tips. A defeated airborne Mac settles onto the lane using the existing presentation clock; pause still freezes presentation.
+
+Six districts, twelve waves, enemy combinations, six Mac attacks, throws, green/purple alien blood, red damage blood, both Kave choices, music, saves, mobile controls and the shared lifecycle/input/frame owners remain intact. There is one complete cel draw per fighter and no extra frame loop or old-rig fallback. Selected native bytes, prompts, analyses and focused receipts are retained with this review.
+
+The owner has accepted the study walk and air kick for now. Acceptance of the integrated chapter, new enemy motion and physical-device performance remains owner playtesting. This is a private draft branch; production publication is not implied. Exact build, installed payload, CI, hosted observation and archive identities are recorded in the final release receipts.
+
 ## October 6, 2026 — owner accepts revised Walk and Air kick for now
 
 After playing the refreshed study, the owner said, "Awesome! That works for now!" Keep the two revised clips and their illustrated complete-body frames. This accepts the standalone animation study for now; it does not claim that the playable chapter has already switched rendering.

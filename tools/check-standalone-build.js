@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 const { inflateSync } = require('node:zlib');
 
 const output = path.resolve(process.argv[2] || '');
@@ -53,6 +54,31 @@ const macRigRoot = 'assets/mac-combat-rigs/';
 const macRigActors = ['mac', 'chitin_scuttler', 'psion_lancer', 'bile_spitter', 'prism_guard', 'rift_stalker', 'shock_mantid', 'null_regent'];
 const macRigStem = kind => kind === 'mac' ? 'mac-modem-v2' : kind + '-v1';
 const macRigAssets = new Set(['mac-combat-art-v1.json', ...macRigActors.flatMap(kind => [macRigStem(kind) + '.png', macRigStem(kind) + '-rig.json'])].map(name => macRigRoot + name));
+const macFrameRoot = 'assets/mac-combat-frames/';
+function combatFrameFiles() {
+  const bankName = macFrameRoot + 'mac-combat-frames-v1.json', bank = JSON.parse(read(bankName));
+  assert.equal(bank.schemaVersion, 1);
+  assert.deepEqual(bank.actors.map(actor => actor.kind).sort(), [...macRigActors].sort());
+  const selected = new Set([bankName]);
+  for (const actor of bank.actors) {
+    const registrationName = macFrameRoot + actor.kind + '-frames-v1.json';
+    assert.equal(actor.registration, registrationName);
+    selected.add(registrationName);
+    const bytes = fs.readFileSync(localAsset(registrationName));
+    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), actor.registrationSHA256);
+    const registration = JSON.parse(bytes);
+    assert.equal(registration.actor, actor.kind); assert.equal(registration.schemaVersion, 1);
+    assert.equal(registration.facing, 'right');
+    for (const sheet of registration.sheets) {
+      assert.match(sheet.sourceImage, /^assets\/mac-combat-frames\/[a-z0-9_-]+-v[0-9]+\.png$/);
+      selected.add(sheet.sourceImage);
+      assert.equal(owner.files[sheet.sourceImage]?.sha256, sheet.sourceSHA256);
+    }
+  }
+  assert.deepEqual([...bank.files].sort(), [...selected].sort(), 'Only selected native cels and registrations belong to the bank');
+  assert.deepEqual(Object.keys(owner.files).filter(name => name.startsWith(macFrameRoot)).sort(), [...selected].sort());
+  return selected;
+}
 const encoderCommit = '4d6fc70eaf62ad0558e63e8d97eb9766118327a6';
 const transcoderCommit = '9bebe16726b3a61c8c213eeee3b7cffb462ef34e';
 function textureManifest() {
@@ -356,7 +382,8 @@ function checkMacReviewAssets(scripts, index) {
       Math.min(a.y + a.height, b.y + b.height) <= Math.max(a.y, b.y), 'Registered pose crops overlap');
   }
   assert(new Set(sheet.frames.map(frame => frame.source.width)).size > 1, 'Measured nonuniform crops must not become equal atlas cells');
-  const macScripts = ['src/game/mac-street-combat.js', 'src/game/mac-street-story.js', 'src/game/mac-combat-animation.js', 'src/game/mac-combat-preview.js'];
+  const macScripts = ['src/game/mac-street-combat.js', 'src/game/mac-street-story.js', 'src/game/mac-combat-frames.js', 'src/game/mac-combat-preview.js'];
+  assert(!scripts.includes('src/game/mac-combat-animation.js'), 'Rejected articulated renderer must not launch');
   for (const name of macScripts) { assert.equal(scripts.filter(script => script === name).length, 1, 'One Mac script owner: ' + name); localFile(name); }
   assert(macScripts.slice(0, 3).every(name => scripts.indexOf(name) < scripts.indexOf(macScripts[3])), 'Both factories and the animation owner must precede the preview wrapper');
   assert(scripts.indexOf('src/core/runtime-lifecycle.js') < scripts.indexOf(macScripts[3]), 'Mac preview must retain the shared lifecycle owner');
@@ -466,9 +493,10 @@ async function checkRoadTextureBank() {
   assert.deepEqual(assets.filter(name => name.startsWith(macCityRoot)), [...macCityAssets].sort(), 'Only the exact 23 Mac city siblings may extend originals');
   assert.equal(macRigAssets.size, 17);
   assert.deepEqual(assets.filter(name => name.startsWith(macRigRoot)), [...macRigAssets].sort(), 'Only the exact 17 articulated combat assets may extend originals');
-  const originals = assets.filter(name => !derivatives.has(name) && !macReviewAssets.has(name) && !macCityAssets.has(name) && !macRigAssets.has(name));
+  const frameFiles = combatFrameFiles();
+  const originals = assets.filter(name => !derivatives.has(name) && !macReviewAssets.has(name) && !macCityAssets.has(name) && !macRigAssets.has(name) && !frameFiles.has(name));
   assert.equal(originals.length, originalAssetCount, 'All 624 original assets must remain present');
-  assert.equal(owner.canonicalAssetCount - derivatives.size - macReviewAssets.size - macCityAssets.size - macRigAssets.size, originalAssetCount);
+  assert.equal(owner.canonicalAssetCount - derivatives.size - macReviewAssets.size - macCityAssets.size - macRigAssets.size - frameFiles.size, originalAssetCount);
   const originalRows = originals.map(name => [name, files[name].bytes, files[name].sha256]);
   assert.equal(crypto.createHash('sha256').update(JSON.stringify(originalRows)).digest('hex'), originalAssetInventorySHA256,
     'Original artwork, music, sprites or asset metadata changed');
@@ -505,7 +533,7 @@ async function checkRoadTextureBank() {
     assert.equal(entry.originalPath, catalog[key]?.path, 'Texture bank targets different production art: ' + key);
   }
   return { sources: 171, compressed: 149, originalSVG: 22, unchangedOriginalAssets: originals.length,
-    derivativeFiles: derivatives.size, macReviewAssetCount: macReviewAssets.size, macCityAssetCount: macCityAssets.size, macRigAssetCount: macRigAssets.size,
+    derivativeFiles: derivatives.size, macReviewAssetCount: macReviewAssets.size, macCityAssetCount: macCityAssets.size, macRigAssetCount: macRigAssets.size, macFrameAssetCount: frameFiles.size,
     compressedBytes, compressedMipBytes: residentMipBytes, svgMipBytes,
     originalMipBytes, gpuMipBytes: residentMipBytes + svgMipBytes, originalAssetInventorySHA256,
     fullResolution: true, premultipliedUNORM: true, productionKeyAndPathCoverage: true, actualAssetHashes: true };
@@ -557,6 +585,11 @@ async function main() {
   const macReview = checkMacReviewAssets(scripts, index);
   const macRigs = verifyArticulatedBank(name => fs.readFileSync(localAsset(name)), owner.files,
     macRigRoot, macRigActors, macRigAssets, data => crypto.createHash('sha256').update(data).digest('hex'));
+  const frameFiles = combatFrameFiles();
+  const frameCheck = execFileSync(process.execPath, [path.join(__dirname, 'check-mac-combat-frames.cjs'), output,
+    '--manifest', macFrameRoot + 'mac-combat-frames-v1.json'], {encoding: 'utf8', timeout: 120000});
+  assert.match(frameCheck, /native actors checked: 8/, 'Native complete-character cels must pass actual hash, crop, alpha and action checks');
+  const macFrames = {selectedActors: 8, assetCount: frameFiles.size, nativeCelsChecked: true, runtimeAcceptance: 'not established by packaging'};
   const vendorRoot = 'src/vendor/pixi-8.22.0/';
   const vendorHashes = {
     'pixi.min.js': '06d9ef9823e743518793083c296d801e752db128cb1f519fbabe37e1259567ea',
@@ -691,7 +724,7 @@ async function main() {
     localAnimatedShipTypes: 3, forcedShipAtlasRetry: true, existingBootOwnerSpritePreload: true,
     containedNativeViewportCSS: true, linkedStylesheet: true, localIndexLinks,
     pinnedLocalRenderer: 'pixi.js@8.22.0', pinnedLocalTranscoder: 'Basis Universal@2.50',
-    vendorLicenseAndHashes: true, gpuRendererLoadOrder: true, compressedTextureBank: textureInventory, macReview, macRigs,
+    vendorLicenseAndHashes: true, gpuRendererLoadOrder: true, compressedTextureBank: textureInventory, macReview, macRigs, macFrames,
     limits: 'VM contracts and local files only; no browser, listening or performance acceptance' }));
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

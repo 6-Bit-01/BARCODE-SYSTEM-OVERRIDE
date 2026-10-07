@@ -5,6 +5,7 @@
 // health, encounters, choices and action routing are never imitated or patched.
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
+const {webcrypto} = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const plain = value => JSON.parse(JSON.stringify(value));
 class EventTarget {
@@ -55,12 +56,14 @@ class Element extends EventTarget {
   click() { if (!this.disabled) this.dispatchEvent({type: 'click', bubbles: true, detail: 0}); }
   getBoundingClientRect() { return {left: 20, top: 600, width: 140, height: 140, right: 160, bottom: 740}; }
 }
-function rig({touch = false, initAudio} = {}) {
-  const work = {raf: 0, timers: 0, intervals: 0, canvases: 0, writes: [], profiles: [], audio: [], decoded: [], partDraws: {}};
+function rig({touch = false, initAudio, corruptAsset} = {}) {
+  const work = {raf: 0, timers: 0, intervals: 0, canvases: 0, writes: [], profiles: [], audio: [], decoded: [], celDraws: {}, lastCels: [], lastRotations: [], fetched: []};
   let now = 1000, nextRaf = 0; const scheduled = new Map(), pads = [];
   const doc = new EventTarget(); doc.readyState = 'loading'; doc.hidden = false;
   const ctx = canvas => new Proxy({canvas, measureText: text => ({width: String(text).length * 12}),
-    drawImage(image, ...args) { if (args.length === 8 && image.src?.startsWith('assets/mac-combat-rigs/')) work.partDraws[image.src] = (work.partDraws[image.src] || 0) + 1; },
+    drawImage(image, ...args) { if (args.length === 8 && image.src?.startsWith('assets/mac-combat-frames/')) {
+      work.celDraws[image.src] = (work.celDraws[image.src] || 0) + 1; work.lastCels.push({path: image.src, args, position: this.lastTranslate});
+    } }, translate(x,y) { this.lastTranslate=[x,y]; }, rotate(angle) { work.lastRotations.push(angle); },
     getTransform: () => ({a: 1, b: 0, c: 0, d: 1, e: 0, f: 0})}, {get(obj, key) { return key in obj ? obj[key] : () => {}; }});
   doc.createElement = tag => { const e = new Element(tag, doc); if (tag === 'canvas') { work.canvases++; e.getContext = () => e.context ||= ctx(e); } return e; };
   doc.documentElement = doc.createElement('html'); doc.body = doc.createElement('body'); doc.body.parentNode = doc;
@@ -72,7 +75,7 @@ function rig({touch = false, initAudio} = {}) {
     e.id = id; if (id === 'continueButton') e.hidden = true; if (id === 'gameCanvas') { e.width = 1920; e.height = 1080; } doc.body.appendChild(e);
   }
   const win = new EventTarget();
-  Object.assign(win, {document: doc, console, Math, Date, Map, Set, URLSearchParams,
+  Object.assign(win, {document: doc, console, Math, Date, Map, Set, URLSearchParams, crypto: webcrypto, TextDecoder, Uint8Array,
     location: {search: '?preview=mac-firstslice'}, innerWidth: 390, innerHeight: 844,
     performance: {now: () => now}, navigator: {maxTouchPoints: touch ? 5 : 0, getGamepads: () => pads},
     matchMedia: query => ({matches: touch && /coarse|hover:\s*none/.test(query), addEventListener() {}, removeEventListener() {}}),
@@ -98,7 +101,12 @@ function rig({touch = false, initAudio} = {}) {
       }
       assert.fail('Native image dimensions unavailable: '+this.src);
     }},
-    fetch: async url => ({ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(root, url), 'utf8').replace(/^\uFEFF/, ''))}),
+    fetch: async url => {
+      work.fetched.push(url); let bytes = fs.readFileSync(path.join(root, url));
+      if (corruptAsset === url) { bytes = Buffer.from(bytes); bytes[Math.floor(bytes.length / 2)] ^= 1; }
+      return {ok: true, json: async () => JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/, '')),
+        arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)};
+    },
     titleScreen: {hide() {}, show() {}},
     initAudio: initAudio || (async () => { work.audio.push('init'); }),
     audioSystem: {context: {currentTime: 2}, layersStarted: false,
@@ -118,7 +126,7 @@ function rig({touch = false, initAudio} = {}) {
   B.Campaign = {resetSession() { assert.fail('Private preview must not initialize a campaign'); }, syncTitleButton() {}};
   B.LoreRecords = {catalog: [], getCatalog: () => [], chapters: () => []};
   load('src/game/pause-menu.js'); load('src/core/runtime-lifecycle.js'); load('src/core/loop.js');
-  load('src/game/mac-street-combat.js'); load('src/game/mac-street-story.js'); load('src/game/mac-combat-animation.js'); load('src/game/mac-combat-preview.js');
+  load('src/game/mac-street-combat.js'); load('src/game/mac-street-story.js'); load('src/game/mac-combat-frames.js'); load('src/game/mac-combat-preview.js');
   const manager = win.inputManager = new win.InputManager();
   doc.readyState = 'complete'; load('src/core/touch-controls.js');
   const globalListeners = () => [...win.listeners.values(), ...doc.listeners.values()].reduce((sum, items) => sum + items.length, 0);
@@ -128,6 +136,7 @@ function rig({touch = false, initAudio} = {}) {
   const r = {w: win, doc, B, manager, work, pads, scheduled, key, pointer, globalListeners,
     async start() { const result = await B.RuntimeLifecycle.start({privatePreview: 'mac-firstslice'}); assert(result.ok, JSON.stringify(result)); return result; },
     frame(dt = 1000 / 60) {
+      work.lastCels = []; work.lastRotations = [];
       const handle = win.gameLoopRafHandle; assert(scheduled.has(handle), 'existing gameplay owner has the next frame');
       const callback = scheduled.get(handle); scheduled.delete(handle); now += dt; callback(now);
       assert(scheduled.size <= 1, 'at most one gameplay RAF'); return B.MacCombatPreview.getSnapshot();
@@ -140,7 +149,26 @@ function rig({touch = false, initAudio} = {}) {
   return r;
 }
 const settle = async () => { for (let n = 0; n < 12; n++) await Promise.resolve(); };
-const workUnusedAtlases = paths => paths.every(file => !/mac-poses-v3\.png|mac-attacks-v4\.png|mac-city-review\/(?:chitin_scuttler|psion_lancer|bile_spitter|prism_guard|rift_stalker|shock_mantid|null_regent)-.*\.png/.test(file));
+const workUnusedAtlases = paths => paths.every(file => !/mac-combat-rigs\/|mac-poses-v3\.png|mac-attacks-v4\.png|mac-city-review\/(?:chitin_scuttler|psion_lancer|bile_spitter|prism_guard|rift_stalker|shock_mantid|null_regent)-.*\.png/.test(file));
+function assertWholeFrame(r) {
+  const mac=r.B.MacCombatPreview,s=mac.combat.getSnapshot(),camera=mac.cameraX;
+  const actors=[{kind:'mac',actor:s.player},...s.enemies.filter(e=>(e.hp>0||e.phase==='defeated'&&e.animation.ageMs<600)&&e.x-camera>-220&&e.x-camera<1920/1.35+220).map(actor=>({kind:actor.kind,actor}))]
+    .sort((a,b)=>a.actor.laneY-b.actor.laneY);
+  assert.equal(r.work.lastCels.length,actors.length,'One complete cel per actual visible actor');
+  assert.deepEqual(r.work.lastRotations,[],'Street cels have no part or body rotation');
+  for(let i=0;i<actors.length;i++) {
+    const {kind,actor}=actors[i],art=mac.frameArt.get(kind),height=kind==='null_regent'?335:260;
+    const stateAgeMs=kind==='mac'&&mac.playerDefeatedAtMs!==null?s.elapsedMs-mac.playerDefeatedAtMs+mac.elapsedMs-mac.playerDefeatedHostAtMs:undefined;
+    const landingAgeMs=kind==='mac'&&mac.playerLandedAtMs!==null?s.elapsedMs-mac.playerLandedAtMs:undefined;
+    const pose=r.B.MacCombatFrames.sample(actor,{compiled:art.compiled,player:kind==='mac',stateAgeMs,landingAgeMs}),frame=pose.frame,scale=height/frame.standingHeight;
+    assert.equal(r.work.lastCels[i].path,frame.sourceImage,'Exact selected native sheet');
+    assert.deepEqual(r.work.lastCels[i].args,[frame.source.x,frame.source.y,frame.source.width,frame.source.height,
+      -frame.feetPivot.x*scale,-frame.feetPivot.y*scale,frame.source.width*scale,frame.source.height*scale],'Exact authored crop, uniform scale and pivot');
+    const downStartsMs=art.compiled.clips.defeat.frames.at(-1).startMs;
+    const elevation=kind==='mac'&&pose.action==='defeat'?(actor.elevation||0)*(1-Math.max(0,Math.min(1,pose.clipTimeMs/Math.max(1,downStartsMs)))):actor.elevation||0;
+    assert.deepEqual(r.work.lastCels[i].position,[actor.x-camera,actor.laneY-elevation-frame.baselineLift*height/260],'Whole-cel registration follows actual flight and grounds finite defeat');
+  }
+}
 const pressKey = (r, key) => { r.key('keydown', key); r.frame(); r.key('keyup', key); };
 async function fightRoute(r) {
   const actionInput = r.manager.actionInput;
@@ -187,6 +215,17 @@ async function fightRoute(r) {
 let groups = 0;
 async function check(name, body) { await body(); groups++; console.log('PASS Mac integration ' + name); }
 async function run() {
+  await check('registration and native sheet hash mismatches reject entry without a part-rig fallback', async () => {
+    const bank=JSON.parse(fs.readFileSync(path.join(root,'assets/mac-combat-frames/mac-combat-frames-v1.json'),'utf8'));
+    const actor=bank.actors.find(a=>a.kind==='mac'),registration=JSON.parse(fs.readFileSync(path.join(root,actor.registration),'utf8'));
+    const nativeSheet=registration.sheets?.[0]?.sourceImage||registration.sourceImage;
+    for(const corruptAsset of [actor.registration,nativeSheet]) {
+      const r=rig({corruptAsset});await assert.rejects(r.B.MacCombatPreview.prepare(),/mac-frame-asset-hash-mismatch/);
+      assert.equal(r.B.MacCombatPreview.frameArt.size,0);assert.equal(r.scheduled.size,0);
+      assert(workUnusedAtlases(r.work.decoded));assert.deepEqual(r.work.audio,[]);assert.deepEqual(r.work.writes,[]);
+      r.B.MacCombatPreview.dispose();await settle();
+    }
+  });
   await check('private lifecycle start/exit owns one frame and restores custom source bindings', async () => {
     const r = rig(), input = r.manager.actionInput;
     input.remap('jump', ['z', 'arrowup']); input.remap('road_attack', ['q']); const original = plain(input.keyboardBindings), listeners = r.globalListeners();
@@ -194,8 +233,12 @@ async function run() {
     assert.equal(r.scheduled.size, 1); assert.deepEqual(plain(input.keyboardBindings.jump), [' ']);
     assert.equal(r.work.canvases, 1, 'Mac prepare/enter creates no canvas'); assert.equal(r.work.timers, 0); assert.equal(r.work.intervals, 0);
     r.run(200); assert.equal(r.globalListeners(), listeners);
-    assert.equal(r.B.MacCombatPreview.rigArt.size, 8, 'Exactly one native articulated sheet per character is resident');
-    assert(workUnusedAtlases(r.work.decoded), 'Retained historical pose atlases are not decoded by the new combat renderer');
+    assert.equal(r.B.MacCombatPreview.frameArt.size, 8, 'Exactly eight complete native character registrations are resident');
+    for(const art of r.B.MacCombatPreview.frameArt.values()) {
+      assert(art.compiled.complete);assert.equal(art.images.size,art.compiled.sheetIds.length);
+      for(const sheet of Object.values(art.compiled.sheets)) assert(r.work.fetched.includes(sheet.sourceImage),'Every exact native image is hash checked');
+    }
+    assert(workUnusedAtlases(r.work.decoded), 'Part rigs and retained historical pose atlases are not decoded');
     await r.B.MacCombatPreview.exit(); assert.equal(r.scheduled.size, 0); assert.equal(r.B.RuntimeLifecycle.getState(), 'idle');
     assert.equal(r.B.MacCombatPreview.active, false); assert.deepEqual(plain(input.keyboardBindings), original);
     assert.deepEqual(r.work.writes, []); assert.equal(r.doc.getElementById('startOverlay').classList.contains('hidden'), false);
@@ -228,6 +271,28 @@ async function run() {
     pressKey(r, ' '); assert(p().elevation > 0); r.run(800); pressKey(r, 'j'); assert.equal(p().attack.step, 1);
     await r.B.MacCombatPreview.exit(); assert(r.manager.actionInput.keyboardBindings.jump.includes('w'));
   });
+  await check('played gait and full ballistic jump draw authored whole cels through the existing frame', async () => {
+    const r=rig();await r.start();r.manager.touchCommand('mac:skip');const mac=r.B.MacCombatPreview,F=r.B.MacCombatFrames;
+    const walkFrames=new Set();r.key('keydown','d');
+    for(let i=0;i<45;i++){r.frame();assertWholeFrame(r);walkFrames.add(F.sample(mac.combat.getSnapshot().player,{compiled:mac.frameArt.get('mac').compiled,player:true}).frameId);}
+    r.key('keyup','d');assert(walkFrames.size>=4,'Played distance reaches both accepted contact and passage sides');
+    const clips=new Set(),jumpFrames=new Set();pressKey(r,' ');
+    for(let i=0;i<100;i++) {
+      const p=mac.combat.getSnapshot().player;if(p.elevation===0&&p.velocityZ===0)break;
+      assertWholeFrame(r);const pose=F.sample(p,{compiled:mac.frameArt.get('mac').compiled,player:true});
+      clips.add(pose.clipKey);jumpFrames.add(pose.frameId);r.frame();
+    }
+    assert.deepEqual([...clips],['jump-rise','jump-fall']);assert(jumpFrames.size>=3,'Actual velocity advances multiple complete flight poses');
+    const landed=mac.lastEvents.find(e=>e.type==='land');assert(landed);assert.equal(mac.playerLandedAtMs,landed.atMs);
+    assertWholeFrame(r);assert.equal(F.sample(mac.combat.getSnapshot().player,{compiled:mac.frameArt.get('mac').compiled,player:true,landingAgeMs:mac.combat.getSnapshot().elapsedMs-landed.atMs}).clipKey,'landing');
+    assert.equal(r.work.canvases,1,'Preview has only the existing game canvas before pause');
+    await r.B.RuntimeLifecycle.pause();r.frame();const landedClock=mac.combat.getSnapshot().elapsedMs;
+    r.run(150);assert.equal(mac.combat.getSnapshot().elapsedMs,landedClock);
+    assert.equal(F.sample(mac.combat.getSnapshot().player,{compiled:mac.frameArt.get('mac').compiled,player:true,landingAgeMs:landedClock-landed.atMs}).clipKey,'landing');
+    await r.B.RuntimeLifecycle.resume();r.frame();r.run(120);assertWholeFrame(r);
+    assert.equal(F.sample(mac.combat.getSnapshot().player,{compiled:mac.frameArt.get('mac').compiled,player:true,landingAgeMs:mac.combat.getSnapshot().elapsedMs-landed.atMs}).clipKey,'idle');
+    assert.equal(r.scheduled.size,1);assert.equal(r.work.canvases,2);assert(r.B.PauseMenu.snapshot,'Only the shared pause snapshot adds a canvas');assert.equal(r.work.timers,0);await mac.exit();
+  });
   await check('phone Strike advertises and performs moving and aerial attacks through shared controls', async () => {
     const r = rig({touch: true}); await r.start(); r.manager.touchCommand('mac:skip');
     const t=r.B.TouchControls,stick=t.joystick;
@@ -241,8 +306,9 @@ async function run() {
     r.pointer(r.button('road_attack'),'pointerdown',14);r.frame();
     assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.attack.kind,'air-kick');
     r.pointer(r.button('road_attack'),'pointerup',14);r.run(150);
-    assert(r.work.partDraws['assets/mac-combat-rigs/mac-modem-v2.png']>0,'Actual shared frame draws articulated Mac parts');
-    await r.B.MacCombatPreview.exit();assert.equal(r.B.MacCombatPreview.rigArt.size,0);assert.deepEqual(r.work.writes,[]);
+    assertWholeFrame(r);
+    assert(Object.entries(r.work.celDraws).some(([file,count])=>count>0&&r.B.MacCombatPreview.frameArt.get('mac').compiled.sheetIds.some(id=>r.B.MacCombatPreview.frameArt.get('mac').compiled.sheets[id].sourceImage===file)),'Actual shared frame draws complete native Mac cels');
+    await r.B.MacCombatPreview.exit();assert.equal(r.B.MacCombatPreview.frameArt.size,0);assert.deepEqual(r.work.writes,[]);
   });
   await check('optional opening choice has explicit keyboard and remapped controller Continue without selecting an answer', async () => {
     const r = rig(); await r.start(); const mac = r.B.MacCombatPreview;
@@ -344,23 +410,37 @@ async function run() {
   await check('earned defeat accepts controller Start pause, fresh retry and title commands', async () => {
     const r = rig(); await r.start(); r.manager.touchCommand('mac:skip');
     r.key('keydown', 'd'); r.until(s => s.combat.enemies[0].phase === 'windup'); r.key('keyup', 'd');
+    let jumpedForDefeat=false;
     r.until(s => s.status === 'failed', s => {
       const p = s.combat.player, foe = s.combat.enemies[0];
       if (Math.abs(foe.x - p.x) > 70) r.key('keydown', 'd'); else r.key('keyup', 'd');
+      if(!jumpedForDefeat&&foe.phase==='windup'&&foe.attackTell.remainingMs<=25&&p.hp<=foe.attackSpec.damage&&p.elevation===0&&!p.hurtMs){
+        r.key('keydown',' ');jumpedForDefeat=true;
+      }
     });
-    r.key('keyup', 'd'); const pad = r.pad(); pad.buttons[9].pressed = true; r.frame(); await settle();
+    r.key('keyup', 'd');r.key('keyup',' ');const pad = r.pad(); pad.buttons[9].pressed = true; r.frame(); await settle();
     assert.equal(r.B.RuntimeLifecycle.getState(), 'paused', 'controller Start remains available on Mac results');
-    pad.buttons[9].pressed = false; r.frame(); await r.B.RuntimeLifecycle.resume(); r.frame();
+    const mac=r.B.MacCombatPreview,combatFrozen=plain(mac.combat.getSnapshot()),clockFrozen=mac.elapsedMs;
+    assert(jumpedForDefeat&&combatFrozen.player.elevation>0,'Actual lethal contact happens during a jump');
+    assert.equal(mac.playerDefeatedAtMs,mac.lastEvents.find(e=>e.type==='player-defeated').atMs,'Defeat uses its actual core event receipt');
+    r.run(200);assert.equal(mac.elapsedMs,clockFrozen);assert.deepEqual(plain(mac.combat.getSnapshot()),combatFrozen);
+    pad.buttons[9].pressed = false; r.frame(); await r.B.RuntimeLifecycle.resume(); r.frame();r.run(700);
+    assert(mac.elapsedMs>clockFrozen);assert.deepEqual(plain(mac.combat.getSnapshot()),combatFrozen,'Result animation never advances frozen gameplay');assertWholeFrame(r);
+    const art=mac.frameArt.get('mac'),stateAgeMs=combatFrozen.elapsedMs-mac.playerDefeatedAtMs+mac.elapsedMs-mac.playerDefeatedHostAtMs;
+    const pose=r.B.MacCombatFrames.sample(combatFrozen.player,{compiled:art.compiled,player:true,stateAgeMs});
+    assert.equal(pose.frameId,art.compiled.clips.defeat.frames.at(-1).frame,'Finite fall reaches authored grounded defeat');
+    const downCel=r.work.lastCels.find(c=>c.path===pose.frame.sourceImage);
+    assert.deepEqual(downCel.position,[combatFrozen.player.x-mac.cameraX,combatFrozen.player.laneY-pose.frame.baselineLift],'Terminal corpse reaches lane despite frozen positive gameplay elevation');
     pad.buttons[0].pressed = true; r.frame(); assert.equal(r.B.MacCombatPreview.status, 'playing');
     assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.hp, 100); r.frame();
     assert.equal(r.B.MacCombatPreview.combat.getSnapshot().player.elevation, 0, 'held retry A cannot become a jump');
     pad.buttons[0].pressed = false; r.frame(); await r.B.MacCombatPreview.exit(); assert.deepEqual(r.work.writes, []);
   });
   await check('cancelled asynchronous entry cannot mutate profile/audio/controls after title return', async () => {
-    let releaseInit; const init = new Promise(resolve => { releaseInit = resolve; });
-    const r = rig({initAudio: () => init}), original = plain(r.manager.actionInput.keyboardBindings);
+    let releaseInit,signalInit; const init = new Promise(resolve => { releaseInit = resolve; }),reachedInit=new Promise(resolve=>{signalInit=resolve;});
+    const r = rig({initAudio: () => {signalInit();return init;}}), original = plain(r.manager.actionInput.keyboardBindings);
     const starting = r.B.RuntimeLifecycle.start({privatePreview: 'mac-firstslice'});
-    for (let n = 0; n < 60 && !r.B.MacCombatPreview.active; n++) await Promise.resolve();
+    await Promise.race([reachedInit,starting.then(result=>assert.fail('Entry ended before audio preparation: '+JSON.stringify(result)))]);
     assert(r.B.MacCombatPreview.active, 'reached real async audio preparation');
     await r.B.RuntimeLifecycle.stop('cancel-private-preview', {stopMusic: true}); await starting;
     const stopped = {profiles: plain(r.work.profiles), audio: plain(r.work.audio)};

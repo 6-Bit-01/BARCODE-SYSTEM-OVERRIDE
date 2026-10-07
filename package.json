@@ -79,7 +79,7 @@
     "check:run-adrenaline": "node tools/check-level-01-run.cjs && node tools/check-level1-enemy-reachability.cjs && node tools/check-level1-hack-performance.cjs && node tools/check-cache-road-adrenaline.cjs --integration && node tools/check-cache-instruments.cjs && node tools/check-cache-road-render-cost.cjs",
     "check:run-polish-cinematics": "node tools/check-level1-run-polish.cjs && node tools/check-level1-signal-art.cjs && node tools/check-cache-road-cinematics.cjs",
     "check:cache-camera-beat-feedback": "node tools/check-cache-camera-frame-time.cjs && node tools/check-cache-road-beat-feedback.cjs && node tools/check-cache-adrenaline-feedback.cjs && node tools/check-cache-beat-visual-system.cjs",
-    "check:mac-street": "node tools/check-mac-street-combat.cjs && node tools/check-mac-combat-animation.cjs && node tools/check-mac-street-story.cjs && node tools/check-mac-street-integration.cjs"
+    "check:mac-street": "node tools/check-mac-street-combat.cjs && node tools/check-mac-combat-frames.cjs --manifest assets/mac-combat-frames/mac-combat-frames-v1.json && node tools/check-mac-street-story.cjs && node tools/check-mac-street-integration.cjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "0.1.100"

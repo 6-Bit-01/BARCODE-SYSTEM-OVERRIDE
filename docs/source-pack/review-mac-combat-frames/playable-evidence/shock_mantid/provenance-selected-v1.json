@@ -1,0 +1,23 @@
+{
+  "kind": "shock_mantid",
+  "method": "built-in image_gen; native PNG copied without pixel modification",
+  "selectedImage": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\shock_mantid-frames-v1.png",
+  "nativeImage": "C:/Users/jondh/.codex/generated_images/01a11402-6b51-7763-86b9-337e359b17dc/exec-5aae921d-9774-45c1-948a-056406475796.png",
+  "nativeSHA256": "65b76d1fb2b2a72ed5a171396a16b26e732b32337a363e5d4af4f38d14dcada5",
+  "savedSHA256": "65b76d1fb2b2a72ed5a171396a16b26e732b32337a363e5d4af4f38d14dcada5",
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "prompt": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\enemy-generation\\shock_mantid\\prompt-poses-padding-v2.txt",
+  "reference": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-city-review\\shock_mantid-v2.png",
+  "referenceSHA256": "5720d575f5f93a7294d81fe290042877f6a6e5855773d715028a50b71a779f0d",
+  "recoveredImage": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-b49d141b-d89c-4426-9748-aa6bae9e2343.png",
+  "recoveredSHA256": "b12f52e9ec6ee5072c0606bd4039bb5806d373f5edfd5dccc3903aa53865f5b4",
+  "analysis": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\enemy-generation\\shock_mantid\\analysis-poses-padding-v2.json",
+  "edgeContacts": [],
+  "review": "All twelve whole-character poses visually inspected. Transparent separated rows and figures, full toes/blades/crest or antennae, falling and fully horizontal down present. Pose corrections preserved distinct primary/secondary attacks and bent passing step. Contact A/B use alternate near/far-leg presentation; silhouettes remain naturally similar.",
+  "packing": "Native arrangement is approximate 4-by-3. Use measured nonuniform source crops from alpha analysis, not equal-cell assumptions.",
+  "preservedOriginals": true,
+  "runtimeIntegrated": false
+}

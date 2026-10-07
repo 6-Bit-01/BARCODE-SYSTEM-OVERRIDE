@@ -83,6 +83,48 @@ MAC_RIG_ASSETS = {"assets/mac-combat-rigs/" + name for name in (
     "rift_stalker-v1.png", "rift_stalker-v1-rig.json",
     "shock_mantid-v1.png", "shock_mantid-v1-rig.json",
     "null_regent-v1.png", "null_regent-v1-rig.json")}
+MAC_FRAME_ROOT = "assets/mac-combat-frames/"
+
+
+def combat_frame_files(output):
+    """Only selected native cels and their hashed registrations enter the game."""
+    bank_name = MAC_FRAME_ROOT + "mac-combat-frames-v1.json"
+    bank = json.loads(safe_path(output, bank_name).read_text(encoding="utf-8"))
+    require(bank.get("schemaVersion") == 1 and isinstance(bank.get("actors"), list),
+            "Missing complete-character combat frame bank")
+    require(sorted(actor.get("kind") for actor in bank["actors"]) == sorted(MAC_RIG_ACTORS),
+            "The frame bank must register Mac, six alien types and the Regent")
+    selected = {bank_name}
+    for actor in bank["actors"]:
+        registration_name = MAC_FRAME_ROOT + actor["kind"] + "-frames-v1.json"
+        require(actor.get("registration") == registration_name, "Unselected actor registration")
+        selected.add(registration_name)
+        data = safe_path(output, registration_name).read_bytes()
+        require(sha(data) == actor.get("registrationSHA256"), "Changed actor registration")
+        registration = json.loads(data)
+        require(registration.get("actor") == actor["kind"] and registration.get("schemaVersion") == 1
+                and registration.get("facing") == "right", "Invalid whole-character identity")
+        for sheet in registration.get("sheets", []):
+            name = sheet.get("sourceImage", "")
+            require(re.fullmatch(re.escape(MAC_FRAME_ROOT) + r"[a-z0-9_-]+-v[0-9]+\.png", name),
+                    "Frame image must be a selected native PNG sibling")
+            selected.add(name)
+            image = safe_path(output, name).read_bytes()
+            require(sha(image) == sheet.get("sourceSHA256"), "Changed selected complete-character PNG")
+            require(image[:8] == b"\x89PNG\r\n\x1a\n" and image[24:29] == bytes((8, 6, 0, 0, 0)),
+                    "Frame source must preserve native transparent RGBA8 PNG")
+            require(sheet.get("dimensions") == {"width": int.from_bytes(image[16:20], "big"),
+                    "height": int.from_bytes(image[20:24], "big")}, "Native frame dimensions changed")
+    require(sorted(bank.get("files", [])) == sorted(selected), "Unregistered file in frame bank")
+    return selected
+
+
+def verify_combat_frames(output, files):
+    selected = combat_frame_files(output)
+    require({name for name in files if name.startswith(MAC_FRAME_ROOT)} == selected,
+            "Only registered complete-character assets may enter the game")
+    return {"selectedActors": 8, "assetCount": len(selected), "registeredFiles": sorted(selected),
+            "nativeHashesAndDimensions": True, "runtimeAcceptance": "not established by packaging"}
 VIEWPORT_STYLE = """<style id="standalone-viewport-style">
 /* Fit the complete native backing image; runtime owners still control display. */
 .game-container {
@@ -260,9 +302,10 @@ def verify_runtime(payloads):
             all(scripts.count(name) == 1 and scripts.index(name) < scripts.index(TOUCH_SCRIPT)
                 for name in ("src/core/action-input.js", "src/core/input.js")),
             "Touch controls must launch once after the existing input owners")
-    require(scripts.count("src/game/mac-combat-animation.js") == 1 and
-            scripts.index("src/game/mac-combat-animation.js") < scripts.index("src/game/mac-combat-preview.js"),
-            "The articulated animation owner must launch once before the private Mac wrapper")
+    require(scripts.count("src/game/mac-combat-frames.js") == 1 and
+            scripts.index("src/game/mac-combat-frames.js") < scripts.index("src/game/mac-combat-preview.js")
+            and "src/game/mac-combat-animation.js" not in scripts,
+            "The complete-character cel sampler must launch once before the private Mac wrapper")
     gpu_scripts = [VENDOR_ROOT + "pixi.min.js", "src/engine/cache-road-texture-bank.js",
                    "src/engine/cache-road-gpu-renderer.js",
                    "src/engine/cache-road-gpu-context.js", "src/game/cache-road-proof.js"]
@@ -561,10 +604,13 @@ def verify_texture_bank(output, files):
     require(len(MAC_RIG_ASSETS) == 17 and
             {name for name in files if name.startswith("assets/mac-combat-rigs/")} == MAC_RIG_ASSETS,
             "The articulated Mac combat bank must include exactly its 17 selected runtime assets")
+    frame_files = combat_frame_files(output)
+    require({name for name in files if name.startswith(MAC_FRAME_ROOT)} == frame_files,
+            "The game contains an unregistered complete-character sprite asset")
     originals = sorted([name, record["bytes"], record["sha256"]]
                        for name, record in files.items() if name.startswith("assets/")
                        and name not in derivatives and name not in MAC_REVIEW_ASSETS and name not in MAC_CITY_ASSETS
-                       and name not in MAC_RIG_ASSETS)
+                       and name not in MAC_RIG_ASSETS and name not in frame_files)
     require(len(originals) == 624 and sha(json.dumps(originals, separators=(",", ":")).encode("utf-8")) ==
             "0b2ac58dc88ddb68b595fb8592d242d8478c426d78309fe4ff45b88c04027f56",
             "Original 624 artwork/audio identities or bytes changed")
@@ -573,6 +619,7 @@ def verify_texture_bank(output, files):
             "macReviewAssetCount": len(MAC_REVIEW_ASSETS),
             "macCityAssetCount": len(MAC_CITY_ASSETS),
             "macRigAssetCount": len(MAC_RIG_ASSETS),
+            "macFrameAssetCount": len(frame_files),
             "gpuMipBytes": bank.get("allGpuMipBytes"), "runtimeAcceptance": "not established by packaging"}
 
 
@@ -679,6 +726,7 @@ def build(output, receipt):
     require(set(file_hashes) == names - {OWNER_FILE}, "Public hash manifest is incomplete")
     checks["compressedTextureBank"] = verify_texture_bank(output, file_hashes)
     checks["articulatedCombatRigs"] = verify_combat_rigs(output, file_hashes)
+    checks["wholeCharacterCombatFrames"] = verify_combat_frames(output, file_hashes)
     public = {"builder": TOOL_ID, "status": "complete", "sourceCommit": head, "sourceTree": tree,
               "builderSHA256": sha(Path(__file__).read_bytes()), "files": file_hashes,
               "sourceMode": "working-tree runtime scripts; exact HEAD canonical asset blobs",

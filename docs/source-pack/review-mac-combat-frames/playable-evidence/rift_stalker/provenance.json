@@ -1,0 +1,25 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "selectedNativeVersion": 3,
+  "generatedNativePath": "C:/Users/jondh/.codex/generated_images/01a11402-38bf-7fb0-9b51-72cac68e310c/exec-99af99b0-6553-4c03-951d-5d259aa88f81.png",
+  "savedNativePath": "verification/mac-frame-animation-20261006/enemy-generation/rift_stalker/native-v3.png",
+  "chosenPath": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-combat-frames/rift_stalker-frames-v1.png",
+  "sourceSHA256": "5732b7b835a99470ac700994d1d0fdb4dd0b154ced13cd46cd22296e6c42462b",
+  "nativeSHA256": "5732b7b835a99470ac700994d1d0fdb4dd0b154ced13cd46cd22296e6c42462b",
+  "identityReference": "level2-minimal-source-20261003/assets/mac-city-review/rift_stalker-v1.png",
+  "prompts": [
+    "prompt-v1.txt",
+    "prompt-v2.txt",
+    "prompt-v3.txt"
+  ],
+  "inspection": "All 12 complete connected whole-character cels visually inspected; native generation bytes copied unchanged; right facing; forward rift-cross and retreat-slash silhouettes distinguishable; clean gutters and complete mask/mantle/claws/feet",
+  "discardedVersions": [
+    1,
+    2
+  ],
+  "discardReasons": [
+    "v1 row3 hurt and fall overlap horizontal alpha spans by 2px",
+    "v2 attempted bottom-row padding edit enlarged and clipped top-right pose"
+  ],
+  "noPixelEdits": true
+}
