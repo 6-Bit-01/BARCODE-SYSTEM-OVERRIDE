@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "checkedAt": "2026-10-06T21:52:48.117Z",
+  "htmlSHA256": "dc4da3a49fd97de46799c824762412dc9ce1559e2d24c4e514e12bd9284c3b26",
+  "checks": [
+    "Inline script syntax",
+    "Local and site HTML identical",
+    "New sheet ids and per-sheet heights accepted",
+    "Whole-character trajectory interpolates between held cels",
+    "Pause preserves time",
+    "Step resets trajectory to cel start",
+    "Explicit trajectory endpoints supported",
+    "Nonfinite trajectory and baseline values rejected",
+    "Legacy clips default to zero trajectory and baseline",
+    "Native whole-cel drawing includes constant per-frame baseline plus continuous physics lift at both sizes"
+  ],
+  "publication": "Not committed or deployed; awaiting corrected artwork/data",
+  "visualCheck": "Actual new cels and 2x head margins await root study data"
+}

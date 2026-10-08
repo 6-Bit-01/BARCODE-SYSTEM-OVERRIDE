@@ -1,0 +1,2478 @@
+{
+  "status": "passed",
+  "scope": "Focused whole-character playback/registration; no full game or visual acceptance claim",
+  "source": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003",
+  "moduleSHA256": "140f666e683be1f89ba62e2fea584890fbfa4bc17e3c7ed17aedde21609ef992",
+  "groups": 17,
+  "checks": [
+    "exact eight roles expose six Mac moves, two enemy tactics and four boss attacks",
+    "missing committed actions and malformed crops, pivots, holds and sheets fail explicitly",
+    "one full-body draw uses the exact basic/advanced sheet, a common scale and feet pivot",
+    "single-sheet legacy pivot alias is explicit and decoded image identity is checked",
+    "different sheet density uses one uniform sheet scale without normalizing individual poses",
+    "finite per-cel baseline lift translates the complete body uniformly at actual height",
+    "authored holds are discrete, gait follows simulation distance and pause needs no hidden clock",
+    "actual jump velocity advances takeoff, chamber, fall and descent despite stale action age",
+    "actual land receipt holds the landing cel for 100ms without overriding committed actions",
+    "actual public-input jab/cross/finisher timing retains every contact and recovery window",
+    "actual moving strike, aerial kick and earned guard-counter select distinct committed cels",
+    "actual throw release at 140ms, recovery at 280ms and 420ms commitment use authored holds",
+    "each enemy tactic has a distinct authored preparation/contact sequence and honest delayed contact",
+    "hurt, defeat and jump retain whole cels, with an explicit death clock and finite boss placement",
+    "sampling is defensive and preserves the core snapshot, blood, movement and ownership",
+    "native alpha reader reconstructs an independently specified PNG including transparent pixels",
+    "exact eight-actor authored bank has complete committed clips and verified native cels"
+  ],
+  "nativeArtChecked": true,
+  "native": [
+    {
+      "actor": "mac",
+      "registrationPath": "assets\\mac-combat-frames\\mac-frames-v1.json",
+      "registrationSHA256": "2220efc6400d0159d6b9a8dc805b9f332ae618932e6e8802f9e7d7c5ab64ac13",
+      "complete": true,
+      "sheetCount": 5,
+      "frameCount": 42,
+      "measurements": [
+        {
+          "frameId": "idle_a",
+          "sheet": "basic",
+          "occupiedPixels": 32614,
+          "transparentPixels": 108374,
+          "actualVisibleBounds": {
+            "x": 79,
+            "y": 40,
+            "width": 217,
+            "height": 321
+          },
+          "feetPivot": {
+            "x": 187.5,
+            "y": 361
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "idle_b",
+          "sheet": "basic",
+          "occupiedPixels": 32493,
+          "transparentPixels": 103189,
+          "actualVisibleBounds": {
+            "x": 77,
+            "y": 40,
+            "width": 212,
+            "height": 321
+          },
+          "feetPivot": {
+            "x": 183,
+            "y": 361
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_a",
+          "sheet": "basic",
+          "occupiedPixels": 32314,
+          "transparentPixels": 102989,
+          "actualVisibleBounds": {
+            "x": 69,
+            "y": 41,
+            "width": 232,
+            "height": 320
+          },
+          "feetPivot": {
+            "x": 194.5,
+            "y": 361
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_pass_a",
+          "sheet": "basic",
+          "occupiedPixels": 32035,
+          "transparentPixels": 104784,
+          "actualVisibleBounds": {
+            "x": 57,
+            "y": 41,
+            "width": 226,
+            "height": 319
+          },
+          "feetPivot": {
+            "x": 176.5,
+            "y": 360
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_b",
+          "sheet": "basic",
+          "occupiedPixels": 30665,
+          "transparentPixels": 98503,
+          "actualVisibleBounds": {
+            "x": 51,
+            "y": 18,
+            "width": 253,
+            "height": 313
+          },
+          "feetPivot": {
+            "x": 183.5,
+            "y": 331
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_pass_b",
+          "sheet": "basic",
+          "occupiedPixels": 30159,
+          "transparentPixels": 91989,
+          "actualVisibleBounds": {
+            "x": 64,
+            "y": 18,
+            "width": 221,
+            "height": 313
+          },
+          "feetPivot": {
+            "x": 247.5,
+            "y": 331
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "jab_windup",
+          "sheet": "basic",
+          "occupiedPixels": 32650,
+          "transparentPixels": 96167,
+          "actualVisibleBounds": {
+            "x": 64,
+            "y": 24,
+            "width": 258,
+            "height": 307
+          },
+          "feetPivot": {
+            "x": 193,
+            "y": 331
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "jab_contact",
+          "sheet": "basic",
+          "occupiedPixels": 33255,
+          "transparentPixels": 94860,
+          "actualVisibleBounds": {
+            "x": 45,
+            "y": 28,
+            "width": 293,
+            "height": 305
+          },
+          "feetPivot": {
+            "x": 177.5,
+            "y": 333
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "jab_recovery",
+          "sheet": "basic",
+          "occupiedPixels": 30345,
+          "transparentPixels": 98883,
+          "actualVisibleBounds": {
+            "x": 64,
+            "y": 18,
+            "width": 239,
+            "height": 294
+          },
+          "feetPivot": {
+            "x": 183.5,
+            "y": 312
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "cross_windup",
+          "sheet": "basic",
+          "occupiedPixels": 32212,
+          "transparentPixels": 96304,
+          "actualVisibleBounds": {
+            "x": 60,
+            "y": 18,
+            "width": 252,
+            "height": 294
+          },
+          "feetPivot": {
+            "x": 186,
+            "y": 312
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "cross_contact",
+          "sheet": "basic",
+          "occupiedPixels": 32855,
+          "transparentPixels": 99933,
+          "actualVisibleBounds": {
+            "x": 50,
+            "y": 21,
+            "width": 291,
+            "height": 291
+          },
+          "feetPivot": {
+            "x": 182.5,
+            "y": 312
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hook_windup",
+          "sheet": "basic",
+          "occupiedPixels": 33717,
+          "transparentPixels": 91239,
+          "actualVisibleBounds": {
+            "x": 32,
+            "y": 18,
+            "width": 279,
+            "height": 294
+          },
+          "feetPivot": {
+            "x": 171.5,
+            "y": 312
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hook_contact",
+          "sheet": "advanced",
+          "occupiedPixels": 43595,
+          "transparentPixels": 87085,
+          "actualVisibleBounds": {
+            "x": 19,
+            "y": 14,
+            "width": 316,
+            "height": 343
+          },
+          "feetPivot": {
+            "x": 166.5,
+            "y": 357
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hook_followthrough",
+          "sheet": "advanced",
+          "occupiedPixels": 44036,
+          "transparentPixels": 87724,
+          "actualVisibleBounds": {
+            "x": 28,
+            "y": 13,
+            "width": 321,
+            "height": 344
+          },
+          "feetPivot": {
+            "x": 188.5,
+            "y": 357
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hook_recovery",
+          "sheet": "advanced",
+          "occupiedPixels": 42697,
+          "transparentPixels": 65663,
+          "actualVisibleBounds": {
+            "x": 18,
+            "y": 13,
+            "width": 265,
+            "height": 344
+          },
+          "feetPivot": {
+            "x": 150.5,
+            "y": 357
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "step_contact",
+          "sheet": "advanced",
+          "occupiedPixels": 43022,
+          "transparentPixels": 107458,
+          "actualVisibleBounds": {
+            "x": 19,
+            "y": 40,
+            "width": 385,
+            "height": 311
+          },
+          "feetPivot": {
+            "x": 210,
+            "y": 351
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "jump_rise",
+          "sheet": "advanced",
+          "occupiedPixels": 38908,
+          "transparentPixels": 78126,
+          "actualVisibleBounds": {
+            "x": 72,
+            "y": 3,
+            "width": 214,
+            "height": 322
+          },
+          "feetPivot": {
+            "x": 161,
+            "y": 325
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "air_kick",
+          "sheet": "advanced",
+          "occupiedPixels": 40411,
+          "transparentPixels": 113241,
+          "actualVisibleBounds": {
+            "x": 40,
+            "y": 25,
+            "width": 382,
+            "height": 253
+          },
+          "feetPivot": {
+            "x": 191.5,
+            "y": 278
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "jump_land",
+          "sheet": "advanced",
+          "occupiedPixels": 38018,
+          "transparentPixels": 79734,
+          "actualVisibleBounds": {
+            "x": 7,
+            "y": 102,
+            "width": 293,
+            "height": 246
+          },
+          "feetPivot": {
+            "x": 150,
+            "y": 348
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "counter_contact",
+          "sheet": "advanced",
+          "occupiedPixels": 42215,
+          "transparentPixels": 89179,
+          "actualVisibleBounds": {
+            "x": 29,
+            "y": 15,
+            "width": 304,
+            "height": 341
+          },
+          "feetPivot": {
+            "x": 176,
+            "y": 356
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "throw_grab",
+          "sheet": "advanced",
+          "occupiedPixels": 43543,
+          "transparentPixels": 86742,
+          "actualVisibleBounds": {
+            "x": 17,
+            "y": 32,
+            "width": 306,
+            "height": 302
+          },
+          "feetPivot": {
+            "x": 169.5,
+            "y": 334
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "throw_release",
+          "sheet": "advanced",
+          "occupiedPixels": 43964,
+          "transparentPixels": 94762,
+          "actualVisibleBounds": {
+            "x": 33,
+            "y": 4,
+            "width": 335,
+            "height": 333
+          },
+          "feetPivot": {
+            "x": 200.5,
+            "y": 337
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hurt_stagger",
+          "sheet": "advanced",
+          "occupiedPixels": 49648,
+          "transparentPixels": 69627,
+          "actualVisibleBounds": {
+            "x": 10,
+            "y": 5,
+            "width": 304,
+            "height": 331
+          },
+          "feetPivot": {
+            "x": 181.5,
+            "y": 336
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "down",
+          "sheet": "advanced",
+          "occupiedPixels": 34637,
+          "transparentPixels": 108493,
+          "actualVisibleBounds": {
+            "x": 11,
+            "y": 185,
+            "width": 368,
+            "height": 162
+          },
+          "feetPivot": {
+            "x": 175,
+            "y": 347
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_1",
+          "sheet": "walk",
+          "occupiedPixels": 68213,
+          "transparentPixels": 139659,
+          "actualVisibleBounds": {
+            "x": 57,
+            "y": 12,
+            "width": 343,
+            "height": 430
+          },
+          "feetPivot": {
+            "x": 229,
+            "y": 442
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_2",
+          "sheet": "walk",
+          "occupiedPixels": 66417,
+          "transparentPixels": 129807,
+          "actualVisibleBounds": {
+            "x": 64,
+            "y": 16,
+            "width": 295,
+            "height": 428
+          },
+          "feetPivot": {
+            "x": 214,
+            "y": 444
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_3",
+          "sheet": "walk",
+          "occupiedPixels": 57830,
+          "transparentPixels": 125402,
+          "actualVisibleBounds": {
+            "x": 80,
+            "y": 12,
+            "width": 238,
+            "height": 433
+          },
+          "feetPivot": {
+            "x": 193,
+            "y": 445
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_4",
+          "sheet": "walk",
+          "occupiedPixels": 62436,
+          "transparentPixels": 144988,
+          "actualVisibleBounds": {
+            "x": 92,
+            "y": 13,
+            "width": 310,
+            "height": 429
+          },
+          "feetPivot": {
+            "x": 245.5,
+            "y": 442
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_5",
+          "sheet": "walk",
+          "occupiedPixels": 69026,
+          "transparentPixels": 138182,
+          "actualVisibleBounds": {
+            "x": 57,
+            "y": 4,
+            "width": 367,
+            "height": 423
+          },
+          "feetPivot": {
+            "x": 242,
+            "y": 427
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_6",
+          "sheet": "walk",
+          "occupiedPixels": 64670,
+          "transparentPixels": 124978,
+          "actualVisibleBounds": {
+            "x": 48,
+            "y": 7,
+            "width": 304,
+            "height": 420
+          },
+          "feetPivot": {
+            "x": 269,
+            "y": 427
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_7",
+          "sheet": "walk",
+          "occupiedPixels": 52896,
+          "transparentPixels": 119631,
+          "actualVisibleBounds": {
+            "x": 80,
+            "y": 4,
+            "width": 219,
+            "height": 423
+          },
+          "feetPivot": {
+            "x": 188,
+            "y": 427
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_8",
+          "sheet": "walk",
+          "occupiedPixels": 64659,
+          "transparentPixels": 144744,
+          "actualVisibleBounds": {
+            "x": 95,
+            "y": 3,
+            "width": 338,
+            "height": 421
+          },
+          "feetPivot": {
+            "x": 259.5,
+            "y": 424
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_left",
+          "sheet": "contacts",
+          "occupiedPixels": 250424,
+          "transparentPixels": 545215,
+          "actualVisibleBounds": {
+            "x": 129,
+            "y": 17,
+            "width": 713,
+            "height": 825
+          },
+          "feetPivot": {
+            "x": 470,
+            "y": 842
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_right",
+          "sheet": "contacts",
+          "occupiedPixels": 233427,
+          "transparentPixels": 544472,
+          "actualVisibleBounds": {
+            "x": 55,
+            "y": 17,
+            "width": 727,
+            "height": 834
+          },
+          "feetPivot": {
+            "x": 373,
+            "y": 851
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "load",
+          "sheet": "jump",
+          "occupiedPixels": 54872,
+          "transparentPixels": 59600,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 14,
+            "width": 300,
+            "height": 325
+          },
+          "feetPivot": {
+            "x": 165,
+            "y": 339
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "takeoff",
+          "sheet": "jump",
+          "occupiedPixels": 65187,
+          "transparentPixels": 88685,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 12,
+            "width": 298,
+            "height": 458
+          },
+          "feetPivot": {
+            "x": 178,
+            "y": 470
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "chamber",
+          "sheet": "jump",
+          "occupiedPixels": 55335,
+          "transparentPixels": 73135,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 13,
+            "width": 262,
+            "height": 414
+          },
+          "feetPivot": {
+            "x": 148,
+            "y": 427
+          },
+          "baselineLift": 13.624454148471616,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "kick_extend",
+          "sheet": "jump",
+          "occupiedPixels": 63266,
+          "transparentPixels": 111950,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 14,
+            "width": 437,
+            "height": 346
+          },
+          "feetPivot": {
+            "x": 119,
+            "y": 360
+          },
+          "baselineLift": 58.47161572052402,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "kick_contact",
+          "sheet": "jump",
+          "occupiedPixels": 61420,
+          "transparentPixels": 114668,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 10,
+            "width": 478,
+            "height": 324
+          },
+          "feetPivot": {
+            "x": 151,
+            "y": 334
+          },
+          "baselineLift": 49.956331877729255,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "kick_retract",
+          "sheet": "jump",
+          "occupiedPixels": 49496,
+          "transparentPixels": 65119,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 2,
+            "width": 255,
+            "height": 389
+          },
+          "feetPivot": {
+            "x": 124,
+            "y": 391
+          },
+          "baselineLift": 22.139737991266376,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "descent",
+          "sheet": "jump",
+          "occupiedPixels": 57981,
+          "transparentPixels": 85572,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 16,
+            "width": 299,
+            "height": 414
+          },
+          "feetPivot": {
+            "x": 157,
+            "y": 430
+          },
+          "baselineLift": 7.9475982532751095,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "landing",
+          "sheet": "jump",
+          "occupiedPixels": 54341,
+          "transparentPixels": 57835,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 14,
+            "width": 276,
+            "height": 334
+          },
+          "feetPivot": {
+            "x": 157,
+            "y": 348
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        }
+      ],
+      "nativeCoverage": [
+        {
+          "sheet": "basic",
+          "visiblePixels": 385314,
+          "coveredOnce": 385314,
+          "allVisibleCoveredExactlyOnce": true
+        },
+        {
+          "sheet": "advanced",
+          "visiblePixels": 504694,
+          "coveredOnce": 504694,
+          "allVisibleCoveredExactlyOnce": true
+        },
+        {
+          "sheet": "walk",
+          "visiblePixels": 506147,
+          "coveredOnce": 506147,
+          "allVisibleCoveredExactlyOnce": true
+        },
+        {
+          "sheet": "contacts",
+          "visiblePixels": 483851,
+          "coveredOnce": 483851,
+          "allVisibleCoveredExactlyOnce": true
+        },
+        {
+          "sheet": "jump",
+          "visiblePixels": 461898,
+          "coveredOnce": 461898,
+          "allVisibleCoveredExactlyOnce": true
+        }
+      ],
+      "warning": "Native crop/hash/scale checks do not establish likeness or visual animation acceptance."
+    },
+    {
+      "actor": "chitin_scuttler",
+      "registrationPath": "assets\\mac-combat-frames\\chitin_scuttler-frames-v1.json",
+      "registrationSHA256": "8b3c2e1cdac72c527388d30d66d7ad72701e6b900b3435ab62b8ee0c3b7da4dd",
+      "complete": true,
+      "sheetCount": 1,
+      "frameCount": 12,
+      "measurements": [
+        {
+          "frameId": "idle",
+          "sheet": "main",
+          "occupiedPixels": 39308,
+          "transparentPixels": 101028,
+          "actualVisibleBounds": {
+            "x": 59,
+            "y": 29,
+            "width": 246,
+            "height": 352
+          },
+          "feetPivot": {
+            "x": 182,
+            "y": 381
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_a",
+          "sheet": "main",
+          "occupiedPixels": 39738,
+          "transparentPixels": 105302,
+          "actualVisibleBounds": {
+            "x": 54,
+            "y": 30,
+            "width": 245,
+            "height": 345
+          },
+          "feetPivot": {
+            "x": 187.5,
+            "y": 375
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_pass",
+          "sheet": "main",
+          "occupiedPixels": 37549,
+          "transparentPixels": 102003,
+          "actualVisibleBounds": {
+            "x": 71,
+            "y": 29,
+            "width": 201,
+            "height": 344
+          },
+          "feetPivot": {
+            "x": 180,
+            "y": 373
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_b",
+          "sheet": "main",
+          "occupiedPixels": 39287,
+          "transparentPixels": 103401,
+          "actualVisibleBounds": {
+            "x": 85,
+            "y": 29,
+            "width": 243,
+            "height": 349
+          },
+          "feetPivot": {
+            "x": 215.5,
+            "y": 378
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_a",
+          "sheet": "main",
+          "occupiedPixels": 42713,
+          "transparentPixels": 85447,
+          "actualVisibleBounds": {
+            "x": 35,
+            "y": 12,
+            "width": 284,
+            "height": 330
+          },
+          "feetPivot": {
+            "x": 178,
+            "y": 342
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_a",
+          "sheet": "main",
+          "occupiedPixels": 41891,
+          "transparentPixels": 101221,
+          "actualVisibleBounds": {
+            "x": 42,
+            "y": 14,
+            "width": 334,
+            "height": 328
+          },
+          "feetPivot": {
+            "x": 182.5,
+            "y": 342
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "recover",
+          "sheet": "main",
+          "occupiedPixels": 38633,
+          "transparentPixels": 77067,
+          "actualVisibleBounds": {
+            "x": 26,
+            "y": 12,
+            "width": 269,
+            "height": 333
+          },
+          "feetPivot": {
+            "x": 160.5,
+            "y": 345
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_b",
+          "sheet": "main",
+          "occupiedPixels": 40163,
+          "transparentPixels": 88353,
+          "actualVisibleBounds": {
+            "x": 31,
+            "y": 60,
+            "width": 295,
+            "height": 282
+          },
+          "feetPivot": {
+            "x": 144.5,
+            "y": 342
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_b",
+          "sheet": "main",
+          "occupiedPixels": 39607,
+          "transparentPixels": 103029,
+          "actualVisibleBounds": {
+            "x": 28,
+            "y": 22,
+            "width": 389,
+            "height": 294
+          },
+          "feetPivot": {
+            "x": 183.5,
+            "y": 316
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hurt",
+          "sheet": "main",
+          "occupiedPixels": 42748,
+          "transparentPixels": 63046,
+          "actualVisibleBounds": {
+            "x": 5,
+            "y": 11,
+            "width": 305,
+            "height": 307
+          },
+          "feetPivot": {
+            "x": 186,
+            "y": 318
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "fall",
+          "sheet": "main",
+          "occupiedPixels": 35394,
+          "transparentPixels": 83244,
+          "actualVisibleBounds": {
+            "x": 4,
+            "y": 53,
+            "width": 340,
+            "height": 248
+          },
+          "feetPivot": {
+            "x": 315,
+            "y": 301
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "down",
+          "sheet": "main",
+          "occupiedPixels": 26536,
+          "transparentPixels": 95820,
+          "actualVisibleBounds": {
+            "x": 7,
+            "y": 189,
+            "width": 336,
+            "height": 114
+          },
+          "feetPivot": {
+            "x": 172.5,
+            "y": 303
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        }
+      ],
+      "nativeCoverage": [
+        {
+          "sheet": "main",
+          "visiblePixels": 463567,
+          "coveredOnce": 463567,
+          "allVisibleCoveredExactlyOnce": true
+        }
+      ],
+      "warning": "Native crop/hash/scale checks do not establish likeness or visual animation acceptance."
+    },
+    {
+      "actor": "psion_lancer",
+      "registrationPath": "assets\\mac-combat-frames\\psion_lancer-frames-v1.json",
+      "registrationSHA256": "2976fed8aac4ef663101a5c67052f60881aeb7326cefd5fad58bc71b0aa6bc7f",
+      "complete": true,
+      "sheetCount": 1,
+      "frameCount": 12,
+      "measurements": [
+        {
+          "frameId": "idle",
+          "sheet": "main",
+          "occupiedPixels": 26492,
+          "transparentPixels": 121898,
+          "actualVisibleBounds": {
+            "x": 116,
+            "y": 85,
+            "width": 158,
+            "height": 290
+          },
+          "feetPivot": {
+            "x": 192,
+            "y": 375
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_a",
+          "sheet": "main",
+          "occupiedPixels": 30113,
+          "transparentPixels": 136251,
+          "actualVisibleBounds": {
+            "x": 82,
+            "y": 88,
+            "width": 252,
+            "height": 290
+          },
+          "feetPivot": {
+            "x": 222,
+            "y": 378
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_pass",
+          "sheet": "main",
+          "occupiedPixels": 25948,
+          "transparentPixels": 108648,
+          "actualVisibleBounds": {
+            "x": 65,
+            "y": 86,
+            "width": 177,
+            "height": 292
+          },
+          "feetPivot": {
+            "x": 170,
+            "y": 378
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_b",
+          "sheet": "main",
+          "occupiedPixels": 26427,
+          "transparentPixels": 129487,
+          "actualVisibleBounds": {
+            "x": 80,
+            "y": 91,
+            "width": 255,
+            "height": 289
+          },
+          "feetPivot": {
+            "x": 207.5,
+            "y": 380
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_a",
+          "sheet": "main",
+          "occupiedPixels": 31584,
+          "transparentPixels": 77653,
+          "actualVisibleBounds": {
+            "x": 51,
+            "y": 43,
+            "width": 267,
+            "height": 232
+          },
+          "feetPivot": {
+            "x": 167.5,
+            "y": 275
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_a",
+          "sheet": "main",
+          "occupiedPixels": 30723,
+          "transparentPixels": 103554,
+          "actualVisibleBounds": {
+            "x": 31,
+            "y": 45,
+            "width": 376,
+            "height": 226
+          },
+          "feetPivot": {
+            "x": 159,
+            "y": 271
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "recover",
+          "sheet": "main",
+          "occupiedPixels": 26689,
+          "transparentPixels": 66898,
+          "actualVisibleBounds": {
+            "x": 23,
+            "y": 39,
+            "width": 208,
+            "height": 238
+          },
+          "feetPivot": {
+            "x": 127,
+            "y": 277
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_b",
+          "sheet": "main",
+          "occupiedPixels": 26462,
+          "transparentPixels": 89661,
+          "actualVisibleBounds": {
+            "x": 68,
+            "y": 40,
+            "width": 264,
+            "height": 236
+          },
+          "feetPivot": {
+            "x": 200,
+            "y": 276
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_b",
+          "sheet": "main",
+          "occupiedPixels": 27373,
+          "transparentPixels": 116757,
+          "actualVisibleBounds": {
+            "x": 51,
+            "y": 38,
+            "width": 305,
+            "height": 236
+          },
+          "feetPivot": {
+            "x": 203.5,
+            "y": 274
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hurt",
+          "sheet": "main",
+          "occupiedPixels": 27930,
+          "transparentPixels": 88155,
+          "actualVisibleBounds": {
+            "x": 50,
+            "y": 37,
+            "width": 235,
+            "height": 237
+          },
+          "feetPivot": {
+            "x": 198,
+            "y": 274
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "fall",
+          "sheet": "main",
+          "occupiedPixels": 26533,
+          "transparentPixels": 98072,
+          "actualVisibleBounds": {
+            "x": 42,
+            "y": 80,
+            "width": 282,
+            "height": 170
+          },
+          "feetPivot": {
+            "x": 167.5,
+            "y": 250
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "down",
+          "sheet": "main",
+          "occupiedPixels": 14480,
+          "transparentPixels": 114740,
+          "actualVisibleBounds": {
+            "x": 28,
+            "y": 191,
+            "width": 300,
+            "height": 72
+          },
+          "feetPivot": {
+            "x": 178,
+            "y": 263
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        }
+      ],
+      "nativeCoverage": [
+        {
+          "sheet": "main",
+          "visiblePixels": 320754,
+          "coveredOnce": 320754,
+          "allVisibleCoveredExactlyOnce": true
+        }
+      ],
+      "warning": "Native crop/hash/scale checks do not establish likeness or visual animation acceptance."
+    },
+    {
+      "actor": "bile_spitter",
+      "registrationPath": "assets\\mac-combat-frames\\bile_spitter-frames-v1.json",
+      "registrationSHA256": "28df3f4fc840d970ee6d7a130c60c7ad21b8c3661354fa8276b5b8d9ceb6b190",
+      "complete": true,
+      "sheetCount": 1,
+      "frameCount": 12,
+      "measurements": [
+        {
+          "frameId": "idle",
+          "sheet": "main",
+          "occupiedPixels": 33251,
+          "transparentPixels": 114247,
+          "actualVisibleBounds": {
+            "x": 88,
+            "y": 96,
+            "width": 203,
+            "height": 278
+          },
+          "feetPivot": {
+            "x": 189.5,
+            "y": 374
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_a",
+          "sheet": "main",
+          "occupiedPixels": 32718,
+          "transparentPixels": 116795,
+          "actualVisibleBounds": {
+            "x": 76,
+            "y": 96,
+            "width": 225,
+            "height": 276
+          },
+          "feetPivot": {
+            "x": 199.5,
+            "y": 372
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_pass",
+          "sheet": "main",
+          "occupiedPixels": 29290,
+          "transparentPixels": 106924,
+          "actualVisibleBounds": {
+            "x": 70,
+            "y": 96,
+            "width": 199,
+            "height": 279
+          },
+          "feetPivot": {
+            "x": 165,
+            "y": 375
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_b",
+          "sheet": "main",
+          "occupiedPixels": 31954,
+          "transparentPixels": 118365,
+          "actualVisibleBounds": {
+            "x": 70,
+            "y": 105,
+            "width": 236,
+            "height": 269
+          },
+          "feetPivot": {
+            "x": 194,
+            "y": 374
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_a",
+          "sheet": "main",
+          "occupiedPixels": 37561,
+          "transparentPixels": 84498,
+          "actualVisibleBounds": {
+            "x": 74,
+            "y": 29,
+            "width": 247,
+            "height": 279
+          },
+          "feetPivot": {
+            "x": 196.5,
+            "y": 308
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_a",
+          "sheet": "main",
+          "occupiedPixels": 38303,
+          "transparentPixels": 80137,
+          "actualVisibleBounds": {
+            "x": 50,
+            "y": 70,
+            "width": 260,
+            "height": 238
+          },
+          "feetPivot": {
+            "x": 180.5,
+            "y": 308
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "recover",
+          "sheet": "main",
+          "occupiedPixels": 32991,
+          "transparentPixels": 74592,
+          "actualVisibleBounds": {
+            "x": 51,
+            "y": 54,
+            "width": 231,
+            "height": 256
+          },
+          "feetPivot": {
+            "x": 164,
+            "y": 310
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_b",
+          "sheet": "main",
+          "occupiedPixels": 42635,
+          "transparentPixels": 85675,
+          "actualVisibleBounds": {
+            "x": 46,
+            "y": 59,
+            "width": 293,
+            "height": 251
+          },
+          "feetPivot": {
+            "x": 197,
+            "y": 310
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_b",
+          "sheet": "main",
+          "occupiedPixels": 36762,
+          "transparentPixels": 105546,
+          "actualVisibleBounds": {
+            "x": 65,
+            "y": 75,
+            "width": 270,
+            "height": 219
+          },
+          "feetPivot": {
+            "x": 201,
+            "y": 294
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hurt",
+          "sheet": "main",
+          "occupiedPixels": 33399,
+          "transparentPixels": 84129,
+          "actualVisibleBounds": {
+            "x": 68,
+            "y": 20,
+            "width": 239,
+            "height": 270
+          },
+          "feetPivot": {
+            "x": 195.5,
+            "y": 290
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "fall",
+          "sheet": "main",
+          "occupiedPixels": 31751,
+          "transparentPixels": 85069,
+          "actualVisibleBounds": {
+            "x": 26,
+            "y": 56,
+            "width": 286,
+            "height": 215
+          },
+          "feetPivot": {
+            "x": 152.5,
+            "y": 271
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "down",
+          "sheet": "main",
+          "occupiedPixels": 25813,
+          "transparentPixels": 110123,
+          "actualVisibleBounds": {
+            "x": 18,
+            "y": 169,
+            "width": 329,
+            "height": 120
+          },
+          "feetPivot": {
+            "x": 172,
+            "y": 289
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        }
+      ],
+      "nativeCoverage": [
+        {
+          "sheet": "main",
+          "visiblePixels": 406428,
+          "coveredOnce": 406428,
+          "allVisibleCoveredExactlyOnce": true
+        }
+      ],
+      "warning": "Native crop/hash/scale checks do not establish likeness or visual animation acceptance."
+    },
+    {
+      "actor": "prism_guard",
+      "registrationPath": "assets\\mac-combat-frames\\prism_guard-frames-v1.json",
+      "registrationSHA256": "3662363430001175100863cc6f29d93a7287c0b2f50b1fe3c2b1bc6ad8564b14",
+      "complete": true,
+      "sheetCount": 1,
+      "frameCount": 12,
+      "measurements": [
+        {
+          "frameId": "idle",
+          "sheet": "main",
+          "occupiedPixels": 41381,
+          "transparentPixels": 100453,
+          "actualVisibleBounds": {
+            "x": 50,
+            "y": 102,
+            "width": 206,
+            "height": 331
+          },
+          "feetPivot": {
+            "x": 146.5,
+            "y": 433
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_a",
+          "sheet": "main",
+          "occupiedPixels": 39937,
+          "transparentPixels": 118529,
+          "actualVisibleBounds": {
+            "x": 52,
+            "y": 112,
+            "width": 241,
+            "height": 319
+          },
+          "feetPivot": {
+            "x": 179,
+            "y": 431
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_pass",
+          "sheet": "main",
+          "occupiedPixels": 32000,
+          "transparentPixels": 95050,
+          "actualVisibleBounds": {
+            "x": 51,
+            "y": 114,
+            "width": 164,
+            "height": 320
+          },
+          "feetPivot": {
+            "x": 117,
+            "y": 434
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_b",
+          "sheet": "main",
+          "occupiedPixels": 38394,
+          "transparentPixels": 113604,
+          "actualVisibleBounds": {
+            "x": 61,
+            "y": 119,
+            "width": 244,
+            "height": 316
+          },
+          "feetPivot": {
+            "x": 191.5,
+            "y": 435
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_a",
+          "sheet": "main",
+          "occupiedPixels": 39098,
+          "transparentPixels": 79999,
+          "actualVisibleBounds": {
+            "x": 49,
+            "y": 88,
+            "width": 224,
+            "height": 274
+          },
+          "feetPivot": {
+            "x": 158,
+            "y": 362
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_a",
+          "sheet": "main",
+          "occupiedPixels": 44071,
+          "transparentPixels": 109913,
+          "actualVisibleBounds": {
+            "x": 24,
+            "y": 103,
+            "width": 354,
+            "height": 259
+          },
+          "feetPivot": {
+            "x": 164.5,
+            "y": 362
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "recover",
+          "sheet": "main",
+          "occupiedPixels": 37442,
+          "transparentPixels": 70427,
+          "actualVisibleBounds": {
+            "x": 6,
+            "y": 56,
+            "width": 220,
+            "height": 306
+          },
+          "feetPivot": {
+            "x": 116,
+            "y": 362
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_b",
+          "sheet": "main",
+          "occupiedPixels": 40887,
+          "transparentPixels": 81017,
+          "actualVisibleBounds": {
+            "x": 44,
+            "y": 27,
+            "width": 229,
+            "height": 335
+          },
+          "feetPivot": {
+            "x": 158.5,
+            "y": 362
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_b",
+          "sheet": "main",
+          "occupiedPixels": 30385,
+          "transparentPixels": 99818,
+          "actualVisibleBounds": {
+            "x": 61,
+            "y": 111,
+            "width": 226,
+            "height": 203
+          },
+          "feetPivot": {
+            "x": 169,
+            "y": 314
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hurt",
+          "sheet": "main",
+          "occupiedPixels": 38016,
+          "transparentPixels": 78502,
+          "actualVisibleBounds": {
+            "x": 46,
+            "y": 39,
+            "width": 238,
+            "height": 272
+          },
+          "feetPivot": {
+            "x": 169,
+            "y": 311
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "fall",
+          "sheet": "main",
+          "occupiedPixels": 28732,
+          "transparentPixels": 87395,
+          "actualVisibleBounds": {
+            "x": 15,
+            "y": 72,
+            "width": 260,
+            "height": 210
+          },
+          "feetPivot": {
+            "x": 196,
+            "y": 282
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "down",
+          "sheet": "main",
+          "occupiedPixels": 22528,
+          "transparentPixels": 104938,
+          "actualVisibleBounds": {
+            "x": 23,
+            "y": 199,
+            "width": 282,
+            "height": 111
+          },
+          "feetPivot": {
+            "x": 159,
+            "y": 310
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        }
+      ],
+      "nativeCoverage": [
+        {
+          "sheet": "main",
+          "visiblePixels": 432871,
+          "coveredOnce": 432871,
+          "allVisibleCoveredExactlyOnce": true
+        }
+      ],
+      "warning": "Native crop/hash/scale checks do not establish likeness or visual animation acceptance."
+    },
+    {
+      "actor": "rift_stalker",
+      "registrationPath": "assets\\mac-combat-frames\\rift_stalker-frames-v1.json",
+      "registrationSHA256": "58ab78fe5e365cb6935f3deb78468c7a8b172ef91d20f679f8821f5008264901",
+      "complete": true,
+      "sheetCount": 1,
+      "frameCount": 12,
+      "measurements": [
+        {
+          "frameId": "idle",
+          "sheet": "main",
+          "occupiedPixels": 12752,
+          "transparentPixels": 139756,
+          "actualVisibleBounds": {
+            "x": 126,
+            "y": 178,
+            "width": 115,
+            "height": 194
+          },
+          "feetPivot": {
+            "x": 194,
+            "y": 372
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_a",
+          "sheet": "main",
+          "occupiedPixels": 13892,
+          "transparentPixels": 147136,
+          "actualVisibleBounds": {
+            "x": 118,
+            "y": 179,
+            "width": 158,
+            "height": 194
+          },
+          "feetPivot": {
+            "x": 201,
+            "y": 373
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_pass",
+          "sheet": "main",
+          "occupiedPixels": 12537,
+          "transparentPixels": 131451,
+          "actualVisibleBounds": {
+            "x": 102,
+            "y": 178,
+            "width": 121,
+            "height": 195
+          },
+          "feetPivot": {
+            "x": 168.5,
+            "y": 373
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_b",
+          "sheet": "main",
+          "occupiedPixels": 14139,
+          "transparentPixels": 145185,
+          "actualVisibleBounds": {
+            "x": 116,
+            "y": 181,
+            "width": 162,
+            "height": 192
+          },
+          "feetPivot": {
+            "x": 197,
+            "y": 373
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_a",
+          "sheet": "main",
+          "occupiedPixels": 13573,
+          "transparentPixels": 92523,
+          "actualVisibleBounds": {
+            "x": 119,
+            "y": 54,
+            "width": 148,
+            "height": 173
+          },
+          "feetPivot": {
+            "x": 194,
+            "y": 227
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_a",
+          "sheet": "main",
+          "occupiedPixels": 16126,
+          "transparentPixels": 108818,
+          "actualVisibleBounds": {
+            "x": 82,
+            "y": 64,
+            "width": 255,
+            "height": 167
+          },
+          "feetPivot": {
+            "x": 174.5,
+            "y": 231
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "recover",
+          "sheet": "main",
+          "occupiedPixels": 13824,
+          "transparentPixels": 90144,
+          "actualVisibleBounds": {
+            "x": 75,
+            "y": 64,
+            "width": 160,
+            "height": 163
+          },
+          "feetPivot": {
+            "x": 148.5,
+            "y": 227
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_b",
+          "sheet": "main",
+          "occupiedPixels": 13035,
+          "transparentPixels": 92149,
+          "actualVisibleBounds": {
+            "x": 108,
+            "y": 61,
+            "width": 152,
+            "height": 166
+          },
+          "feetPivot": {
+            "x": 197,
+            "y": 227
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_b",
+          "sheet": "main",
+          "occupiedPixels": 14199,
+          "transparentPixels": 127845,
+          "actualVisibleBounds": {
+            "x": 93,
+            "y": 75,
+            "width": 217,
+            "height": 156
+          },
+          "feetPivot": {
+            "x": 204,
+            "y": 231
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hurt",
+          "sheet": "main",
+          "occupiedPixels": 12043,
+          "transparentPixels": 108285,
+          "actualVisibleBounds": {
+            "x": 90,
+            "y": 74,
+            "width": 178,
+            "height": 157
+          },
+          "feetPivot": {
+            "x": 208.5,
+            "y": 231
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "fall",
+          "sheet": "main",
+          "occupiedPixels": 13470,
+          "transparentPixels": 112554,
+          "actualVisibleBounds": {
+            "x": 71,
+            "y": 100,
+            "width": 200,
+            "height": 133
+          },
+          "feetPivot": {
+            "x": 165.5,
+            "y": 233
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "down",
+          "sheet": "main",
+          "occupiedPixels": 9644,
+          "transparentPixels": 117448,
+          "actualVisibleBounds": {
+            "x": 83,
+            "y": 154,
+            "width": 193,
+            "height": 74
+          },
+          "feetPivot": {
+            "x": 179.5,
+            "y": 228
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        }
+      ],
+      "nativeCoverage": [
+        {
+          "sheet": "main",
+          "visiblePixels": 159234,
+          "coveredOnce": 159234,
+          "allVisibleCoveredExactlyOnce": true
+        }
+      ],
+      "warning": "Native crop/hash/scale checks do not establish likeness or visual animation acceptance."
+    },
+    {
+      "actor": "shock_mantid",
+      "registrationPath": "assets\\mac-combat-frames\\shock_mantid-frames-v1.json",
+      "registrationSHA256": "39734156f7e647228bdeafe4f120fbf48714dc558a5fc2899ddbc0695652bde5",
+      "complete": true,
+      "sheetCount": 1,
+      "frameCount": 12,
+      "measurements": [
+        {
+          "frameId": "idle",
+          "sheet": "main",
+          "occupiedPixels": 28461,
+          "transparentPixels": 105939,
+          "actualVisibleBounds": {
+            "x": 82,
+            "y": 75,
+            "width": 188,
+            "height": 285
+          },
+          "feetPivot": {
+            "x": 176,
+            "y": 360
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_a",
+          "sheet": "main",
+          "occupiedPixels": 27265,
+          "transparentPixels": 121727,
+          "actualVisibleBounds": {
+            "x": 80,
+            "y": 85,
+            "width": 229,
+            "height": 275
+          },
+          "feetPivot": {
+            "x": 195,
+            "y": 360
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_pass",
+          "sheet": "main",
+          "occupiedPixels": 24071,
+          "transparentPixels": 104569,
+          "actualVisibleBounds": {
+            "x": 80,
+            "y": 80,
+            "width": 171,
+            "height": 280
+          },
+          "feetPivot": {
+            "x": 185,
+            "y": 360
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_b",
+          "sheet": "main",
+          "occupiedPixels": 27957,
+          "transparentPixels": 116043,
+          "actualVisibleBounds": {
+            "x": 85,
+            "y": 82,
+            "width": 221,
+            "height": 279
+          },
+          "feetPivot": {
+            "x": 197.5,
+            "y": 361
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_a",
+          "sheet": "main",
+          "occupiedPixels": 32214,
+          "transparentPixels": 100646,
+          "actualVisibleBounds": {
+            "x": 70,
+            "y": 24,
+            "width": 236,
+            "height": 308
+          },
+          "feetPivot": {
+            "x": 195,
+            "y": 332
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_a",
+          "sheet": "main",
+          "occupiedPixels": 27714,
+          "transparentPixels": 110970,
+          "actualVisibleBounds": {
+            "x": 60,
+            "y": 129,
+            "width": 264,
+            "height": 207
+          },
+          "feetPivot": {
+            "x": 191,
+            "y": 336
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "recover",
+          "sheet": "main",
+          "occupiedPixels": 26879,
+          "transparentPixels": 95425,
+          "actualVisibleBounds": {
+            "x": 58,
+            "y": 63,
+            "width": 202,
+            "height": 268
+          },
+          "feetPivot": {
+            "x": 159,
+            "y": 331
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "tell_b",
+          "sheet": "main",
+          "occupiedPixels": 23516,
+          "transparentPixels": 109708,
+          "actualVisibleBounds": {
+            "x": 77,
+            "y": 150,
+            "width": 209,
+            "height": 182
+          },
+          "feetPivot": {
+            "x": 187,
+            "y": 332
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "impact_b",
+          "sheet": "main",
+          "occupiedPixels": 22811,
+          "transparentPixels": 108333,
+          "actualVisibleBounds": {
+            "x": 54,
+            "y": 41,
+            "width": 290,
+            "height": 171
+          },
+          "feetPivot": {
+            "x": 145,
+            "y": 212
+          },
+          "baselineLift": 15.508771929824562,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hurt",
+          "sheet": "main",
+          "occupiedPixels": 29231,
+          "transparentPixels": 85013,
+          "actualVisibleBounds": {
+            "x": 44,
+            "y": 28,
+            "width": 266,
+            "height": 242
+          },
+          "feetPivot": {
+            "x": 193,
+            "y": 270
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "fall",
+          "sheet": "main",
+          "occupiedPixels": 25301,
+          "transparentPixels": 87253,
+          "actualVisibleBounds": {
+            "x": 29,
+            "y": 66,
+            "width": 277,
+            "height": 187
+          },
+          "feetPivot": {
+            "x": 141,
+            "y": 253
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "down",
+          "sheet": "main",
+          "occupiedPixels": 17901,
+          "transparentPixels": 113581,
+          "actualVisibleBounds": {
+            "x": 27,
+            "y": 174,
+            "width": 315,
+            "height": 93
+          },
+          "feetPivot": {
+            "x": 186,
+            "y": 267
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        }
+      ],
+      "nativeCoverage": [
+        {
+          "sheet": "main",
+          "visiblePixels": 313321,
+          "coveredOnce": 313321,
+          "allVisibleCoveredExactlyOnce": true
+        }
+      ],
+      "warning": "Native crop/hash/scale checks do not establish likeness or visual animation acceptance."
+    },
+    {
+      "actor": "null_regent",
+      "registrationPath": "assets\\mac-combat-frames\\null_regent-frames-v1.json",
+      "registrationSHA256": "169f2b4ccd881711a8a3ac96eab531cbe4b1f22370a9dad8474729f8ec9158bb",
+      "complete": true,
+      "sheetCount": 1,
+      "frameCount": 12,
+      "measurements": [
+        {
+          "frameId": "idle",
+          "sheet": "main",
+          "occupiedPixels": 37551,
+          "transparentPixels": 111621,
+          "actualVisibleBounds": {
+            "x": 73,
+            "y": 92,
+            "width": 233,
+            "height": 276
+          },
+          "feetPivot": {
+            "x": 180,
+            "y": 368
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_a",
+          "sheet": "main",
+          "occupiedPixels": 37489,
+          "transparentPixels": 108074,
+          "actualVisibleBounds": {
+            "x": 67,
+            "y": 88,
+            "width": 241,
+            "height": 279
+          },
+          "feetPivot": {
+            "x": 199.5,
+            "y": 367
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_b",
+          "sheet": "main",
+          "occupiedPixels": 37854,
+          "transparentPixels": 112521,
+          "actualVisibleBounds": {
+            "x": 56,
+            "y": 93,
+            "width": 254,
+            "height": 275
+          },
+          "feetPivot": {
+            "x": 189,
+            "y": 368
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "cleave_windup",
+          "sheet": "main",
+          "occupiedPixels": 38925,
+          "transparentPixels": 96613,
+          "actualVisibleBounds": {
+            "x": 66,
+            "y": 75,
+            "width": 232,
+            "height": 293
+          },
+          "feetPivot": {
+            "x": 172,
+            "y": 368
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "cleave_contact",
+          "sheet": "main",
+          "occupiedPixels": 38763,
+          "transparentPixels": 89159,
+          "actualVisibleBounds": {
+            "x": 52,
+            "y": 42,
+            "width": 277,
+            "height": 250
+          },
+          "feetPivot": {
+            "x": 167.5,
+            "y": 292
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "charge_windup",
+          "sheet": "main",
+          "occupiedPixels": 31646,
+          "transparentPixels": 76236,
+          "actualVisibleBounds": {
+            "x": 54,
+            "y": 77,
+            "width": 224,
+            "height": 217
+          },
+          "feetPivot": {
+            "x": 163.5,
+            "y": 294
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "charge_contact",
+          "sheet": "main",
+          "occupiedPixels": 37052,
+          "transparentPixels": 103228,
+          "actualVisibleBounds": {
+            "x": 45,
+            "y": 86,
+            "width": 332,
+            "height": 204
+          },
+          "feetPivot": {
+            "x": 194.5,
+            "y": 290
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "fan_windup",
+          "sheet": "main",
+          "occupiedPixels": 38291,
+          "transparentPixels": 69257,
+          "actualVisibleBounds": {
+            "x": 44,
+            "y": 33,
+            "width": 238,
+            "height": 262
+          },
+          "feetPivot": {
+            "x": 162.5,
+            "y": 295
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "fan_contact",
+          "sheet": "main",
+          "occupiedPixels": 38280,
+          "transparentPixels": 99312,
+          "actualVisibleBounds": {
+            "x": 50,
+            "y": 39,
+            "width": 309,
+            "height": 233
+          },
+          "feetPivot": {
+            "x": 177.5,
+            "y": 272
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "slam_contact",
+          "sheet": "main",
+          "occupiedPixels": 30644,
+          "transparentPixels": 96769,
+          "actualVisibleBounds": {
+            "x": 34,
+            "y": 89,
+            "width": 293,
+            "height": 179
+          },
+          "feetPivot": {
+            "x": 180.5,
+            "y": 268
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hurt",
+          "sheet": "main",
+          "occupiedPixels": 32827,
+          "transparentPixels": 80546,
+          "actualVisibleBounds": {
+            "x": 36,
+            "y": 42,
+            "width": 231,
+            "height": 229
+          },
+          "feetPivot": {
+            "x": 169.5,
+            "y": 271
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "down",
+          "sheet": "main",
+          "occupiedPixels": 22928,
+          "transparentPixels": 106942,
+          "actualVisibleBounds": {
+            "x": 56,
+            "y": 164,
+            "width": 273,
+            "height": 116
+          },
+          "feetPivot": {
+            "x": 189.5,
+            "y": 280
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        }
+      ],
+      "nativeCoverage": [
+        {
+          "sheet": "main",
+          "visiblePixels": 422250,
+          "coveredOnce": 422250,
+          "allVisibleCoveredExactlyOnce": true
+        }
+      ],
+      "warning": "Native crop/hash/scale checks do not establish likeness or visual animation acceptance."
+    }
+  ],
+  "limitations": [
+    "Owner visual acceptance is separate",
+    "No hosted/FPS/full-route check performed"
+  ],
+  "wroteReceipt": true
+}

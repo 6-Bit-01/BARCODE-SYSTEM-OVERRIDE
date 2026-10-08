@@ -1,4 +1,88 @@
+## October 7, 2026 — complete equipment and concise dialogue follow-up
+
+Resume the existing private Mac chapter from source `f902da798c57124bebaea766eab7a3fc7eda1e35` / website `dfa5560f0f4a9167e1665431f392be7118731eda`. The owner rejected the remaining weapon holds and requested every frame and legal interaction be reviewed. The prior measured grip receipts are technical evidence, not owner visual approval. Preserve both checkpoints, the verified full `8768b31` source archive, original native artwork and every earlier evidence receipt.
+
+The pre-level introduction retains all eight approved scene/art IDs, with one immediately readable cue per scene. Continue takes nine inputs; answering the sole optional 9 Bit fourth-wall question takes ten. Ordinary Kave scenes and the single-cue desk payoff have no choices. The two options are “Get it heard” and “Keep the receipts”; skipping the optional answer adds no extra exchange. Gameplay reactions retain the existing radio owner and earned event rules. See `MAC_CITY_POLISH_STORY.md`.
+
+Equipment review covers all selected native cels in both facings, including walk/run, guard movement/impact, airborne poses, kicks, counters, carry and release. An independent public-input audit earned all eight last-charge attacks, all seven enemy hold/pummel/throw interactions, crate/barrel ownership transfers, real hurt/defeat, swap, pause and retry. The renderer retains a committed last-charge weapon through its recovery even after inventory is spent; actual hurt cancels the attack and drops the item. Keep held models consistent in scale and hand contact across transitions, and stop drawing a carried prop in Modem's hand after the actual world handoff.
+
+Fresh final evidence belongs in project-root `verification/mac-combat-refine-20261007`, using distinct `refine2` release/package/cloud receipts. The release ledger records the final exact source/site identities, tested scope, retained recovery files and hosted observations. Source PR189/site PR485 remain private drafts. Owner playtesting, physical-device frame rate and final Mac music remain pending. Earlier entries below are historical when they conflict with this follow-up.
+
+## October 7, 2026 — combat refinement after city1
+
+Continue from retained city1 source `bcd25f4` and website `1eee336e`. The current follow-up spreads weapons across both fight pockets in all six districts and adds seeded rewards to one suitable breakable prop per district plus all four cars. One uint32 chapter seed is selected at enter/full replay; normal retry restores the same roll. The first tutorial Pipe stays fixed, all eight types keep their district tiers, charges remain finite, and guns begin in the later half of the city. See `docs/source-pack/MAC_COMBAT_REFINEMENT_PASS.md` for the exact API and distribution.
+
+Measured uniform native whole-cel scale and individual four-phase running grips are implemented without changing PNG bytes. Directional inner-body contact, soft grounded spacing and later pressure are frozen in the combat core: one close attacker early/two later, 300 ms fresh warning spacing, later approach at 1.15 times and non-boss recovery at 0.82 times, damage increases of 1 in zones 3–4 and 2 in zones 5–6, and zone healing of 22. Boss recovery windows remain. The ordinary boss coach yields during real warning/commitment/exposure, preserving held-object instructions. Final local combat (26), arsenal (17), city (4), power (6), directional contact (1) and loot (4) groups pass on `ebb43230912d86de9b00d08e17704aa0c8c32044786742dd48b3a79080e08957`; the loot route earned all twelve floor pickups and ten real prop rewards. Final wrapper and release-head checks stay pending; city1 results do not certify this head.
+
+Fresh final evidence belongs in project-root `verification/mac-combat-refine-20261007`: final core/arsenal/loot and wrapper/native checks, exact committed package, source/site cloud results, hosted visible-startup observation and source archive. Preserve all prior checkpoints and historical entries below. Source PR189/site PR485 remain private drafts; eight approved intro scenes, both Kave choices, canonical cameo/story integration and all accepted native assets remain.
+
+## October 7, 2026 — Mac city fights and story polish
+
+Continue from the saved guardfit5 source `f1467ea37a2710f4b1650d230a93bc0040276918` and website `71f430134e7b7c0b0f4c69c4bafb9fe5679c3ed3`. The owner approved the full Mac chapter pass, starting with enemy behavior and encounter design. This pass gives all six districts two separated encounters with authored tactical objectives, coordinated close-range pressure and spaced readable ranged tells. Existing enemy-specific attack types and all accepted complete-character artwork remain in use. The Null Regent gains longer exposed recovery windows, phase names and a HUD timer; crossing a health threshold cannot rewrite a committed warning. Breaking a powered terminal/streetlight can interrupt nearby aliens once, through an actual enemy-only discharge receipt.
+
+The existing radio surface carries sparse earned district, fixture, car and boss reactions. Eight approved intro scenes and exactly two optional Kave choices remain. No new dialogue menu, action button, input/animation loop, audio transport or save owner is introduced. See `docs/source-pack/MAC_CITY_POLISH_PASS.md` and `MAC_CITY_POLISH_STORY.md` for the scope.
+
+Fresh exact-head packaging, cloud results and visual observations for this pass belong in project-root/verification/mac-city-polish-20261007. Guardfit5 receipts apply to the retained baseline, not this changed runtime. Source PR189 and website PR485 stay private drafts until owner release. The earlier black-area cause remains unproven; this pass makes no speculative viewport change. Final Mac music and physical-device gameplay acceptance remain pending.
+
+## October 7, 2026 — guard hand placement follow-up
+
+The grips4 recovery is complete at source8768b318/site625c866e. Its native sheets, six bat swing cels, 27 gun/disc cels, strict package, hosted preview and full source archive are preserved. Do not resume the old pending steps below.
+
+The owner then rejected the five melee guard holds and reported a large black area beside/below the game. Correct only the four guard attachment cels for each melee weapon using the actual closed fist, separate defensive angles and original palm pixels. Preserve all bitmap bytes. The equipment review must show actual guard-walk step_a/step_b and guard impact. Current follow-up evidence belongs to project-root/verification/mac-guard-fit-20261007; review revision guardfit5. Source PR189 and site PR485 remain private drafts.
+
+Fresh native browser gameplay fills1280x720, the reported1066x587 size, and an actual861.538x646.154 window with centered16:9 fitting. The earlier large off-center black area did not reproduce after fresh preview/resize reinitialization; its cause remains unproven. No speculative game sizing change or permanent-fix claim is warranted. Fullscreen and hardware FPS are not established by these observations.
+
+## Historical preparation notes before completed grips4
+
+## October 7, 2026 — resume saved grips4 refinement
+
+Continue the existing work; do not regenerate the saved native sheets or repeat matching completed checks. The working source selects **55 supplemental complete-character cels on eight sheets**: the previous 22 attachment cels, six bat3 pipe swing cels, and 27 new scatter-blaster, coil-rifle and plasma-disc cels. The bat3 measured ready grips and six-cel swing remain. The three new native PNGs, registration, production sampler/renderer, calibrated shot origins, updated review page and strict packaging pins are saved. See `docs/source-pack/MAC_WEAPON_GRIP_PROVENANCE_20261007.md`.
+
+Evidence is in project-root/verification/mac-weapon-grips-20261007. The saved 16-group strict registration probe and native 55-cel/eight-sheet packaging candidate check still match their recorded current input hashes. The nine production-rendered review cards cover all 27 new cels in both facings; all ten render inputs and image hashes match. These are still renders and candidate checks, not hosted gameplay or owner acceptance. The intermediate embedded sampler receipt is stale; the stow intermediate receipt has current sampler/checker code but describes the older 28-cel/five-sheet native registration.
+
+At this checkpoint the source remains a refinement of `0c702e6`; the website payload at `f5b19ef` still selects bat3's 28/five bank. The grips4 source commit, committed standalone build, website installation, exact-head CI, hosted observation and source archive remain pending. Preserve both previous verification folders, build folders and archives. Source PR189 and website PR485 remain drafts. The review revision is `grips4`; do not claim it is hosted until fresh receipts establish that.
+
+The focused final commands from the source root are below. The final native dynamic check has now passed 24 groups, the base-frame check passed 19, and real-wrapper integration passed 28; retain their saved receipts. The arsenal check reached its muzzle scenario but its old 110-unit setup did not guarantee a victim inside the new 95.588-unit rifle muzzle. Correct that public-input scenario while retaining the close-target and same-first-sweep assertions, then run only its final check.
+
+```text
+node tools/check-mac-dynamic-frames.cjs --registration assets/mac-street-dynamic/mac-modem-actions-v1.json --base assets/mac-combat-frames/mac-frames-v1.json --out ../verification/mac-weapon-grips-20261007/dynamic-frames-native.json
+node tools/check-mac-street-arsenal.cjs
+node tools/check-mac-street-integration.cjs
+```
+
+Keep `--equipment` out of this archival dynamic receipt: its equipment row has a different identity schema. Resume the commit/build/install/preview path after the remaining arsenal check; use final cloud validation for the full source suite rather than repeating the long local suite. Browser unavailability must remain explicitly recorded as an unobserved review checkpoint.
+
+## October 7, 2026 — measured ready grips for bat3
+
+The owner's annotated bat location is the near tattooed hand, with the shaft upright beside the head. Its native wrapped-handle contact moves toward the butt to crop point (70,306), native sheet point (93,375); the floor pickup pivot stays unchanged. Both accepted idle cels have individually measured near-hand registrations and palm overlap. Crowbar, shock baton, energy blade and gravity hammer use that anatomical contact with separate reviewed orientations that keep the eyes readable. Firearms now retain the complete aiming cel for idle and recovery, replacing the separated-fist ready pose that visibly put a hand inside the barrel. Projectile muzzle profiles were recalculated from the current complete native recoil cel; existing damage, timing and collision sweeps stay intact.
+
+Actual still-image inspection covers each weapon's idle, contact, guard and first running cel in both facings, both bat idle cels, the second idle cel of the four other melee weapons, and all six whole bat swing cels. This scoped inspection does not certify every rendered combination, physical phone performance, or owner visual acceptance. The six bat attack cels embed the pipe and suppress its duplicate overlay. The private review page can play their actual phase sequence. The earlier grip2 blanket visual acceptance was rejected by the owner and is superseded here. Current scoped evidence is in project-root/verification/mac-bat-placement-20261007; fresh build/release receipts are in project-root/verification/mac-bat-grip-20261007. Source PR189 and website PR485 stay drafts pending owner playtest.
+
+## October 7, 2026 — authored bat swing and two-braid Mac correction
+
+The owner rejects grip2's horizontal pipe/bat hold and straight-punch attack. Idle now places its wrapped handle in the marked lower tattooed hand, upright beside the head; the fully-behind candidate was rejected because it hid the shaft. The attack uses six newly drawn complete Mac-and-pipe cels: two-hand load, rear-foot pivot, rotating contact, through, wraparound finish and recovery. The pipe is painted into each complete attack cel; its matching external overlay is suppressed. Actual combat phases and the existing gameplay/input/audio clocks remain authoritative. New art is copied unchanged from built-in imagegen; prompts and provenance are in MAC_PIPE_SWING_PROVENANCE_20261007.md.
+
+Mac's model rule is exactly two reddish-brown braided plaits, with the far braid allowed to overlap in side view. Accepted base locomotion/cel bytes remain after a two-braid audit; multi-braid supplemental block/run/hold/weapon drawings receive hair-only sibling corrections and fresh registration. Inspect every selected complete cel, both idle grips and all swing cels in both facings. Structural checks establish loading/sampling integrity; the prior all-weapon visual pass was rejected and does not establish correct holds. Other weapons retain their behavior and remain subject to owner review. Source PR189 and website PR485 remain private drafts; bat3 is this playtest revision. Preserve grip2 and its exact archive. Fresh evidence belongs to project-root/verification/mac-bat-grip-20261007 and mac-bat-swing-20261007; owner visual/playtest acceptance remains pending.
+
+## October 6, 2026 — individual weapon grips, street scale and running kick
+
+The owner rejected the arsenal1 weapon holds and small cars/props, and explicitly requires each weapon to be positioned and checked individually. This correction adds per-weapon, per-cel grip, angle and front/behind layering, with native palm/forearm overlap drawn from the same complete character cel. The accepted character drawings remain complete; no articulated body animation returns. Both facing directions and equipped idle, guard, movement and attack states belong to the review.
+
+Cars use new longer side-view native drawings, with one uniform scale for each intact/cracked/wrecked family. Street objects are calibrated against the unchanged 260-unit Mac. Stronger cars absorb several attacks and use a finite hit bounce driven by the existing combat clock, while collision/floor anchors, one-time wrecking and loot remain authoritative. Run plus Strike commits a grounded running kick with forward momentum and launch; ordinary strikes, airborne kicks and counters retain their own behavior. Equipped gear remains in inventory and is not spent by the running kick.
+
+Source PR189 and website PR485 remain private drafts. The arsenal1 source6df3cf81/site3dfb10cf checkpoint and verified archive are preserved. The production equipment review page, native review images, final source/site identities, fresh focused/full checks, hosted observations and exact source ZIP are recorded in project-root/verification/mac-street-grip-20261006 and its delivery receipts. The website playtest revision is grip2. Technical validation does not establish owner visual/playtest acceptance, physical-phone performance or final Mac music acceptance. Six districts, twelve waves, thirty enemies, boss, cameos, both Kave choices and the original 624 artwork/audio identities remain.
+
 # Continue here — existing BARCODE website hosting
+
+## October 6, 2026 — current private Modem weapons and city pass
+
+Continue from source draft PR189 / website draft PR485. The owner expanded the power2 preview with eight weapons, held enemy grabs/pummels, liftable and throwable boxes/barrels, futuristic car wrecking, attached destructible city fixtures, corrected shared prop proportions, complete-character guard/run/item drawings and three temporary powerups. Guard creep is 0.22x speed; double-tap/outer joystick run is 1.65x. L holds enemies up to three seconds by strength, pummelling is capped at one second, and props stay carried until release or interruption. Existing controls remain direct, with a skippable action-driven tutorial.
+
+See docs/source-pack/review-mac-street-dynamic/PRODUCTION_REVIEW.md and art-provenance.md. Final source/site commits, checks, hosted observations and exact v5 source archive are in project-root/verification/mac-street-dynamic-20261006 and its delivery receipts. The prior verified power2 source58efb9a/site5451664 archive is preserved. All six districts, twelve waves, thirty enemies, boss, eight introduction scenes and both Kave choices remain. Owner playtesting, physical-phone FPS and final Mac music remain pending; earlier checkpoints below are historical where they conflict with this current pass.
+
+## October 6, 2026 — current private Modem power pass
+
+Continue from source draft PR189 and website draft PR485. The private Mac city now uses complete drawn character cels, with the first two districts receiving body throws/finisher launches, destructible props, recovery, coordinated positioning, native damage art and a hands-on skippable tutorial. Inspect/Link restores the market relay with 9 Bit/Kave reactions. All six districts, twelve waves, thirty enemies and both Kave choices remain playable. See [the power pass](docs/source-pack/MAC_STREET_POWER_PASS.md); exact source/site commits, checks, hosted observations and current v5 archive are in project-root/verification/mac-street-power-20261006 and its delivery receipts. Owner playtesting and final Mac music remain pending. Earlier Makko and Level 2-only continuation instructions below are historical for this private branch.
 
 ## October 3, 2026 — minimal Level 2 road cues and gear tap repair, unpublished
 

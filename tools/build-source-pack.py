@@ -25,8 +25,9 @@ RETAINED_REVIEW_MEDIA = {
     "review-cache-visual-drive/Foreground-Pass.mp4",
     "review-cache-lamps-chip-sound/Chip-SFX-Audition.mp3",
 }
-CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/", "review-cache-drive-feedback/", "review-cache-visual-drive/")
-REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3", ".wav"}
+CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/", "review-cache-drive-feedback/", "review-cache-visual-drive/", "review-level3-story/", "review-mac-street-art/", "review-kave-likeness/", "review-mac-city-art/", "review-mac-combat-rigs/", "review-mac-combat-frames/")
+RETAINED_REFERENCE_PREFIXES = ("review-level3-story/references/", "review-mac-street-art/references/", "review-kave-likeness/")
+REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".avif", ".gif", ".mp3", ".wav"}
 ROOT_DOCUMENT_SUFFIXES = {".md", ".json", ".txt"}
 
 
@@ -37,6 +38,8 @@ def exclusion_reason(path):
         relative = path.as_posix()[len(DOC_PREFIX):]
         if relative in RETAINED_REVIEW_MEDIA or (
             relative.startswith(CURRENT_REVIEWS) and path.suffix.lower() in {".webp", ".png"}
+        ) or (
+            relative.startswith(RETAINED_REFERENCE_PREFIXES) and path.suffix.lower() in {".jpg", ".jpeg", ".avif"}
         ):
             return None
         return "Review media retained in Git; omitted from the current source archive to keep complete code and source art within one downloadable file."

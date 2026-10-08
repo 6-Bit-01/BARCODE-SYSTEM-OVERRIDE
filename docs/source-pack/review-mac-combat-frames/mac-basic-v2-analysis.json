@@ -1,0 +1,312 @@
+{
+  "sourceImage": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\docs\\source-pack\\review-mac-combat-frames\\art\\mac-basic-v2.png",
+  "sourceSHA256": "3924a5621c417da3328fcd9979acc37be6be0802d8ec0808194fa188aaa47046",
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "frames": [
+    {
+      "id": "idle_a",
+      "source": {
+        "x": 0,
+        "y": 0,
+        "width": 372,
+        "height": 379
+      },
+      "feetPivot": {
+        "x": 187.5,
+        "y": 361
+      },
+      "visibleBounds": {
+        "x": 79,
+        "y": 40,
+        "width": 217,
+        "height": 321
+      },
+      "transparentMargins": {
+        "left": 79,
+        "top": 40,
+        "right": 76,
+        "bottom": 18
+      }
+    },
+    {
+      "id": "idle_b",
+      "source": {
+        "x": 372,
+        "y": 0,
+        "width": 358,
+        "height": 379
+      },
+      "feetPivot": {
+        "x": 183.0,
+        "y": 361
+      },
+      "visibleBounds": {
+        "x": 77,
+        "y": 40,
+        "width": 212,
+        "height": 321
+      },
+      "transparentMargins": {
+        "left": 77,
+        "top": 40,
+        "right": 69,
+        "bottom": 18
+      }
+    },
+    {
+      "id": "walk_contact_a",
+      "source": {
+        "x": 730,
+        "y": 0,
+        "width": 357,
+        "height": 379
+      },
+      "feetPivot": {
+        "x": 194.5,
+        "y": 361
+      },
+      "visibleBounds": {
+        "x": 69,
+        "y": 41,
+        "width": 232,
+        "height": 320
+      },
+      "transparentMargins": {
+        "left": 69,
+        "top": 41,
+        "right": 56,
+        "bottom": 18
+      }
+    },
+    {
+      "id": "walk_pass_a",
+      "source": {
+        "x": 1087,
+        "y": 0,
+        "width": 361,
+        "height": 379
+      },
+      "feetPivot": {
+        "x": 176.5,
+        "y": 360
+      },
+      "visibleBounds": {
+        "x": 57,
+        "y": 41,
+        "width": 226,
+        "height": 319
+      },
+      "transparentMargins": {
+        "left": 57,
+        "top": 41,
+        "right": 78,
+        "bottom": 19
+      }
+    },
+    {
+      "id": "walk_contact_b",
+      "source": {
+        "x": 0,
+        "y": 379,
+        "width": 368,
+        "height": 351
+      },
+      "feetPivot": {
+        "x": 183.5,
+        "y": 331
+      },
+      "visibleBounds": {
+        "x": 51,
+        "y": 18,
+        "width": 253,
+        "height": 313
+      },
+      "transparentMargins": {
+        "left": 51,
+        "top": 18,
+        "right": 64,
+        "bottom": 20
+      }
+    },
+    {
+      "id": "walk_pass_b",
+      "source": {
+        "x": 368,
+        "y": 379,
+        "width": 348,
+        "height": 351
+      },
+      "feetPivot": {
+        "x": 247.5,
+        "y": 331
+      },
+      "visibleBounds": {
+        "x": 64,
+        "y": 18,
+        "width": 221,
+        "height": 313
+      },
+      "transparentMargins": {
+        "left": 64,
+        "top": 18,
+        "right": 63,
+        "bottom": 20
+      }
+    },
+    {
+      "id": "jab_windup",
+      "source": {
+        "x": 716,
+        "y": 379,
+        "width": 367,
+        "height": 351
+      },
+      "feetPivot": {
+        "x": 193.0,
+        "y": 331
+      },
+      "visibleBounds": {
+        "x": 64,
+        "y": 24,
+        "width": 258,
+        "height": 307
+      },
+      "transparentMargins": {
+        "left": 64,
+        "top": 24,
+        "right": 45,
+        "bottom": 20
+      }
+    },
+    {
+      "id": "jab_contact",
+      "source": {
+        "x": 1083,
+        "y": 379,
+        "width": 365,
+        "height": 351
+      },
+      "feetPivot": {
+        "x": 177.5,
+        "y": 333
+      },
+      "visibleBounds": {
+        "x": 45,
+        "y": 28,
+        "width": 293,
+        "height": 305
+      },
+      "transparentMargins": {
+        "left": 45,
+        "top": 28,
+        "right": 27,
+        "bottom": 18
+      }
+    },
+    {
+      "id": "jab_recovery",
+      "source": {
+        "x": 0,
+        "y": 730,
+        "width": 363,
+        "height": 356
+      },
+      "feetPivot": {
+        "x": 183.5,
+        "y": 312
+      },
+      "visibleBounds": {
+        "x": 64,
+        "y": 18,
+        "width": 239,
+        "height": 294
+      },
+      "transparentMargins": {
+        "left": 64,
+        "top": 18,
+        "right": 60,
+        "bottom": 44
+      }
+    },
+    {
+      "id": "cross_windup",
+      "source": {
+        "x": 363,
+        "y": 730,
+        "width": 361,
+        "height": 356
+      },
+      "feetPivot": {
+        "x": 186.0,
+        "y": 312
+      },
+      "visibleBounds": {
+        "x": 60,
+        "y": 18,
+        "width": 252,
+        "height": 294
+      },
+      "transparentMargins": {
+        "left": 60,
+        "top": 18,
+        "right": 49,
+        "bottom": 44
+      }
+    },
+    {
+      "id": "cross_contact",
+      "source": {
+        "x": 724,
+        "y": 730,
+        "width": 373,
+        "height": 356
+      },
+      "feetPivot": {
+        "x": 182.5,
+        "y": 312
+      },
+      "visibleBounds": {
+        "x": 50,
+        "y": 21,
+        "width": 291,
+        "height": 291
+      },
+      "transparentMargins": {
+        "left": 50,
+        "top": 21,
+        "right": 32,
+        "bottom": 44
+      }
+    },
+    {
+      "id": "hook_windup",
+      "source": {
+        "x": 1097,
+        "y": 730,
+        "width": 351,
+        "height": 356
+      },
+      "feetPivot": {
+        "x": 171.5,
+        "y": 312
+      },
+      "visibleBounds": {
+        "x": 32,
+        "y": 18,
+        "width": 279,
+        "height": 294
+      },
+      "transparentMargins": {
+        "left": 32,
+        "top": 18,
+        "right": 40,
+        "bottom": 44
+      }
+    }
+  ],
+  "analysis": "Alpha >8, measured nonuniform row/figure separation and lowest18-row opaque-strip midpoint; no pixels changed",
+  "edgeContacts": []
+}

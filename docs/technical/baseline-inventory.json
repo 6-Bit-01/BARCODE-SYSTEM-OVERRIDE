@@ -81,6 +81,10 @@
     "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
+    "src/game/mac-street-combat.js",
+    "src/game/mac-street-story.js",
+    "src/game/mac-combat-frames.js",
+    "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",
@@ -173,6 +177,10 @@
     "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
+    "src/game/mac-street-combat.js",
+    "src/game/mac-street-story.js",
+    "src/game/mac-combat-frames.js",
+    "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",
@@ -188,6 +196,7 @@
     "src/game/main-new.js"
   ],
   "unloadedRepositoryJs": [
+    "docs/source-pack/review-mac-combat-frames/review-data.js",
     "src/core/game-manager.js",
     "src/engine/cache-road-texture-worker.js",
     "src/engine/game-logic.js",
@@ -199,6 +208,7 @@
     "src/game/jammer-arrows.js",
     "src/game/jammer-simple.js",
     "src/game/jammer.js",
+    "src/game/mac-combat-animation.js",
     "src/game/main-legacy-backup.js",
     "src/game/main-legacy-removed.js",
     "src/game/main.js",
@@ -562,6 +572,22 @@
         "status": "pass"
       },
       {
+        "file": "src/game/mac-street-combat.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/mac-street-story.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/mac-combat-frames.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/mac-combat-preview.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/lost-data.js",
         "status": "pass"
       },
@@ -616,11 +642,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 89,
+        "index": 93,
         "status": "pass"
       },
       {
-        "index": 91,
+        "index": 95,
         "status": "pass"
       }
     ]
@@ -960,7 +986,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 214,
+      "line": 225,
       "loaded": true
     },
     {
@@ -1075,6 +1101,10 @@
     "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
+    "src/game/mac-street-combat.js",
+    "src/game/mac-street-story.js",
+    "src/game/mac-combat-frames.js",
+    "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",

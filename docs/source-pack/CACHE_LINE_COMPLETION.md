@@ -1,5 +1,7 @@
 # The Cache Line — authored completion
 
+**October 5 expanded-handoff proposal:** [BROADCAST_SLUM_STORY_PRODUCTION.md](BROADCAST_SLUM_STORY_PRODUCTION.md) develops eight Level 2-to-3 scenes for the owner's minimum seven, adding two reconverging choices, a useful Kave cameo and a 9 Bit frame intrusion. It retains successful original delivery and the hold-to-Mac objective, ending with Mac visibly heading into action in a pose distinct from Cache and 6 Bit. The [asset/reference review](STORY_PRODUCTION_REVIEW.html) includes generated Cache/Mac hero PNG concepts awaiting owner art review; Kave public references are found; final likeness and scene 3/5/6 art remain to be produced, and browser review is pending. Current runtime still uses the four-scene ending below and eight-scene Cache bridge; no new Drums, Level 3 gameplay, merge/deployment or refreshed v5 archive is claimed. Published direct-controls baseline: source PR186/site PR483; older implementation/publication-in-progress statements below are historical.
+
 The owner approved the next milestone after merged PR #155: an authored
 Level 2 ending, its one-time **Bass** key, four optional records and Cache's
 handoff to Mac. This scope supersedes the earlier proof-only prohibition on

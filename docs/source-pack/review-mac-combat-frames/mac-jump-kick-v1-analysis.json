@@ -1,0 +1,342 @@
+{
+  "sourceImage": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\docs\\source-pack\\review-mac-combat-frames\\art\\mac-jump-kick-v1.png",
+  "sourceSHA256": "ffb03183717c172c788848a446f7bfa0b1ee79b1c4ea0fbe47f41e1a7afea9ed",
+  "dimensions": {
+    "width": 1774,
+    "height": 887
+  },
+  "frames": [
+    {
+      "id": "load",
+      "source": {
+        "x": 74,
+        "y": 128,
+        "width": 328,
+        "height": 349
+      },
+      "feetPivot": {
+        "x": 165,
+        "y": 339
+      },
+      "visibleBounds": {
+        "x": 14,
+        "y": 14,
+        "width": 300,
+        "height": 325
+      },
+      "transparentMargins": {
+        "left": 14,
+        "top": 14,
+        "right": 14,
+        "bottom": 10
+      },
+      "waistCenter": {
+        "x": 165,
+        "y": 202
+      },
+      "waistCenterSheet": {
+        "x": 239,
+        "y": 330
+      },
+      "waistHeightAboveSoleSourcePixels": 137,
+      "lowestShoeStripMidpointX": 145.5,
+      "visibleEdgeAlphaPixels": 0,
+      "rawNonzeroEdgeAlphaPixels": 0,
+      "registeredWaistSource": "manual visual center at shirt/trouser waist; approximate within 10 source pixels",
+      "waistHeightAboveSoleWorldPixelsAt260": 77.77292576419214,
+      "waistRegistrationLiftWorldPixelsAt260": 49.956331877729255
+    },
+    {
+      "id": "takeoff",
+      "source": {
+        "x": 485,
+        "y": 0,
+        "width": 326,
+        "height": 472
+      },
+      "feetPivot": {
+        "x": 178,
+        "y": 470
+      },
+      "visibleBounds": {
+        "x": 14,
+        "y": 12,
+        "width": 298,
+        "height": 458
+      },
+      "transparentMargins": {
+        "left": 14,
+        "top": 12,
+        "right": 14,
+        "bottom": 2
+      },
+      "waistCenter": {
+        "x": 178,
+        "y": 245
+      },
+      "waistCenterSheet": {
+        "x": 663,
+        "y": 245
+      },
+      "waistHeightAboveSoleSourcePixels": 225,
+      "lowestShoeStripMidpointX": 128.0,
+      "visibleEdgeAlphaPixels": 0,
+      "rawNonzeroEdgeAlphaPixels": 40,
+      "registeredWaistSource": "manual visual center at shirt/trouser waist; approximate within 10 source pixels",
+      "waistHeightAboveSoleWorldPixelsAt260": 127.7292576419214,
+      "waistRegistrationLiftWorldPixelsAt260": 0.0
+    },
+    {
+      "id": "chamber",
+      "source": {
+        "x": 927,
+        "y": 0,
+        "width": 290,
+        "height": 443
+      },
+      "feetPivot": {
+        "x": 148,
+        "y": 427
+      },
+      "visibleBounds": {
+        "x": 14,
+        "y": 13,
+        "width": 262,
+        "height": 414
+      },
+      "transparentMargins": {
+        "left": 14,
+        "top": 13,
+        "right": 14,
+        "bottom": 16
+      },
+      "waistCenter": {
+        "x": 148,
+        "y": 226
+      },
+      "waistCenterSheet": {
+        "x": 1075,
+        "y": 226
+      },
+      "waistHeightAboveSoleSourcePixels": 201,
+      "lowestShoeStripMidpointX": 111.5,
+      "visibleEdgeAlphaPixels": 0,
+      "rawNonzeroEdgeAlphaPixels": 0,
+      "registeredWaistSource": "manual visual center at shirt/trouser waist; approximate within 10 source pixels",
+      "waistHeightAboveSoleWorldPixelsAt260": 114.10480349344978,
+      "waistRegistrationLiftWorldPixelsAt260": 13.624454148471616
+    },
+    {
+      "id": "kick_extend",
+      "source": {
+        "x": 1296,
+        "y": 24,
+        "width": 466,
+        "height": 376
+      },
+      "feetPivot": {
+        "x": 119,
+        "y": 360
+      },
+      "visibleBounds": {
+        "x": 14,
+        "y": 14,
+        "width": 437,
+        "height": 346
+      },
+      "transparentMargins": {
+        "left": 14,
+        "top": 14,
+        "right": 15,
+        "bottom": 16
+      },
+      "waistCenter": {
+        "x": 119,
+        "y": 238
+      },
+      "waistCenterSheet": {
+        "x": 1415,
+        "y": 262
+      },
+      "waistHeightAboveSoleSourcePixels": 122,
+      "lowestShoeStripMidpointX": 185.0,
+      "visibleEdgeAlphaPixels": 0,
+      "rawNonzeroEdgeAlphaPixels": 4,
+      "registeredWaistSource": "manual visual center at shirt/trouser waist; approximate within 10 source pixels",
+      "waistHeightAboveSoleWorldPixelsAt260": 69.25764192139738,
+      "waistRegistrationLiftWorldPixelsAt260": 58.47161572052402
+    },
+    {
+      "id": "kick_contact",
+      "source": {
+        "x": 18,
+        "y": 477,
+        "width": 506,
+        "height": 348
+      },
+      "feetPivot": {
+        "x": 151,
+        "y": 334
+      },
+      "visibleBounds": {
+        "x": 14,
+        "y": 10,
+        "width": 478,
+        "height": 324
+      },
+      "transparentMargins": {
+        "left": 14,
+        "top": 10,
+        "right": 14,
+        "bottom": 14
+      },
+      "waistCenter": {
+        "x": 151,
+        "y": 197
+      },
+      "waistCenterSheet": {
+        "x": 169,
+        "y": 674
+      },
+      "waistHeightAboveSoleSourcePixels": 137,
+      "lowestShoeStripMidpointX": 242.5,
+      "visibleEdgeAlphaPixels": 0,
+      "rawNonzeroEdgeAlphaPixels": 0,
+      "registeredWaistSource": "manual visual center at shirt/trouser waist; approximate within 10 source pixels",
+      "waistHeightAboveSoleWorldPixelsAt260": 77.77292576419214,
+      "waistRegistrationLiftWorldPixelsAt260": 49.956331877729255
+    },
+    {
+      "id": "kick_retract",
+      "source": {
+        "x": 550,
+        "y": 472,
+        "width": 283,
+        "height": 405
+      },
+      "feetPivot": {
+        "x": 124,
+        "y": 391
+      },
+      "visibleBounds": {
+        "x": 14,
+        "y": 2,
+        "width": 255,
+        "height": 389
+      },
+      "transparentMargins": {
+        "left": 14,
+        "top": 2,
+        "right": 14,
+        "bottom": 14
+      },
+      "waistCenter": {
+        "x": 124,
+        "y": 205
+      },
+      "waistCenterSheet": {
+        "x": 674,
+        "y": 677
+      },
+      "waistHeightAboveSoleSourcePixels": 186,
+      "lowestShoeStripMidpointX": 191.0,
+      "visibleEdgeAlphaPixels": 0,
+      "rawNonzeroEdgeAlphaPixels": 37,
+      "registeredWaistSource": "manual visual center at shirt/trouser waist; approximate within 10 source pixels",
+      "waistHeightAboveSoleWorldPixelsAt260": 105.58951965065502,
+      "waistRegistrationLiftWorldPixelsAt260": 22.139737991266376
+    },
+    {
+      "id": "descent",
+      "source": {
+        "x": 953,
+        "y": 448,
+        "width": 327,
+        "height": 439
+      },
+      "feetPivot": {
+        "x": 157,
+        "y": 430
+      },
+      "visibleBounds": {
+        "x": 14,
+        "y": 16,
+        "width": 299,
+        "height": 414
+      },
+      "transparentMargins": {
+        "left": 14,
+        "top": 16,
+        "right": 14,
+        "bottom": 9
+      },
+      "waistCenter": {
+        "x": 157,
+        "y": 219
+      },
+      "waistCenterSheet": {
+        "x": 1110,
+        "y": 667
+      },
+      "waistHeightAboveSoleSourcePixels": 211,
+      "lowestShoeStripMidpointX": 137.0,
+      "visibleEdgeAlphaPixels": 0,
+      "rawNonzeroEdgeAlphaPixels": 24,
+      "registeredWaistSource": "manual visual center at shirt/trouser waist; approximate within 10 source pixels",
+      "waistHeightAboveSoleWorldPixelsAt260": 119.78165938864629,
+      "waistRegistrationLiftWorldPixelsAt260": 7.9475982532751095
+    },
+    {
+      "id": "landing",
+      "source": {
+        "x": 1407,
+        "y": 518,
+        "width": 304,
+        "height": 369
+      },
+      "feetPivot": {
+        "x": 157,
+        "y": 348
+      },
+      "visibleBounds": {
+        "x": 14,
+        "y": 14,
+        "width": 276,
+        "height": 334
+      },
+      "transparentMargins": {
+        "left": 14,
+        "top": 14,
+        "right": 14,
+        "bottom": 21
+      },
+      "waistCenter": {
+        "x": 157,
+        "y": 223
+      },
+      "waistCenterSheet": {
+        "x": 1564,
+        "y": 741
+      },
+      "waistHeightAboveSoleSourcePixels": 125,
+      "lowestShoeStripMidpointX": 145.0,
+      "visibleEdgeAlphaPixels": 0,
+      "rawNonzeroEdgeAlphaPixels": 0,
+      "registeredWaistSource": "manual visual center at shirt/trouser waist; approximate within 10 source pixels",
+      "waistHeightAboveSoleWorldPixelsAt260": 70.96069868995633,
+      "waistRegistrationLiftWorldPixelsAt260": 56.76855895196506
+    }
+  ],
+  "pixelScale": {
+    "standingVisibleHeight": 458,
+    "referenceFrame": "takeoff"
+  },
+  "analysis": "Read-only 8-connected alpha >8 silhouette measurement with independently registered nonoverlapping whole-body rectangles. All alpha >8 pixels covered exactly once; all visible margins at least 2px. PNG bytes unchanged.",
+  "alphaThreshold": 8,
+  "edgeContacts": [],
+  "allVisiblePixelsCoveredExactlyOnce": true,
+  "waistRegistration": "Use feetPivot.x at the visually registered waist projection, rather than whichever shoe is lowest. Add waistRegistrationLiftWorldPixelsAt260 to the physical whole-body jump arc for airborne cels only; grounded load/landing should keep their crouch.",
+  "caveat": "Takeoff and retract have only four fully clear rows at alpha >8. Their alpha1-8 antialias halos overlap in row projection and meet crop edges, so this is not an alpha0-clean padded atlas. No visible silhouette ink is discarded. Other per-cel raw edge counts are reported without hiding faint alpha.",
+  "referenceWaistHeightAboveSoleSourcePixels": 225,
+  "referenceWaistHeightAboveSoleWorldPixelsAt260": 127.7292576419214
+}

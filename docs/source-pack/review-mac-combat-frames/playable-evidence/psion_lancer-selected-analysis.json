@@ -1,0 +1,312 @@
+{
+  "sourceImage": "verification\\mac-frame-animation-20261006\\enemy-generation\\psion_lancer\\candidate-poses-v3.png",
+  "sourceSHA256": "7d267e94b11578e0963dab394d986958a70e448ab9bc254b9841d90e952ea1f4",
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "frames": [
+    {
+      "id": "idle",
+      "source": {
+        "x": 0,
+        "y": 0,
+        "width": 355,
+        "height": 418
+      },
+      "feetPivot": {
+        "x": 192.0,
+        "y": 375
+      },
+      "visibleBounds": {
+        "x": 116,
+        "y": 85,
+        "width": 158,
+        "height": 290
+      },
+      "transparentMargins": {
+        "left": 116,
+        "top": 85,
+        "right": 81,
+        "bottom": 43
+      }
+    },
+    {
+      "id": "walk_contact_a",
+      "source": {
+        "x": 355,
+        "y": 0,
+        "width": 398,
+        "height": 418
+      },
+      "feetPivot": {
+        "x": 222.0,
+        "y": 378
+      },
+      "visibleBounds": {
+        "x": 82,
+        "y": 88,
+        "width": 252,
+        "height": 290
+      },
+      "transparentMargins": {
+        "left": 82,
+        "top": 88,
+        "right": 64,
+        "bottom": 40
+      }
+    },
+    {
+      "id": "walk_pass",
+      "source": {
+        "x": 753,
+        "y": 0,
+        "width": 322,
+        "height": 418
+      },
+      "feetPivot": {
+        "x": 152.0,
+        "y": 378
+      },
+      "visibleBounds": {
+        "x": 65,
+        "y": 86,
+        "width": 177,
+        "height": 292
+      },
+      "transparentMargins": {
+        "left": 65,
+        "top": 86,
+        "right": 80,
+        "bottom": 40
+      }
+    },
+    {
+      "id": "walk_contact_b",
+      "source": {
+        "x": 1075,
+        "y": 0,
+        "width": 373,
+        "height": 418
+      },
+      "feetPivot": {
+        "x": 207.5,
+        "y": 380
+      },
+      "visibleBounds": {
+        "x": 80,
+        "y": 91,
+        "width": 255,
+        "height": 289
+      },
+      "transparentMargins": {
+        "left": 80,
+        "top": 91,
+        "right": 38,
+        "bottom": 38
+      }
+    },
+    {
+      "id": "tell_a",
+      "source": {
+        "x": 0,
+        "y": 418,
+        "width": 349,
+        "height": 313
+      },
+      "feetPivot": {
+        "x": 167.5,
+        "y": 275
+      },
+      "visibleBounds": {
+        "x": 51,
+        "y": 43,
+        "width": 267,
+        "height": 232
+      },
+      "transparentMargins": {
+        "left": 51,
+        "top": 43,
+        "right": 31,
+        "bottom": 38
+      }
+    },
+    {
+      "id": "impact_a",
+      "source": {
+        "x": 349,
+        "y": 418,
+        "width": 429,
+        "height": 313
+      },
+      "feetPivot": {
+        "x": 159.0,
+        "y": 271
+      },
+      "visibleBounds": {
+        "x": 31,
+        "y": 45,
+        "width": 376,
+        "height": 226
+      },
+      "transparentMargins": {
+        "left": 31,
+        "top": 45,
+        "right": 22,
+        "bottom": 42
+      }
+    },
+    {
+      "id": "recover",
+      "source": {
+        "x": 778,
+        "y": 418,
+        "width": 299,
+        "height": 313
+      },
+      "feetPivot": {
+        "x": 127.0,
+        "y": 277
+      },
+      "visibleBounds": {
+        "x": 23,
+        "y": 39,
+        "width": 208,
+        "height": 238
+      },
+      "transparentMargins": {
+        "left": 23,
+        "top": 39,
+        "right": 68,
+        "bottom": 36
+      }
+    },
+    {
+      "id": "tell_b",
+      "source": {
+        "x": 1077,
+        "y": 418,
+        "width": 371,
+        "height": 313
+      },
+      "feetPivot": {
+        "x": 200.0,
+        "y": 276
+      },
+      "visibleBounds": {
+        "x": 68,
+        "y": 40,
+        "width": 264,
+        "height": 236
+      },
+      "transparentMargins": {
+        "left": 68,
+        "top": 40,
+        "right": 39,
+        "bottom": 37
+      }
+    },
+    {
+      "id": "impact_b",
+      "source": {
+        "x": 0,
+        "y": 731,
+        "width": 406,
+        "height": 355
+      },
+      "feetPivot": {
+        "x": 203.5,
+        "y": 274
+      },
+      "visibleBounds": {
+        "x": 51,
+        "y": 38,
+        "width": 305,
+        "height": 236
+      },
+      "transparentMargins": {
+        "left": 51,
+        "top": 38,
+        "right": 50,
+        "bottom": 81
+      }
+    },
+    {
+      "id": "hurt",
+      "source": {
+        "x": 406,
+        "y": 731,
+        "width": 327,
+        "height": 355
+      },
+      "feetPivot": {
+        "x": 198.0,
+        "y": 274
+      },
+      "visibleBounds": {
+        "x": 50,
+        "y": 37,
+        "width": 235,
+        "height": 237
+      },
+      "transparentMargins": {
+        "left": 50,
+        "top": 37,
+        "right": 42,
+        "bottom": 81
+      }
+    },
+    {
+      "id": "fall",
+      "source": {
+        "x": 733,
+        "y": 731,
+        "width": 351,
+        "height": 355
+      },
+      "feetPivot": {
+        "x": 167.5,
+        "y": 250
+      },
+      "visibleBounds": {
+        "x": 42,
+        "y": 80,
+        "width": 282,
+        "height": 170
+      },
+      "transparentMargins": {
+        "left": 42,
+        "top": 80,
+        "right": 27,
+        "bottom": 105
+      }
+    },
+    {
+      "id": "down",
+      "source": {
+        "x": 1084,
+        "y": 731,
+        "width": 364,
+        "height": 355
+      },
+      "feetPivot": {
+        "x": 178.0,
+        "y": 263
+      },
+      "visibleBounds": {
+        "x": 28,
+        "y": 191,
+        "width": 300,
+        "height": 72
+      },
+      "transparentMargins": {
+        "left": 28,
+        "top": 191,
+        "right": 36,
+        "bottom": 92
+      }
+    }
+  ],
+  "analysis": "Alpha >8, measured nonuniform row/figure separation and lowest18-row opaque-strip midpoint; no pixels changed",
+  "edgeContacts": []
+}

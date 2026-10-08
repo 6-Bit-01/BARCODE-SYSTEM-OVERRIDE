@@ -1,0 +1,312 @@
+{
+  "sourceImage": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\null_regent-frames-v2.png",
+  "sourceSHA256": "be935496a3264d33930f2e7086bc0d6023742191fa7cd000f1c057887a559487",
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "frames": [
+    {
+      "id": "idle",
+      "source": {
+        "x": 0,
+        "y": 0,
+        "width": 372,
+        "height": 401
+      },
+      "feetPivot": {
+        "x": 180.0,
+        "y": 368
+      },
+      "visibleBounds": {
+        "x": 73,
+        "y": 92,
+        "width": 233,
+        "height": 276
+      },
+      "transparentMargins": {
+        "left": 73,
+        "top": 92,
+        "right": 66,
+        "bottom": 33
+      }
+    },
+    {
+      "id": "walk_contact_a",
+      "source": {
+        "x": 372,
+        "y": 0,
+        "width": 363,
+        "height": 401
+      },
+      "feetPivot": {
+        "x": 199.5,
+        "y": 367
+      },
+      "visibleBounds": {
+        "x": 67,
+        "y": 88,
+        "width": 241,
+        "height": 279
+      },
+      "transparentMargins": {
+        "left": 67,
+        "top": 88,
+        "right": 55,
+        "bottom": 34
+      }
+    },
+    {
+      "id": "walk_contact_b",
+      "source": {
+        "x": 735,
+        "y": 0,
+        "width": 375,
+        "height": 401
+      },
+      "feetPivot": {
+        "x": 189.0,
+        "y": 368
+      },
+      "visibleBounds": {
+        "x": 56,
+        "y": 93,
+        "width": 254,
+        "height": 275
+      },
+      "transparentMargins": {
+        "left": 56,
+        "top": 93,
+        "right": 65,
+        "bottom": 33
+      }
+    },
+    {
+      "id": "cleave_windup",
+      "source": {
+        "x": 1110,
+        "y": 0,
+        "width": 338,
+        "height": 401
+      },
+      "feetPivot": {
+        "x": 172.0,
+        "y": 368
+      },
+      "visibleBounds": {
+        "x": 66,
+        "y": 75,
+        "width": 232,
+        "height": 293
+      },
+      "transparentMargins": {
+        "left": 66,
+        "top": 75,
+        "right": 40,
+        "bottom": 33
+      }
+    },
+    {
+      "id": "cleave_contact",
+      "source": {
+        "x": 0,
+        "y": 401,
+        "width": 383,
+        "height": 334
+      },
+      "feetPivot": {
+        "x": 167.5,
+        "y": 292
+      },
+      "visibleBounds": {
+        "x": 52,
+        "y": 42,
+        "width": 277,
+        "height": 250
+      },
+      "transparentMargins": {
+        "left": 52,
+        "top": 42,
+        "right": 54,
+        "bottom": 42
+      }
+    },
+    {
+      "id": "charge_windup",
+      "source": {
+        "x": 383,
+        "y": 401,
+        "width": 323,
+        "height": 334
+      },
+      "feetPivot": {
+        "x": 163.5,
+        "y": 294
+      },
+      "visibleBounds": {
+        "x": 54,
+        "y": 77,
+        "width": 224,
+        "height": 217
+      },
+      "transparentMargins": {
+        "left": 54,
+        "top": 77,
+        "right": 45,
+        "bottom": 40
+      }
+    },
+    {
+      "id": "charge_contact",
+      "source": {
+        "x": 706,
+        "y": 401,
+        "width": 420,
+        "height": 334
+      },
+      "feetPivot": {
+        "x": 194.5,
+        "y": 290
+      },
+      "visibleBounds": {
+        "x": 45,
+        "y": 86,
+        "width": 332,
+        "height": 204
+      },
+      "transparentMargins": {
+        "left": 45,
+        "top": 86,
+        "right": 43,
+        "bottom": 44
+      }
+    },
+    {
+      "id": "fan_windup",
+      "source": {
+        "x": 1126,
+        "y": 401,
+        "width": 322,
+        "height": 334
+      },
+      "feetPivot": {
+        "x": 162.5,
+        "y": 295
+      },
+      "visibleBounds": {
+        "x": 44,
+        "y": 33,
+        "width": 238,
+        "height": 262
+      },
+      "transparentMargins": {
+        "left": 44,
+        "top": 33,
+        "right": 40,
+        "bottom": 39
+      }
+    },
+    {
+      "id": "fan_contact",
+      "source": {
+        "x": 0,
+        "y": 735,
+        "width": 392,
+        "height": 351
+      },
+      "feetPivot": {
+        "x": 177.5,
+        "y": 272
+      },
+      "visibleBounds": {
+        "x": 50,
+        "y": 39,
+        "width": 309,
+        "height": 233
+      },
+      "transparentMargins": {
+        "left": 50,
+        "top": 39,
+        "right": 33,
+        "bottom": 79
+      }
+    },
+    {
+      "id": "slam_contact",
+      "source": {
+        "x": 392,
+        "y": 735,
+        "width": 363,
+        "height": 351
+      },
+      "feetPivot": {
+        "x": 180.5,
+        "y": 268
+      },
+      "visibleBounds": {
+        "x": 34,
+        "y": 89,
+        "width": 293,
+        "height": 179
+      },
+      "transparentMargins": {
+        "left": 34,
+        "top": 89,
+        "right": 36,
+        "bottom": 83
+      }
+    },
+    {
+      "id": "hurt",
+      "source": {
+        "x": 755,
+        "y": 735,
+        "width": 323,
+        "height": 351
+      },
+      "feetPivot": {
+        "x": 169.5,
+        "y": 271
+      },
+      "visibleBounds": {
+        "x": 36,
+        "y": 42,
+        "width": 231,
+        "height": 229
+      },
+      "transparentMargins": {
+        "left": 36,
+        "top": 42,
+        "right": 56,
+        "bottom": 80
+      }
+    },
+    {
+      "id": "down",
+      "source": {
+        "x": 1078,
+        "y": 735,
+        "width": 370,
+        "height": 351
+      },
+      "feetPivot": {
+        "x": 189.5,
+        "y": 280
+      },
+      "visibleBounds": {
+        "x": 56,
+        "y": 164,
+        "width": 273,
+        "height": 116
+      },
+      "transparentMargins": {
+        "left": 56,
+        "top": 164,
+        "right": 41,
+        "bottom": 71
+      }
+    }
+  ],
+  "analysis": "Alpha >8, measured nonuniform row/figure separation and lowest18-row opaque-strip midpoint; no pixels changed",
+  "edgeContacts": []
+}

@@ -1,0 +1,312 @@
+{
+  "sourceImage": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\rift_stalker-frames-v1.png",
+  "sourceSHA256": "5732b7b835a99470ac700994d1d0fdb4dd0b154ced13cd46cd22296e6c42462b",
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "frames": [
+    {
+      "id": "idle",
+      "source": {
+        "x": 0,
+        "y": 0,
+        "width": 358,
+        "height": 426
+      },
+      "feetPivot": {
+        "x": 194.0,
+        "y": 372
+      },
+      "visibleBounds": {
+        "x": 126,
+        "y": 178,
+        "width": 115,
+        "height": 194
+      },
+      "transparentMargins": {
+        "left": 126,
+        "top": 178,
+        "right": 117,
+        "bottom": 54
+      }
+    },
+    {
+      "id": "walk_contact_a",
+      "source": {
+        "x": 358,
+        "y": 0,
+        "width": 378,
+        "height": 426
+      },
+      "feetPivot": {
+        "x": 201.0,
+        "y": 373
+      },
+      "visibleBounds": {
+        "x": 118,
+        "y": 179,
+        "width": 158,
+        "height": 194
+      },
+      "transparentMargins": {
+        "left": 118,
+        "top": 179,
+        "right": 102,
+        "bottom": 53
+      }
+    },
+    {
+      "id": "walk_pass",
+      "source": {
+        "x": 736,
+        "y": 0,
+        "width": 338,
+        "height": 426
+      },
+      "feetPivot": {
+        "x": 168.5,
+        "y": 373
+      },
+      "visibleBounds": {
+        "x": 102,
+        "y": 178,
+        "width": 121,
+        "height": 195
+      },
+      "transparentMargins": {
+        "left": 102,
+        "top": 178,
+        "right": 115,
+        "bottom": 53
+      }
+    },
+    {
+      "id": "walk_contact_b",
+      "source": {
+        "x": 1074,
+        "y": 0,
+        "width": 374,
+        "height": 426
+      },
+      "feetPivot": {
+        "x": 197.0,
+        "y": 373
+      },
+      "visibleBounds": {
+        "x": 116,
+        "y": 181,
+        "width": 162,
+        "height": 192
+      },
+      "transparentMargins": {
+        "left": 116,
+        "top": 181,
+        "right": 96,
+        "bottom": 53
+      }
+    },
+    {
+      "id": "tell_a",
+      "source": {
+        "x": 0,
+        "y": 426,
+        "width": 349,
+        "height": 304
+      },
+      "feetPivot": {
+        "x": 194.0,
+        "y": 227
+      },
+      "visibleBounds": {
+        "x": 119,
+        "y": 54,
+        "width": 148,
+        "height": 173
+      },
+      "transparentMargins": {
+        "left": 119,
+        "top": 54,
+        "right": 82,
+        "bottom": 77
+      }
+    },
+    {
+      "id": "impact_a",
+      "source": {
+        "x": 349,
+        "y": 426,
+        "width": 411,
+        "height": 304
+      },
+      "feetPivot": {
+        "x": 174.5,
+        "y": 231
+      },
+      "visibleBounds": {
+        "x": 82,
+        "y": 64,
+        "width": 255,
+        "height": 167
+      },
+      "transparentMargins": {
+        "left": 82,
+        "top": 64,
+        "right": 74,
+        "bottom": 73
+      }
+    },
+    {
+      "id": "recover",
+      "source": {
+        "x": 760,
+        "y": 426,
+        "width": 342,
+        "height": 304
+      },
+      "feetPivot": {
+        "x": 148.5,
+        "y": 227
+      },
+      "visibleBounds": {
+        "x": 75,
+        "y": 64,
+        "width": 160,
+        "height": 163
+      },
+      "transparentMargins": {
+        "left": 75,
+        "top": 64,
+        "right": 107,
+        "bottom": 77
+      }
+    },
+    {
+      "id": "tell_b",
+      "source": {
+        "x": 1102,
+        "y": 426,
+        "width": 346,
+        "height": 304
+      },
+      "feetPivot": {
+        "x": 197.0,
+        "y": 227
+      },
+      "visibleBounds": {
+        "x": 108,
+        "y": 61,
+        "width": 152,
+        "height": 166
+      },
+      "transparentMargins": {
+        "left": 108,
+        "top": 61,
+        "right": 86,
+        "bottom": 77
+      }
+    },
+    {
+      "id": "impact_b",
+      "source": {
+        "x": 0,
+        "y": 730,
+        "width": 399,
+        "height": 356
+      },
+      "feetPivot": {
+        "x": 204.0,
+        "y": 231
+      },
+      "visibleBounds": {
+        "x": 93,
+        "y": 75,
+        "width": 217,
+        "height": 156
+      },
+      "transparentMargins": {
+        "left": 93,
+        "top": 75,
+        "right": 89,
+        "bottom": 125
+      }
+    },
+    {
+      "id": "hurt",
+      "source": {
+        "x": 399,
+        "y": 730,
+        "width": 338,
+        "height": 356
+      },
+      "feetPivot": {
+        "x": 208.5,
+        "y": 231
+      },
+      "visibleBounds": {
+        "x": 90,
+        "y": 74,
+        "width": 178,
+        "height": 157
+      },
+      "transparentMargins": {
+        "left": 90,
+        "top": 74,
+        "right": 70,
+        "bottom": 125
+      }
+    },
+    {
+      "id": "fall",
+      "source": {
+        "x": 737,
+        "y": 730,
+        "width": 354,
+        "height": 356
+      },
+      "feetPivot": {
+        "x": 165.5,
+        "y": 233
+      },
+      "visibleBounds": {
+        "x": 71,
+        "y": 100,
+        "width": 200,
+        "height": 133
+      },
+      "transparentMargins": {
+        "left": 71,
+        "top": 100,
+        "right": 83,
+        "bottom": 123
+      }
+    },
+    {
+      "id": "down",
+      "source": {
+        "x": 1091,
+        "y": 730,
+        "width": 357,
+        "height": 356
+      },
+      "feetPivot": {
+        "x": 179.5,
+        "y": 228
+      },
+      "visibleBounds": {
+        "x": 83,
+        "y": 154,
+        "width": 193,
+        "height": 74
+      },
+      "transparentMargins": {
+        "left": 83,
+        "top": 154,
+        "right": 81,
+        "bottom": 128
+      }
+    }
+  ],
+  "analysis": "Alpha >8, measured nonuniform row/figure separation and lowest18-row opaque-strip midpoint; no pixels changed",
+  "edgeContacts": []
+}

@@ -1,0 +1,55 @@
+{
+  "status": "passed",
+  "groups": 14,
+  "checks": [
+    "registration and native sheet hash mismatches reject entry without a part-rig fallback",
+    "private lifecycle start/exit owns one frame and restores custom source bindings",
+    "eight-scene intro retains its Kave choice and reader presses cannot leak into Jump",
+    "W/Up move lanes, Space jumps independently and ordinary J strikes",
+    "played gait and full ballistic jump draw authored whole cels through the existing frame",
+    "phone Strike advertises and performs moving and aerial attacks through shared controls",
+    "optional opening choice has explicit keyboard and remapped controller Continue without selecting an answer",
+    "Mac controller diagonals work while the original deliberate drop filter remains",
+    "real touch two-axis joystick and independent action fingers survive release/cancel/pause",
+    "pause freezes story, skip is blocked while paused and shared menu exits preview",
+    "Mac controller menu remaps actual actions and rendered help follows custom buttons",
+    "real route desk/choice/clear/retry never awards or persists campaign completion",
+    "earned defeat accepts controller Start pause, fresh retry and title commands",
+    "cancelled asynchronous entry cannot mutate profile/audio/controls after title return"
+  ],
+  "scope": "Real private wrapper, shared lifecycle/frame/input/touch owners, actual gameplay route. DOM, native image decode, Canvas and audio devices are stubbed.",
+  "route": {
+    "bossPhases": [
+      1,
+      2,
+      3
+    ],
+    "districts": 6,
+    "waves": 12,
+    "defeatedEnemies": 30,
+    "campaignWrites": 0
+  },
+  "verified": [
+    "100ms landing from actual core land receipt",
+    "Landing age freezes during shared pause",
+    "Whole-body finite death fall reaches lane after actual lethal airborne hit",
+    "No new frame or timer owner",
+    "Exact native sheets and whole-cel draw registrations",
+    "Cancellation waits for real async initAudio preparation signal"
+  ],
+  "source": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003",
+  "sourceSHA256": {
+    "src/game/mac-combat-frames.js": "140f666e683be1f89ba62e2fea584890fbfa4bc17e3c7ed17aedde21609ef992",
+    "src/game/mac-combat-preview.js": "c47f2283f54705b2c2e65afe931ae3e94ffa8f3f94b28ceec4771e2f2af5fac2",
+    "tools/check-mac-combat-frames.cjs": "d2cc8d56195db966e22e2d5a6cc809919dbf309ae770cea25ceca788e921e74d",
+    "tools/check-mac-street-integration.cjs": "5ffe8a46b727563f19b0a5247320b51db03156a643d0400d1a4e73c63d3b0817",
+    "assets/mac-combat-frames/mac-combat-frames-v1.json": "d13d8472a8d9a2e6bf4b73fba546798d3626009a7b615565c981d777586aa531"
+  },
+  "log": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\runtime-integration.log",
+  "nativeReceipt": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\native-bank-receipt.json",
+  "limitations": [
+    "Canvas is stubbed, so this is not browser visual acceptance",
+    "No hosted or FPS acceptance claim"
+  ],
+  "timestampUtc": "2026-10-07T02:02:19.8879972Z"
+}

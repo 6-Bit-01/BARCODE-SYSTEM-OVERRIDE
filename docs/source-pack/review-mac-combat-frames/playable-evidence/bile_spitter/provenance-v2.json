@@ -1,0 +1,22 @@
+{
+  "kind": "bile_spitter",
+  "version": 2,
+  "method": "built-in image_gen precise-object-edit; native PNG copied without pixel modification",
+  "nativeImage": "C:/Users/jondh/.codex/generated_images/01a11402-6b51-7763-86b9-337e359b17dc/exec-c49a114e-4bb1-41b9-b11e-2326c43f9406.png",
+  "selectedImage": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\bile_spitter-frames-v2.png",
+  "nativeSHA256": "394f393f9f790cfff985d578bd9c52f00864e7cf925eeb097fefcf1ec1f7aa8f",
+  "savedSHA256": "394f393f9f790cfff985d578bd9c52f00864e7cf925eeb097fefcf1ec1f7aa8f",
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "prompt": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\enemy-generation\\bile_spitter\\prompt-padding-walk-v2.txt",
+  "editTarget": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\bile_spitter-frames-v1.png",
+  "editTargetSHA256": "95b73696e4e972415ed9fd39a40eeea7c297c9b4500c0d52d48f14459fe63d18",
+  "analysis": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\enemy-generation\\bile_spitter\\analysis-padding-walk-v2.json",
+  "edgeContacts": [],
+  "review": "All twelve complete poses visually reviewed, padding increased and row/column figures separable. Preserved full down with head right, airborne fall, inflated tells, narrow spit and broader belch. Passing pose has lifted bent knee; contact B has near heel lifting, altered leg overlap. Contact silhouettes remain naturally similar.",
+  "packing": "Native approximate4-by-3; use measured nonuniform source crops. Minimum measured crop margin is18pixels.",
+  "preservedOriginals": true,
+  "runtimeIntegrated": false
+}

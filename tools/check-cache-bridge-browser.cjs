@@ -1,12 +1,15 @@
 // Real Chromium, real shared Canvas/input/RAF/bridge/audio owners. Campaign
 // persistence and the final road-entry endpoint are counted host boundaries;
 // check-cache-bridge.cjs separately exercises their full game integration.
-// Local bridge art is deliberately unavailable: all eight pictures must decode
-// from the production immutable GitHub URLs and match the bundled bytes.
+// Original local bridge art is deliberately unavailable: seven pictures must
+// decode from the immutable GitHub URLs. The declared new penultimate painting
+// is served locally; all eight pictures must still match the bundled bytes.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const os=require('node:os'),http=require('node:http'),crypto=require('node:crypto');
 const {spawn}=require('node:child_process'),{once}=require('node:events');
 const root=path.resolve(__dirname,'..');
+const penultimateArt='assets/mac-street-review/cache-walk-to-car-v6.png';
+const originalArtRoot='https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/9881bf126f2a529ccfe5c6262d4c1de98990973f/';
 const output=path.resolve(process.env.CACHE_BRIDGE_BROWSER_OUTPUT||
   path.join(os.tmpdir(),'barcode-cache-bridge-browser'));
 const chromePath=process.env.CHROME_BIN||['/usr/bin/google-chrome','/usr/bin/chromium',
@@ -46,7 +49,7 @@ window.BARCODE={Preferences:{values:{reducedMotion:false}},Campaign:{intermissio
 window.audioSystem=new AudioSystem();audioSystem.context=new AudioContext();
 audioSystem.sfxGain=audioSystem.context.createGain();audioSystem.sfxGain.gain.value=.8;
 audioSystem.sfxGain.connect(audioSystem.context.destination);audioSystem.musicGain=audioSystem.context.createGain();
-const canvas=document.getElementById('gameCanvas');window.renderer={canvas,ctx:canvas.getContext('2d')};
+const canvas=document.getElementById('gameCanvas');window.renderer={canvas,ctx:canvas.getContext('2d', { willReadFrequently: false })};
 browserProof.step=ms=>{for(let left=ms;left>0;){const dt=Math.min(20,left);left-=dt;
   browserProof.clock+=dt;gameLoop(browserProof.clock);}};
 browserProof.boot=(page=0,cue=0)=>{BARCODE.CacheBridge.dispose();BARCODE.Campaign.intermission=true;
@@ -168,7 +171,7 @@ async function main(){
   await send('Page.navigate',{url:origin});
   await until('document.readyState==="complete"&&!!inputManager','production input ready');
   await evaluate('document.fonts.ready');await evaluate('browserProof.boot()');
-  await until('BARCODE.CacheBridge.images.every(item=>item.status==="ready")','all eight hosted pictures decode with local fallback disabled');
+  await until('BARCODE.CacheBridge.images.every(item=>item.status==="ready")','seven pinned pictures and the declared local penultimate picture decode with original local fallback disabled');
   const hosted=await evaluate(`Promise.all(BARCODE.CacheBridge.images.map(async(item,index)=>{
     const response=await fetch(item.element.src);if(!response.ok)throw Error('Hosted picture fetch failed');
     const bytes=await response.arrayBuffer(),digest=await crypto.subtle.digest('SHA-256',bytes);
@@ -176,8 +179,16 @@ async function main(){
       sha256:[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join(''),
       width:item.element.naturalWidth,height:item.element.naturalHeight};}))`);
   assert.equal(hosted.length,8);
-  for(const asset of hosted){
-    assert.match(asset.url,/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/[0-9a-f]{40}\/assets\/cache-bridge\//);
+  assert.equal(hosted.filter(asset=>asset.asset===penultimateArt).length,1,
+    'exactly one declared penultimate painting is local');
+  for(const [index,asset] of hosted.entries()){
+    if(index===6){
+      assert.equal(asset.asset,penultimateArt,'only the penultimate panel uses the declared new painting');
+      assert.equal(asset.url,`${origin}/${penultimateArt}`,'the new painting loads from this exact local origin/path');
+    }else{
+      assert.match(asset.url,/^https:\/\/raw\.githubusercontent\.com\/6-Bit-01\/BARCODE-SYSTEM-OVERRIDE\/[0-9a-f]{40}\/assets\/cache-bridge\//);
+      assert.equal(asset.url,originalArtRoot+asset.asset,'each original panel retains its exact pinned source/path');
+    }
     const bytes=fs.readFileSync(path.join(root,asset.asset));assert.equal(asset.bytes,bytes.length);
     assert.equal(asset.sha256,crypto.createHash('sha256').update(bytes).digest('hex'));
     assert(asset.width>=1000&&asset.height>=500);
@@ -214,7 +225,7 @@ async function main(){
   assert.equal((await state()).roadEntries,1);assert(!(await state()).active);
   assert.equal(await evaluate('audioSystem.combatVoices.size'),0);
   assert.equal(await evaluate('browserProof.contexts'),1);assert.equal(requests.head,0);
-  assert.deepEqual(requests.localArt,[],'no page used local artwork fallback');assert.deepEqual(errors,[]);
+  assert.deepEqual(requests.localArt,[],'no original panel used local artwork fallback');assert.deepEqual(errors,[]);
   receipt={passed:true,hosted,frames,requests,contextCalls:1,keyboardHeldRelease:true,
     transcriptAudioCleanup:true,sceneClockFreezesOnTranscriptPauseAndSkip:true,backCleanup:true,partialSkipCancelled:true,skipReadyOnly:true,
     finalManualDriveOnly:true,roadEntries:1,noWorldUpdatesWhileReading:true,noSongOrEngine:true,
