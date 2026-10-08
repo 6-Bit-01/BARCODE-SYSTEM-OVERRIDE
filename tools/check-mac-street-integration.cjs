@@ -474,7 +474,11 @@ async function run() {
       'running-kick-active':{clip:'air-kick.active',frame:'disc_kick_contact'},
       'counter-active':{clip:'counter.active',frame:'disc_counter_contact'}
     };
-    const alteredRoutes=new Set();
+    const alteredRoutes=new Set(),armedRoutes=new Set(),meleeKinds=['pipe','crowbar','shock-baton','energy-blade','gravity-hammer'];
+    const armedFrames={
+      'walk-0':'armed_walk_contact_a','walk-1':'armed_walk_pass_a','walk-2':'armed_walk_contact_b','walk-3':'armed_walk_pass_b',
+      'run-0':'armed_run_contact_a','run-1':'armed_run_pass_a','run-2':'armed_run_contact_b','run-3':'armed_run_pass_b'
+    };
     for(const kind of R.weapons)for(const scene of R.scenes)for(const facing of [-1,1]){
       r.work.lastCels=[];r.work.lastDraws=[];
       const placed=R.drawWeapon(ctx,kind,scene,facing,{x:420,feet:390,height:260}),pose=placed.pose;
@@ -487,6 +491,12 @@ async function run() {
       }
       assert.equal(pose.weaponStowed,false,'Retained inventory remains visibly held in flight, kicks, counters and landing');
       if(scene.landingAgeMs!==undefined)assert.equal(pose.clipKey,'landing','Actual landing takes precedence over the ready hold');
+      if(meleeKinds.includes(kind)&&armedFrames[scene.id]){
+        assert.equal(pose.clipKey,'armed-'+scene.action);assert.equal(pose.frame.id,armedFrames[scene.id]);
+        assert.equal(pose.frame.sheet,'dyn_armed_'+scene.action);assert.equal(pose.frame.embeddedWeapon,undefined);
+        assert.equal(pose.weaponKind,kind);assert.equal(pose.weaponStowed,false);
+        armedRoutes.add(kind+'/'+scene.id+'/'+facing);
+      }
       const guardRoute=owned&&guardRoutes[scene.id];
       if(guardRoute){
         assert.equal(pose.clipKey,guardRoute.clip,'Guard motion/contact retains its committed production clip');
@@ -495,7 +505,8 @@ async function run() {
         alteredRoutes.add(kind+'/'+scene.id+'/'+facing);
       }else if(owned&&scene.landingAgeMs===undefined&&['idle','walk','run','guard','weapon'].includes(scene.action)){
         assert.equal(pose.frame.embeddedWeapon,kind,'Native locomotion, steady guard and firing retain their complete authored cel: '+scene.id);
-        if(scene.action==='guard')assert.equal(pose.clipKey,'weapon_'+kind+'.guard','A steady guard retains its accepted native hold');
+        assert.equal(pose.clipKey,'weapon_'+kind+'.'+(scene.action==='weapon'?scene.phase:scene.action),'Native gun/Disc locomotion, steady guard and fire keep their own authored clip');
+        assert.equal(pose.frame.sheet,'dyn_'+kind.replaceAll('-','_'),'Native gun/Disc paths keep their original complete sheet');
       }
       if(kind==='plasma-disc'&&discRoutes[scene.id]){
         const expected=discRoutes[scene.id];
@@ -553,6 +564,8 @@ async function run() {
       assert.equal(r.work.lastCels[0].clipRegion,null);assert.equal(r.work.lastCels[0].rotation,0);
       alteredRoutes.add('plasma-disc/'+id+'/'+facing);
     }
+    assert.equal(armedRoutes.size,meleeKinds.length*Object.keys(armedFrames).length*2,
+      'All five melee models reach every authored Walk/Run cel in both directions with their own native binding');
     assert.equal(alteredRoutes.size,(3*Object.keys(guardRoutes).length+Object.keys(discRoutes).length+2)*2,
       'Every altered gun/Disc guard and retained Disc representative is painted in both directions');
     assert.equal(painted,R.weapons.length*R.scenes.length*2);assert(painted>=432);assert.deepEqual(plain(mac.combat.getSnapshot()),before,'Visual review does not mutate the playable simulation');assert.equal(r.scheduled.size,1);assert.equal(r.work.canvases,1);assert.equal(r.work.timers,0);await mac.exit();
@@ -583,7 +596,7 @@ async function run() {
     const prompts=r.B.MacCombatPreview.controlPrompts();assert.equal(prompts.strike,settings.prompt('road_attack'));assert.equal(prompts.guard,settings.prompt('road_defend'));assert.equal(prompts.throw,settings.prompt('road_disrupt'));
     pad.buttons[1].pressed=true;r.frame();assert(r.B.MacCombatPreview.tutorial.skipped);pad.buttons[1].pressed=false;r.frame();await r.B.MacCombatPreview.exit();
   });
-  await check('real phone kit equips the nearby native pipe and keeps accepted walking and airborne whole cels', async () => {
+  await check('real phone kit equips the nearby native pipe and uses armed walking with unchanged airborne whole cels', async () => {
     const r=rig({touch:true});await r.start();r.manager.touchCommand('mac:skip');r.frame();const mac=r.B.MacCombatPreview,T=r.B.TouchControls,art=mac.frameArt.get('mac');
     r.pointer(T.joystick,'pointerdown',61);r.pointer(T.joystick,'pointermove',61,120,670);
     r.until(()=>mac.getControlState().throw.targetType==='weapon');r.pointer(T.joystick,'pointerup',61,120,670);r.frame();
@@ -593,7 +606,8 @@ async function run() {
     assert(matching().length>0,'Equipped floor weapon appears in the actual Mac draw');
     r.run(300); // Start an ordinary walk after the deliberate double-tap window.
     r.pointer(T.joystick,'pointerdown',63);r.pointer(T.joystick,'pointermove',63,117,670);r.run(50);p=mac.combat.getSnapshot().player;
-    let pose=r.B.MacCombatFrames.sample(p,{player:true,compiled:art.compiled,supplemental:art.supplemental});assert.equal(pose.supplemental,false,'Equipped walking retains the accepted bank');assert(pose.gripAnchor);assertWholeFrame(r);
+    let pose=r.B.MacCombatFrames.sample(p,{player:true,compiled:art.compiled,supplemental:art.supplemental});assert.equal(pose.supplemental,true,'Equipped walking uses its authored armed bank');assert.equal(pose.clipKey,'armed-walk');assert.equal(pose.frame.sheet,'dyn_armed_walk');
+    assert(art.supplemental.clips['armed-walk'].frames.some(entry=>entry.frame===pose.frame.id));assert.deepEqual(plain(pose.gripAnchor),plain(art.supplemental.frames[pose.frame.id].itemBindings.pipe.gripAnchor));assertWholeFrame(r);
     const held=matching().at(-1),scale=260/pose.standingHeight;
     assert.deepEqual(held.position,[p.x-mac.cameraX+p.facing*(pose.gripAnchor.x-pose.frame.feetPivot.x)*scale,p.laneY-p.elevation-pose.frame.baselineLift+(pose.gripAnchor.y-pose.frame.feetPivot.y)*scale],'Whole item joins the calibrated native hand');
     r.pointer(T.joystick,'pointercancel',63);r.pointer(r.button('jump'),'pointerdown',64);r.frame();r.pointer(r.button('jump'),'pointerup',64);r.run(50);
@@ -621,6 +635,9 @@ async function run() {
     r.key('keydown','d');r.until(()=>mac.getControlState().throw.ready&&mac.getControlState().throw.targetType==='weapon');r.key('keyup','d');r.frame();
     const pickup=r.button('road_disrupt');r.pointer(pickup,'pointerdown',73);r.pointer(pickup,'pointerup',73);r.frame();const weapon=plain(mac.combat.getSnapshot().player.weapon);
     r.pointer(T.joystick,'pointerdown',74);r.pointer(T.joystick,'pointermove',74,144,670);r.run(50);assert(mac.combat.getSnapshot().player.running);
+    const runningArt=mac.frameArt.get('mac'),runningPose=r.B.MacCombatFrames.sample(mac.combat.getSnapshot().player,{player:true,compiled:runningArt.compiled,supplemental:runningArt.supplemental});
+    assert.equal(runningPose.clipKey,'armed-run');assert.equal(runningPose.frame.sheet,'dyn_armed_run');assert.equal(runningPose.weaponStowed,false);
+    assert.deepEqual(plain(runningPose.gripAnchor),plain(runningArt.supplemental.frames[runningPose.frame.id].itemBindings[weapon.kind].gripAnchor));assertWholeFrame(r);
     const strike=r.button('road_attack');assert.match(strike.textContent,/Run Kick/);r.pointer(strike,'pointerdown',75);r.frame();
     let p=mac.combat.getSnapshot().player;assert.equal(p.attack.kind,'running-kick');assert.equal(p.attack.weaponKind,null);assert.deepEqual(plain(p.weapon),weapon);assert.equal(mac.tutorial.progress['running-kick'],1);
     const art=mac.frameArt.get('mac');let pose=r.B.MacCombatFrames.sample(p,{player:true,compiled:art.compiled,supplemental:art.supplemental});assert.equal(pose.clipKey,'air-kick.windup');assertWholeFrame(r);
@@ -675,6 +692,9 @@ async function run() {
     const id=mac.combat.getSnapshot().player.carry.id;assert.equal(id,target.id);r.frame();assert.match(button.textContent,/Throw/);assert.match(button.textContent,/Release/);
     const held=r.work.lastDraws.find(isCrate);assert.deepEqual(held.args.slice(6),ground.args.slice(6),'Whole crate keeps the ground native pixel density in hand');assertWholeFrame(r);
     r.run(3200);const p=mac.combat.getSnapshot().player;assert(p.carry&&!p.carry.released);assert.equal(p.carry.maxHoldMs,null,'Props have no enemy strength timeout');assertWholeFrame(r);
+    const heldArt=mac.frameArt.get('mac'),heldPose=r.B.MacCombatFrames.sample(p,{player:true,compiled:heldArt.compiled,supplemental:heldArt.supplemental});
+    assert.equal(heldPose.clipKey,'carry');assert.equal(heldPose.weaponStowed,true);assert.equal(heldPose.frame.embeddedWeapon,undefined);
+    assert(!heldPose.frame.sheet.startsWith('dyn_armed_')&&heldPose.frame.sheet!=='dyn_disc_retained','Occupied hands keep the accepted prop-hold body instead of a free-hand weapon gait');
     r.pointer(button,'pointerup',84);r.run(180);const prop=mac.combat.getSnapshot().props.find(prop=>prop.id===id);assert(prop.launched&&prop.elevation>0&&prop.heldBy===null);
     const flight=r.work.lastDraws.find(isCrate);assert(flight);assert.deepEqual(flight.args.slice(6),ground.args.slice(6),'Flight retains the same authored crate scale');assert.deepEqual(flight.position,[prop.x-mac.cameraX,prop.laneY-prop.elevation]);
     const art=mac.frameArt.get('mac'),pose=r.B.MacCombatFrames.sample(mac.combat.getSnapshot().player,{player:true,compiled:art.compiled,supplemental:art.supplemental});
@@ -733,7 +753,11 @@ async function run() {
   await check('played gait and full ballistic jump draw authored whole cels through the existing frame', async () => {
     const r=rig();await r.start();r.manager.touchCommand('mac:skip');const mac=r.B.MacCombatPreview,F=r.B.MacCombatFrames;
     const walkFrames=new Set();r.key('keydown','d');
-    for(let i=0;i<45;i++){r.frame();assertWholeFrame(r);walkFrames.add(F.sample(mac.combat.getSnapshot().player,{compiled:mac.frameArt.get('mac').compiled,player:true}).frameId);}
+    for(let i=0;i<45;i++){
+      r.frame();assertWholeFrame(r);const p=mac.combat.getSnapshot().player,art=mac.frameArt.get('mac'),pose=F.sample(p,{compiled:art.compiled,supplemental:art.supplemental,player:true});
+      assert.equal(p.weapon,null);assert.equal(pose.supplemental,false,'Unarmed travel retains the original authored bank');
+      if(p.animation.action==='walk'){assert.equal(pose.clipKey,'walk');walkFrames.add(pose.frameId);}
+    }
     r.key('keyup','d');assert(walkFrames.size>=4,'Played distance reaches both accepted contact and passage sides');
     const clips=new Set(),jumpFrames=new Set();pressKey(r,' ');
     for(let i=0;i<100;i++) {
