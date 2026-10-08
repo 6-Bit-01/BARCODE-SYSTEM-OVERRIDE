@@ -461,6 +461,20 @@ async function run() {
     assert(script);vm.runInNewContext(script[1],{window:r.w});
     const mac=r.B.MacCombatPreview,R=r.B.MacEquipmentReview,art=mac.frameArt.get('mac'),ctx=r.doc.getElementById('gameCanvas').getContext('2d');
     const before=plain(mac.combat.getSnapshot());let painted=0;
+    const guardRoutes={
+      'guard-impact':{clip:'guard-impact',frame:'guard_impact'},
+      'guard-walk-0':{clip:'guard-walk',frame:'guard_step_a'},
+      'guard-walk-1':{clip:'guard-walk',frame:'guard_step_b'}
+    };
+    const discRoutes={
+      'jump-rise':{clip:'jump-rise',frame:'disc_kick_chamber'},
+      'jump-fall':{clip:'jump-fall',frame:'disc_jump_descent'},
+      'landing':{clip:'landing',frame:'disc_landing'},
+      'air-kick-active':{clip:'air-kick.active',frame:'disc_kick_contact'},
+      'running-kick-active':{clip:'air-kick.active',frame:'disc_kick_contact'},
+      'counter-active':{clip:'counter.active',frame:'disc_counter_contact'}
+    };
+    const alteredRoutes=new Set();
     for(const kind of R.weapons)for(const scene of R.scenes)for(const facing of [-1,1]){
       r.work.lastCels=[];r.work.lastDraws=[];
       const placed=R.drawWeapon(ctx,kind,scene,facing,{x:420,feet:390,height:260}),pose=placed.pose;
@@ -473,8 +487,24 @@ async function run() {
       }
       assert.equal(pose.weaponStowed,false,'Retained inventory remains visibly held in flight, kicks, counters and landing');
       if(scene.landingAgeMs!==undefined)assert.equal(pose.clipKey,'landing','Actual landing takes precedence over the ready hold');
-      else if(owned&&['idle','walk','run','guard','guard-creep','weapon'].includes(scene.action))
-        assert.equal(pose.frame.embeddedWeapon,kind,'Authored ground/fire gun poses keep their complete native cel: '+scene.id);
+      const guardRoute=owned&&guardRoutes[scene.id];
+      if(guardRoute){
+        assert.equal(pose.clipKey,guardRoute.clip,'Guard motion/contact retains its committed production clip');
+        assert.equal(pose.frame.id,(kind==='plasma-disc'?'disc_':'')+guardRoute.frame,'Guard uses the authored responding whole cel: '+kind+'/'+scene.id);
+        assert.equal(pose.frame.embeddedWeapon,kind==='plasma-disc'?kind:undefined,'Gun guard steps/impacts attach the held item; Disc uses its complete rim-grip cel');
+        alteredRoutes.add(kind+'/'+scene.id+'/'+facing);
+      }else if(owned&&scene.landingAgeMs===undefined&&['idle','walk','run','guard','weapon'].includes(scene.action)){
+        assert.equal(pose.frame.embeddedWeapon,kind,'Native locomotion, steady guard and firing retain their complete authored cel: '+scene.id);
+        if(scene.action==='guard')assert.equal(pose.clipKey,'weapon_'+kind+'.guard','A steady guard retains its accepted native hold');
+      }
+      if(kind==='plasma-disc'&&discRoutes[scene.id]){
+        const expected=discRoutes[scene.id];
+        assert.equal(pose.clipKey,expected.clip,'Retained Disc preserves the original committed action clock');
+        assert.equal(pose.frame.id,expected.frame,'Disc is supported by the exact authored complete cel: '+scene.id);
+        alteredRoutes.add(kind+'/'+scene.id+'/'+facing);
+      }
+      if(kind==='plasma-disc'&&(scene.landingAgeMs!==undefined||['jump','air-kick','running-kick','counter'].includes(scene.action)))
+        assert.equal(pose.frame.embeddedWeapon,kind,'Retained Disc never overlays a rim onto the generic punching fist: '+scene.id);
       if(pose.frame.embeddedWeapon){
         assert.equal(pose.frame.embeddedWeapon,kind);assert.equal(placed.item,null,'Painted-in weapon has no external overlay');
         assert.equal(r.work.lastCels.length,1,'Embedded weapon and actor draw as one complete authored cel');
@@ -511,6 +541,20 @@ async function run() {
       assert(!placed.pose.frame.embeddedWeapon,'Prop review does not draw a phantom weapon');
       assert.equal(r.work.lastCels.filter(call=>!call.clipRegion).length,1,'Prop review retains one complete character cel');
     }
+    // The preserved 560/1500 flight clock reaches load at 545px/s, takeoff
+    // at 490px/s and chamber at the review's existing 330px/s ascent.
+    for(const [id,velocity,frame] of [['disc-jump-load',545,'disc_jump_load'],['disc-jump-takeoff',490,'disc_jump_rise']])for(const facing of [-1,1]){
+      r.work.lastCels=[];r.work.lastDraws=[];
+      const placed=R.drawWeapon(ctx,'plasma-disc',{id,action:'jump',velocity,elevation:60},facing,{x:420,feet:390,height:260}),pose=placed.pose;
+      assert.equal(pose.clipKey,'jump-rise');assert.equal(pose.frame.id,frame);
+      assert.equal(pose.phaseProgress,1-velocity/r.B.MacStreetCombat.constants.jumpSpeed,'Retained cel substitution preserves the actual ballistic ascent phase');
+      assert.equal(pose.frame.embeddedWeapon,'plasma-disc');assert.equal(placed.item,null);
+      assert.equal(r.work.lastCels.length,1);assert.equal(r.work.lastDraws.length,1);
+      assert.equal(r.work.lastCels[0].clipRegion,null);assert.equal(r.work.lastCels[0].rotation,0);
+      alteredRoutes.add('plasma-disc/'+id+'/'+facing);
+    }
+    assert.equal(alteredRoutes.size,(3*Object.keys(guardRoutes).length+Object.keys(discRoutes).length+2)*2,
+      'Every altered gun/Disc guard and retained Disc representative is painted in both directions');
     assert.equal(painted,R.weapons.length*R.scenes.length*2);assert(painted>=432);assert.deepEqual(plain(mac.combat.getSnapshot()),before,'Visual review does not mutate the playable simulation');assert.equal(r.scheduled.size,1);assert.equal(r.work.canvases,1);assert.equal(r.work.timers,0);await mac.exit();
   });
   await check('hands-on lessons use real movement, combo and air-kick receipts; Pause and direct Skip preserve control ownership', async () => {
