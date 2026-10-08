@@ -128,3 +128,11 @@ Changing a selector while the review animation was playing exposed a real clock 
 After reloading the correction, a fresh browser exercise switched all 32 weapon/action pairs during active playback. The captured error log retained the earlier pre-correction error at `2026-10-08T01:20:39.026Z`; no later error timestamp appeared. Pause redraw was clean. Some animated in-app-browser captures failed or showed transient fragments at the floor; the paused redraw and the independently compared native fresh/reused Canvas frames were clean. These observations are preserved without asserting that an unverified browser capture issue is a gameplay renderer defect or that device performance is accepted.
 
 The unchanged native browser screenshot and scoped observation receipt are retained at `D:/CodexScratch/system-override-anatomy1-20261007/scratch/browser-review/bat-walk-paused.jpg` and `browser-motion-review.json`. Their exact saved identities and regeneration instructions are recorded in that receipt. No new scratch files were staged on C:. Original source artwork and the three selected whole-character sheets remain byte-identical to the hashes above.
+
+## Raised-hand grip correction follow-up, 2026-10-08
+
+The owner screenshot exposed a missed Shock Baton windup grip. The earlier visual acceptance did not catch this placement; its acceptance for these bindings is superseded by this follow-up.
+
+The correction changes eight existing item bindings: Crowbar, Shock Baton, Energy Blade and Gravity Hammer on `melee_load`, and Crowbar/Gravity Hammer on `melee_contact` and `melee_follow`. The windup uses the measured thumb pocket and curved native finger contour. Contact and recovery keep the rear handle clear of the forearm. Both facings were directly reviewed at gameplay size and in hand closeups.
+
+Whole-character cels, weapon artwork, body proportions, other bindings, combat timings and runtime code are unchanged. Evidence: `raised-grip-accepted-bindings-review.json` and the actual-source follow-up renders in the retained D: task review folder. Focused checks and deployment receipts are recorded there separately; this is not a claim of device frame-rate acceptance.
