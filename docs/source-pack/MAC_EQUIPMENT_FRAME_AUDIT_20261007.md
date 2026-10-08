@@ -1,5 +1,11 @@
 # Mac equipment frame audit — October 7, 2026
 
+## Owner correction: locomotion anatomy
+
+The `refine2` still-image acceptance recorded below is historical. The owner rejected the moving walk grip: the unarmed pumping arm reversed the held shaft, and the finite still review did not catch that transition. Those receipts are preserved as evidence of the earlier result, not acceptance of the corrected locomotion. The `anatomy1` revision uses separate complete-character armed walk/run cels with a steady forward hand, and complete rim-held Disc cels for retained flight, kicks, counter and guard response. Final source identities and moving review evidence are recorded in the anatomy provenance document.
+
+## Historical refine2 result
+
 Mac now keeps each weapon in a measured, closed hand through the reachable movement and combat cels. Rear walk/run equipment stays outside the body silhouette; counter contact retains the tattooed guarding hand; retained guns and disc remain visible through jump, kicks, counter recovery and landing. Dedicated gun cels and detached transport grips use matching held dimensions. Ground pickups retain their existing dimensions.
 
 All eight weapon types are covered in both facings. The last-charge attack uses its committed weapon through recovery after inventory reaches zero. Real damage drops the weapon before hurt/defeat. Grapple and prop carrying occupy the hands and stow inventory. These legal ownership rules are kept separate from visual fixtures; no armed hurt/defeat or simultaneously held victim/prop/weapon fixture is presented as gameplay.
