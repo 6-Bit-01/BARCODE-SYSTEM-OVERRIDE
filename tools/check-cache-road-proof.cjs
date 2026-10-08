@@ -1883,7 +1883,7 @@ async function run() {
   assert.equal(B.MusicTransport.sample(audio.context.currentTime).running,false);
   const archivedBass=archive.record.progress.items.filter(id=>id==='stem.bass').length;
   const resultButtons=road.resultButtons();
-  assert.deepEqual(copy(resultButtons.map(button=>button.id)),['ending','race','title']);
+  assert.deepEqual(copy(resultButtons.map(button=>button.id)),['continue','ending','race','title']);
   let heldResult=true;
   w.inputManager.isResultControlHeld=()=>heldResult;
   road.armResultControls();

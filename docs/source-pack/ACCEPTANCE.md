@@ -1,3 +1,9 @@
+## October 8, 2026 — earned Level 2 continuation into Mac
+
+The Level 3 routing regression must earn the actual Level 2 finish, reopen existing authored road-clear saves, and run Road, Mac, Campaign, input, music profiles/transport and lifecycle in one window with a running single gameplay frame. Verify keyboard, controller and the direct touch Continue action; the carried confirmation cannot skip the first Mac scene.
+
+Verify city-entry checkpoint/title Continue, corrupted-entry rejection, unchanged earned reward facts, legacy prototype restore, failed audio preparation rollback, stale cancellation without disturbing a newer chapter, Pause during loading retaining paused road results, retry after resume, and ordinary Level 1 scene/binding ownership after returning from restored Mac. The fixture uses real source owners with simulated browser/device hosts; native browser layout/play checks and final package/cloud/release evidence remain separate.
+
 ## October 7, 2026 — full equipment transition and concise dialogue review
 
 The owner requested all selected frames and legal combinations be checked after rejecting the remaining bat/weapon holds. Inspect each of the eight weapons in both facings through idle, every walk/run cel, guard/creep/impact, jump/landing, kicks/counters and attack windup/contact/recovery. Handles must cross the actual palm with natural wrist direction; tools must keep their held size and holding hand across pose changes, and remain visible during the final finite-charge attack. Hurt/defeat must cancel/drop equipment without a ghost model.

@@ -99,7 +99,7 @@ async function checkFreshEnding() {
   assert.equal(reopened.roadStarts(), 0);
   reopened.key('Enter', false);
   assert.equal(reopened.road.state.score, receipt.score);
-  reopened.step(20); reopened.tap('Enter');
+  reopened.step(20); reopened.tap('e');
   assert(reopened.ending.active && reopened.ending.page === 0 && reopened.ending.cue === 0,
     'fresh result confirmation deliberately replays the ending');
   assert.deepEqual(copy(reopened.road.chapter.delivery.result), receipt);
@@ -175,4 +175,5 @@ async function main() {
   console.log('Cache completion flow: full-song Echo clears, zero/all four records, shared-loop ending ownership, saved ending lifecycle, held keys/pad, pause/transcript, stable retry stats and legacy boundaries passed.');
 }
 module.exports = { completionRig, driveToClear, checkFreshEnding, checkRecordsAndRetry, checkLegacy };
+module.exports = {completionRig, start, driveToClear};
 if (require.main === module) main().catch(error => { console.error(error.stack || error); process.exitCode = 1; });
