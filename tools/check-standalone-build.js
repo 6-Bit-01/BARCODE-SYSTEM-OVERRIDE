@@ -654,17 +654,20 @@ function checkMacReviewAssets(scripts, index) {
   assert(macScripts.slice(0, 3).every(name => scripts.indexOf(name) < scripts.indexOf(macScripts[3])), 'Both factories and the animation owner must precede the preview wrapper');
   assert(scripts.indexOf('src/core/runtime-lifecycle.js') < scripts.indexOf(macScripts[3]), 'Mac preview must retain the shared lifecycle owner');
   const sandbox = makeContext({ location: { search: '' } }); sandbox.URLSearchParams = URLSearchParams;
-  let registrations = 0; sandbox.window.BARCODE.Campaign = {register() { registrations++; }};
+  let registrations = 0; sandbox.window.BARCODE.Campaign = {adapters:new Map([['level-03',{validate:saved=>saved?.checkpointId==='legacy-proof',restore:saved=>saved?.checkpointId==='legacy-proof'}]]),register(id,adapter) { registrations++; this.adapters.set(id,adapter); }};
   for (const name of macScripts) load(sandbox, name);
   const preview = sandbox.window.BARCODE.MacCombatPreview;
-  assert.equal(registrations, 0, 'Private preview must not register or replace a campaign chapter');
+  assert.equal(registrations, 1, 'Mac registers one campaign dispatcher while its private query stays inert');
+  const campaignAdapter = sandbox.window.BARCODE.Campaign.adapters.get('level-03');
+  assert(campaignAdapter.validate({checkpointId:'legacy-proof'}), 'Original prototype checkpoint validation remains available');
+  assert(campaignAdapter.restore({checkpointId:'legacy-proof'}), 'Original prototype checkpoint restore remains available');
   assert.equal(preview.active, false); assert.equal(preview.requested(), false, 'Ordinary title must remain the normal campaign');
   for (const [query, expected] of [['?preview=mac-firstslice', true], ['?preview=other', false], ['?mac-firstslice=1', false]]) {
     sandbox.window.location.search = query; assert.equal(preview.requested(), expected, 'Exact private query gate: ' + query);
   }
   assert.match(index, /MacCombatPreview\?\.requested\?\.\(\)/, 'The real title must read the private query gate');
   assert.match(index, /privatePreview:\s*['"]mac-firstslice['"]/, 'The private title route must enter through RuntimeLifecycle');
-  return {registeredSiblingAssets: macReviewAssets.size, macCityAssetCount: macCityAssets.size, nativePngDimensions: dimensions, registeredPoseCrops: 6, privateQueryGate: true, noCampaignRegistration: true};
+  return {registeredSiblingAssets: macReviewAssets.size, macCityAssetCount: macCityAssets.size, nativePngDimensions: dimensions, registeredPoseCrops: 6, privateQueryGate: true, campaignDispatcherRegistered: true, legacyCheckpointCompatible: true};
 }
 
 function rgbaMipBytes(width, height) {

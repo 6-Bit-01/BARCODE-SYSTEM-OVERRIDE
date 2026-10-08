@@ -56,7 +56,7 @@ class Element extends EventTarget {
   click() { if (!this.disabled) this.dispatchEvent({type: 'click', bubbles: true, detail: 0}); }
   getBoundingClientRect() { return {left: 20, top: 600, width: 140, height: 140, right: 160, bottom: 740}; }
 }
-function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementalMutation, lootSeed = 5062979} = {}) {
+function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementalMutation, lootSeed = 5062979, campaignSave, campaignRoad = false} = {}) {
   const work = {raf: 0, timers: 0, intervals: 0, canvases: 0, writes: [], profiles: [], audio: [], cues: [], events: [], decoded: [], celDraws: {}, powerDraws: [], lastCels: [], lastDraws: [], lastRotations: [], lastTexts: [], storyReceipts: [], fetched: []};
   let supplementalOverride = null;
   if (supplementalMutation) {
@@ -77,6 +77,7 @@ function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementa
     drawImage(image, ...args) { if (args.length === 8 && /assets\/mac-(?:combat-frames|street-dynamic)\//.test(image.src || '')) {
       const call={path:image.src,args,position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion};work.celDraws[image.src] = (work.celDraws[image.src] || 0) + 1;work.lastCels.push(call);work.lastDraws.push(call);
     } else if (args.length === 8 && image.src?.startsWith('assets/mac-street-power/')) {const call={path:image.src,args,position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion};work.powerDraws.push(call);work.lastDraws.push(call);} }, translate(x,y) { this.lastTranslate=[x,y]; }, rotate(angle) { this.rotation=(this.rotation || 0)+angle;work.lastRotations.push(angle); },
+    createLinearGradient: () => ({addColorStop(){}}), createRadialGradient: () => ({addColorStop(){}}),
     getTransform: () => ({a: 1, b: 0, c: 0, d: 1, e: 0, f: 0})}, {get(obj, key) { return key in obj ? obj[key] : () => {}; }});
   doc.createElement = tag => { const e = new Element(tag, doc); if (tag === 'canvas') { work.canvases++; e.getContext = () => e.context ||= ctx(e); } return e; };
   doc.documentElement = doc.createElement('html'); doc.body = doc.createElement('body'); doc.body.parentNode = doc;
@@ -89,6 +90,7 @@ function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementa
   }
   const win = new EventTarget();
   let seedRequests = 0;
+  const campaignStorage = new Map(campaignSave ? [['barcode.system-override.save.v1.default',JSON.stringify(campaignSave)]] : []);
   const testCrypto = {subtle:webcrypto.subtle, getRandomValues(values) {
     for(let i=0;i<values.length;i++) values[i]=(lootSeed+seedRequests+i)>>>0;
     seedRequests++;work.seedRequests=seedRequests;return values;
@@ -97,7 +99,7 @@ function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementa
     location: {search: '?preview=mac-firstslice'}, innerWidth: 390, innerHeight: 844,
     performance: {now: () => now}, navigator: {maxTouchPoints: touch ? 5 : 0, getGamepads: () => pads},
     matchMedia: query => ({matches: touch && /coarse|hover:\s*none/.test(query), addEventListener() {}, removeEventListener() {}}),
-    localStorage: {getItem() { return null; }, setItem(key, value) { work.writes.push([key, value]); }, removeItem(key) { work.writes.push([key, null]); }},
+    localStorage: {getItem(key) { return campaignSave ? campaignStorage.get(key) || null : null; }, setItem(key, value) { work.writes.push([key, value]); if(campaignSave) campaignStorage.set(key,value); }, removeItem(key) { work.writes.push([key, null]); if(campaignSave) campaignStorage.delete(key); }},
     gameState: {running: false, paused: false, gameOver: false, victory: false}, isRunning: false, isPaused: false,
     requestAnimationFrame(callback) { work.raf++; const handle = ++nextRaf; scheduled.set(handle, callback); return handle; },
     cancelAnimationFrame(handle) { scheduled.delete(handle); },
@@ -146,8 +148,26 @@ function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementa
   const B = win.BARCODE;
   B.MusicProfiles = {select(id) { work.profiles.push(['select', id]); return {id}; }};
   B.MusicTransport = {load(id) { work.profiles.push(['load', id]); return {status: 'ok'}; }, getDiagnostics: () => ({})};
-  B.Campaign = {resetSession() { assert.fail('Private preview must not initialize a campaign'); }, syncTitleButton() {}};
+  if (campaignSave) {
+    load('src/game/lore-collection.js'); load('src/game/campaign-services.js');
+    const archive = B.Campaign.archive(); archive.record = plain(campaignSave);
+    if (!campaignRoad) B.Campaign.adapters.set('level-02', {validate: saved => saved.checkpointId === 'road-clear', restore: () => true});
+  } else B.Campaign = {resetSession() { assert.fail('Private preview must not initialize a campaign'); }, syncTitleButton() {}};
   B.LoreRecords = {catalog: [], getCatalog: () => [], chapters: () => []};
+  if (campaignRoad) {
+    for (const file of ['src/utils/math.js','src/engine/music-profiles.js','src/engine/music-transport.js','src/engine/cache-road-proof-profile.js',
+      'src/engine/broadcast-slum-proof-profile.js','src/game/cache-road-landscape.js','src/game/cache-road-crosswalks.js',
+      'src/game/cache-road-mirror.js','src/game/cache-road-crew-callouts.js','src/game/cache-chapter.js',
+      'src/game/cache-road-proof.js','src/engine/intro-sequence.js','src/engine/cache-scene-layouts.js',
+      'src/engine/cache-scene-effects.js','src/engine/comic-dialogue.js','src/engine/cache-ending.js']) load(file);
+    win.audioSystem.context = {currentTime:0,state:'running'};
+    win.audioSystem.prepareActiveMusicProfile = async () => {
+      const profile = B.MusicProfiles.getActive();
+      win.audioSystem.musicTracks = Object.fromEntries(profile.arrangement.sources.map(source =>
+        [source.sourceId,{buffer:{duration:profile.profileId==='level-02.proof'?187.5:196000/22050},isFallback:false}]));
+      return {ok:true};
+    };
+  }
   load('src/game/pause-menu.js'); load('src/core/runtime-lifecycle.js'); load('src/core/loop.js');
   load('src/game/mac-street-combat.js'); load('src/game/mac-street-story.js'); load('src/game/mac-combat-frames.js'); load('src/game/mac-combat-preview.js');
   const manager = win.inputManager = new win.InputManager();
@@ -1016,4 +1036,5 @@ async function run() {
   assert(groups>0,'The requested integration group must exist');
   console.log(`Mac street integration: ${groups} groups passed (stubbed device/art/Canvas; real owners and gameplay route).`);
 }
-run().catch(error => { console.error(error); process.exitCode = 1; });
+module.exports = {rig, plain};
+if (require.main === module) run().catch(error => { console.error(error); process.exitCode = 1; });

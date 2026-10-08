@@ -1,3 +1,9 @@
+## October 8, 2026 — earned Level 2 continuation into Mac
+
+- Add Continue to Level 3 on earned Level 2 results and route existing saved authored clears into the approved Mac chapter through existing lifecycle/input/audio/frame owners.
+- Persist a validated chapter-entry checkpoint so title Continue resumes Mac; preserve earned Bass/results/lore, old prototype saves and explicit preview isolation without adding a mid-fight serializer or Level 3 reward.
+- Retain and restore Level 2 state on failed, paused or cancelled preparation; require fresh keyboard/controller/touch confirmation and preserve a newer generation after stale cancellation. Focused source contracts pass; final full-suite/cloud/package/publication receipts remain pending.
+
 ## October 7, 2026 — complete equipment interaction review and concise Mac introduction
 
 - Preserve the eight approved scene/art IDs while reducing the pre-level introduction to nine Continue inputs, or ten with the sole optional 9 Bit fourth-wall answer. Ordinary Kave scenes and the desk payoff no longer present choices; both 9 Bit answers remain available through direct mobile controls.

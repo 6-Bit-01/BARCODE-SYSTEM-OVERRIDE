@@ -1,3 +1,11 @@
+## October 8, 2026 — earned Level 2 continuation into Mac
+
+The campaign repair adds Continue to Level 3 to earned Cache Line results after its ending, including existing authored road-clear saves. Keyboard Enter, controller confirm and direct touch use the same guarded transition into the approved Mac chapter. Ending replay remains separately available. No race replay is needed for an already earned clear.
+
+A validated mac-city-entry save resumes Mac at the city introduction through title Continue; it deliberately restarts this chapter instead of inventing mid-fight recovery. Bass, Level 2 results and lore remain unchanged; entering or clearing this review chapter adds no Level 3 reward. Old development-proof checkpoints remain readable through their original adapter. Explicit Mac preview stays isolated from campaign saves.
+
+Failed or paused/cancelled preparation retains earned Level 2 results/save, restores input and silent road audio ownership, and offers Continue retry. The existing gameplay frame, input and audio owners remain. Focused same-window campaign/input/save/cancellation and existing completion/private-Mac checks are recorded in the D: task receipt. Full source regression and final source/site packaging, cloud checks and publication remain pending at this edit. This supersedes historical Mac-unavailable handoff notes for the current approved chapter only.
+
 ## October 7, 2026 — equipment interactions and shorter introduction
 
 This private follow-up starts from retained source `f902da798c57124bebaea766eab7a3fc7eda1e35` / site `dfa5560f0f4a9167e1665431f392be7118731eda`. The owner rejected remaining grips and requested every selected frame and legal interaction be visually checked. Review includes both facings, ordinary and guarded movement, aerial and running attacks, counters, finite-charge finish, enemy grips, props, handoff, hurt/defeat, swap, pause and retry. The last-charge renderer preserves the committed attack's visible weapon through recovery while inventory correctly remains empty. Actual interruption/drop rules remain authoritative.
