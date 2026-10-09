@@ -17,6 +17,22 @@ function enemy(w, dx, dy = 0, type = 'virus') {
   e.health = 100; e.active = true; e.entranceComplete = true; return e;
 }
 
+// The real damaged player reaches its native sprite boundary with stable opacity
+// when Flash Accents is disabled; motion/shake flags must remain independent.
+for (const values of [null, {}, {flashAccents:true}, {screenShake:false,reducedMotion:false}, {reducedMotion:true}, {flashAccents:false,reducedMotion:false,screenShake:true}]) {
+  const {w,tick}=createRig(),player=w.player;w.rhythmSystem.hide();
+  if(values!==null)w.BARCODE.Preferences={values};
+  player.takeDamage(1);assert(player.invulnerableUntil>w.Date.now(),'Actual damage grants invulnerability');
+  const alpha=[];player.spriteReady=true;player.sprite=w.MakkoEngine.sprite();player.sprite.draw=(ctx,x,y,options)=>alpha.push(options.alpha);
+  const ctx=new Proxy({save(){},restore(){},transform(){}},{get:(o,k)=>o[k]??(()=>{})});
+  for(let i=0;i<4;i++){player.draw(ctx);tick(25);}
+  assert.equal(alpha.length,4,'One native body draw remains readable per sample');
+  if(values?.flashAccents===false)assert.deepStrictEqual(alpha,[1,1,1,1],'Flash Accents Off prevents damage-opacity flashing at the body draw');
+  else {assert(new Set(alpha).size>1,'Legacy/default and independent motion flags preserve damage flash');assert(alpha.every(v=>v>=.1&&v<=.9));}
+  assert(player.invulnerableUntil>w.Date.now(),'Presentation flags preserve damage immunity');
+  tick(3000);player.draw(ctx);assert.equal(alpha.at(-1),1,'The body remains opaque after ordinary invulnerability expires');
+}
+
 // Cache Overpass uses the existing protected entrance owner for roof arrivals.
 {
   const { w, p } = rig(); w.player.position.x = 1600;
