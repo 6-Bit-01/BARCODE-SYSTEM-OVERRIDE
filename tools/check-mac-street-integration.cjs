@@ -57,7 +57,7 @@ class Element extends EventTarget {
   getBoundingClientRect() { return {left: 20, top: 600, width: 140, height: 140, right: 160, bottom: 740}; }
 }
 function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementalMutation, lootSeed = 5062979, campaignSave, campaignRoad = false} = {}) {
-  const work = {raf: 0, timers: 0, intervals: 0, canvases: 0, writes: [], profiles: [], audio: [], cues: [], events: [], decoded: [], celDraws: {}, powerDraws: [], lastCels: [], lastDraws: [], lastRotations: [], lastTexts: [], storyReceipts: [], fetched: []};
+  const work = {raf: 0, timers: 0, intervals: 0, canvases: 0, writes: [], profiles: [], audio: [], cues: [], events: [], decoded: [], celDraws: {}, powerDraws: [], lastCels: [], lastDraws: [], lastRotations: [], lastTranslations: [], lastTexts: [], storyReceipts: [], fetched: []};
   let supplementalOverride = null;
   if (supplementalMutation) {
     const bank = JSON.parse(fs.readFileSync(path.join(root,'assets/mac-combat-frames/mac-combat-frames-v1.json'),'utf8'));
@@ -76,7 +76,7 @@ function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementa
     fillText(text,x,y){work.lastTexts.push({text:String(text),x,y,font:this.font});},
     drawImage(image, ...args) { if (args.length === 8 && /assets\/mac-(?:combat-frames|street-dynamic)\//.test(image.src || '')) {
       const call={path:image.src,args,position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion};work.celDraws[image.src] = (work.celDraws[image.src] || 0) + 1;work.lastCels.push(call);work.lastDraws.push(call);
-    } else if (args.length === 8 && image.src?.startsWith('assets/mac-street-power/')) {const call={path:image.src,args,position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion};work.powerDraws.push(call);work.lastDraws.push(call);} }, translate(x,y) { this.lastTranslate=[x,y]; }, rotate(angle) { this.rotation=(this.rotation || 0)+angle;work.lastRotations.push(angle); },
+    } else if (args.length === 8 && image.src?.startsWith('assets/mac-street-power/')) {const call={path:image.src,args,position:this.lastTranslate,rotation:this.rotation || 0,clipRegion:this.clipRegion};work.powerDraws.push(call);work.lastDraws.push(call);} }, translate(x,y) { this.lastTranslate=[x,y];work.lastTranslations.push([x,y]); }, rotate(angle) { this.rotation=(this.rotation || 0)+angle;work.lastRotations.push(angle); },
     createLinearGradient: () => ({addColorStop(){}}), createRadialGradient: () => ({addColorStop(){}}),
     getTransform: () => ({a: 1, b: 0, c: 0, d: 1, e: 0, f: 0})}, {get(obj, key) { return key in obj ? obj[key] : () => {}; }});
   doc.createElement = tag => { const e = new Element(tag, doc); if (tag === 'canvas') { work.canvases++; e.getContext = () => e.context ||= ctx(e); } return e; };
@@ -179,7 +179,7 @@ function rig({touch = false, initAudio, corruptAsset, powerMutation, supplementa
   const r = {w: win, doc, B, manager, work, pads, scheduled, key, pointer, globalListeners,
     async start() { const result = await B.RuntimeLifecycle.start({privatePreview: 'mac-firstslice'}); assert(result.ok, JSON.stringify(result)); return result; },
     frame(dt = 1000 / 60) {
-      work.lastCels = []; work.lastDraws = []; work.lastRotations = []; work.lastTexts = [];
+      work.lastCels = []; work.lastDraws = []; work.lastRotations = []; work.lastTranslations = []; work.lastTexts = [];
       const handle = win.gameLoopRafHandle; assert(scheduled.has(handle), 'existing gameplay owner has the next frame');
       const callback = scheduled.get(handle); scheduled.delete(handle); now += dt; callback(now);
       if (r.lastEventBatch !== B.MacCombatPreview.lastEvents) {r.lastEventBatch=B.MacCombatPreview.lastEvents;work.events.push(...(r.lastEventBatch || []));}
@@ -669,10 +669,47 @@ async function run() {
     const r=rig();await r.start();r.manager.touchCommand('mac:skip');r.frame();const mac=r.B.MacCombatPreview;
     r.key('keydown','d');r.until(s=>s.combat.enemies[0].phase==='windup');r.key('keyup','d');r.key('keydown','k');
     r.until(()=>r.work.events.some(event=>event.type==='block'));const event=r.work.events.find(event=>event.type==='block'),state=mac.combat.getSnapshot(),art=mac.frameArt.get('mac');
+    assert.equal(mac.tutorial.progress.guard,0,'An ordinary block cannot finish the counter lesson');
     assert.equal(mac.guardBlockedAtMs,event.atMs);let pose=r.B.MacCombatFrames.sample(state.player,{player:true,compiled:art.compiled,supplemental:art.supplemental,guardImpactAgeMs:state.elapsedMs-event.atMs});
     assert.equal(pose.clipKey,'guard-impact');assertWholeFrame(r);r.run(180);
     const after=mac.combat.getSnapshot();pose=r.B.MacCombatFrames.sample(after.player,{player:true,compiled:art.compiled,supplemental:art.supplemental,guardImpactAgeMs:after.elapsedMs-event.atMs});assert.equal(pose.clipKey,'guard');assertWholeFrame(r);
     r.key('keyup','k');await mac.exit();
+  });
+  // These real contacts catch awarding the lesson on defense or on a missed strike.
+  for (const followup of ['parry alone','missed counter','connected counter']) {
+    await check('counter lesson requires actual contact: '+followup, async () => {
+      const r=rig();await r.start();r.manager.touchCommand('mac:skip');r.frame();const mac=r.B.MacCombatPreview;
+      r.key('keydown','d');r.until(s=>s.combat.enemies[0].phase==='windup');r.key('keyup','d');
+      r.until(s=>s.combat.enemies[0].attackTell.remainingMs<=80);r.key('keydown','k');
+      r.until(()=>r.work.events.some(event=>event.type==='parry'));r.key('keyup','k');
+      assert.equal(mac.tutorial.progress.guard,0,'A real parry alone cannot finish the counter lesson');
+      if(followup!=='parry alone') {
+        if(followup==='missed counter'){r.key('keydown','a');r.until(s=>s.combat.player.facing===-1);r.key('keyup','a');}
+        else {r.key('keydown','d');r.until(s=>Math.abs(s.combat.enemies[0].x-s.combat.player.x)<65);r.key('keyup','d');}
+        pressKey(r,'j');r.run(350);
+        assert(r.work.events.some(event=>event.type==='strike'&&event.counter),'The actual follow-up executed a Counter');
+        const contacts=r.work.events.filter(event=>event.type==='enemy-hit'&&event.cause==='counter');
+        assert.equal(contacts.length,followup==='connected counter'?1:0,'The simulation distinguishes a real hit from a miss');
+        assert.equal(mac.tutorial.progress.guard,followup==='connected counter'?1:0,'Only a connected counter earns the lesson');
+        if(contacts.length){for(const flag of ['skipped','completed']){mac.resetTutorial();mac.tutorial[flag]=true;mac.trackTutorial(contacts[0]);assert.equal(mac.tutorial.progress.guard,0,flag+' tutorials ignore real contact receipts');}}
+      }
+      await mac.exit();
+    });
+  }
+  await check('presentation preferences independently gate actual Mac shake and native pickup bob', async () => {
+    const r=rig();await r.start();r.manager.touchCommand('mac:skip');r.frame();const mac=r.B.MacCombatPreview;
+    r.key('keydown','d');r.until(s=>s.combat.enemies[0].phase==='windup');r.key('keyup','d');
+    r.until(s=>s.combat.enemies[0].attackTell.remainingMs<=80);r.key('keydown','k');
+    r.until(()=>r.work.events.some(event=>event.type==='parry'));r.key('keyup','k');
+    const state=mac.combat.getSnapshot(),pickup=state.pickups[0];assert(state.impact.remainingMs>0,'A real parry earned live camera impact');assert(pickup,'A real chapter pickup remains visible');
+    const name=pickup.kind==='weapon'?'weapon_'+pickup.weaponKind:'pickup_'+pickup.kind,cell=mac.powerArt.cells[name],sheet=mac.powerArt.sheets.get(cell.sheet);
+    const draw=values=>{if(values===null)delete r.B.Preferences;else r.B.Preferences={values};r.work.lastTranslations=[];r.work.lastDraws=[];mac.drawStreet(r.doc.getElementById('gameCanvas').context);
+      const call=r.work.lastDraws.find(c=>c.path===sheet.sourceImage&&c.args.slice(0,4).every((v,i)=>v===[cell.source.x,cell.source.y,cell.source.width,cell.source.height][i]));assert(call,'The native pickup cell reaches Canvas');return {camera:r.work.lastTranslations[0],pickupY:call.position[1]};};
+    const legacy=draw(null),defaults=draw({});assert.deepEqual(defaults,legacy,'Absent legacy preferences preserve defaults');assert.notDeepEqual(defaults.camera,[0,-350]);assert.notEqual(defaults.pickupY,pickup.laneY-7);
+    const shakeOff=draw({screenShake:false,reducedMotion:false});assert.deepEqual(shakeOff.camera,[0,-350],'Screen Shake Off suppresses earned motion with Reduced Motion still off');assert.equal(shakeOff.pickupY,defaults.pickupY,'Shake Off keeps ordinary pickup motion');
+    const reduced=draw({screenShake:true,reducedMotion:true});assert.deepEqual(reduced.camera,[0,-350]);assert.equal(reduced.pickupY,pickup.laneY-7,'Reduced Motion keeps the readable native pickup static');
+    const flashesOff=draw({flashAccents:false,reducedMotion:false,screenShake:true});assert.deepEqual(flashesOff,defaults,'Flash preference leaves camera and pickup motion independent');
+    await mac.exit();
   });
   await check('real phone Grab holds one enemy, advertises bounded Pummel, and releasing the same finger throws it', async () => {
     const r=rig({touch:true});await r.start();r.manager.touchCommand('mac:skip');r.frame();const mac=r.B.MacCombatPreview,T=r.B.TouchControls;

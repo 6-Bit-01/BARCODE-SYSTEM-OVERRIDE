@@ -18,6 +18,69 @@ function nearEnemy(r){r.until(s=>s.enemies[0].phase==='windup',{move_x:1});
   r.until(()=>r.game.getControlState().throw.ready&&r.game.getControlState().throw.targetType==='enemy',{move_x:1},500);r.step();}
 function walkTo(r,x,y=880){r.until(s=>Math.abs(s.player.x-x)<6&&Math.abs(s.player.laneY-y)<6,s=>({
   move_x:Math.abs(s.player.x-x)>5?Math.sign(x-s.player.x):0,move_y:Math.abs(s.player.laneY-y)>5?Math.sign(y-s.player.laneY):0}),25000);r.step();}
+// Missing linked-pummel cleanup must fail at the real renderer boundary, before
+// any host could swallow the exception or stop advancing gameplay.
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../src/game/mac-combat-frames.js'),'utf8'),sandbox);
+const F=sandbox.window.BARCODE.MacCombatFrames;
+const compiled=F.compile(JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/mac-combat-frames/mac-frames-v1.json'),'utf8')),{complete:true});
+const supplemental=F.compileSupplemental(JSON.parse(fs.readFileSync(path.join(__dirname,'../assets/mac-street-dynamic/mac-modem-actions-v1.json'),'utf8')),{baseCompiled:compiled});
+function samplePlayer(r){return F.sample(r.view().player,{player:true,compiled,supplemental});}
+function weakenedGrip(r){
+  r.until(s=>s.enemies[0].phase==='windup',{move_x:1});
+  r.step(press('strike'));r.until(s=>s.player.attack?.phase==='recovery');
+  r.step(press('strike'));
+  r.until(()=>r.game.getControlState().throw.ready&&r.game.getControlState().throw.targetType==='enemy',
+    {move_x:1,guard:{held:true}},1500);
+  r.step(press('throw'));assert(r.view().player.grapple,'normal jab/cross route earns a grip');
+  return r.view().player.grapple.targetId;
+}
+for(const hz of [60,120])check('lethal held pummel samples and continues playing at simulated '+hz+' Hz',()=>{
+  const r=rig(hz),targetId=weakenedGrip(r);
+  r.until(s=>!s.enemies.find(e=>e.id===targetId).hp,{throw:{held:true},strike:{held:true}},1600);
+  // The original defect throws "invalid committed Mac move" here: dead victim,
+  // absent grapple, but pummel remains an ordinary committed attack.
+  samplePlayer(r);
+  assert(!r.view().player.grapple);assert(!r.view().player.attack);
+  assert.equal(r.view().enemies.find(e=>e.id===targetId).grappledBy,null);
+  const hits=r.events.filter(e=>e.type==='enemy-hit'&&e.cause==='pummel'&&e.id===targetId);
+  assert.equal(hits.length,3);assert(hits.every(e=>e.damage===6));
+  assert.equal(r.events.filter(e=>e.type==='grab-end'&&e.reason==='defeated').length,1);
+  const before=r.view(),x=before.player.x;
+  for(let n=0;n<hz;n++){r.step({move_x:-1,move_y:-1});samplePlayer(r);}
+  assert(r.view().elapsedMs>before.elapsedMs+900);assert(r.view().player.x<x-100,'steering remains playable after kill');
+  r.game.releaseInputs('pause');r.step(press('strike'));samplePlayer(r);
+  assert.equal(r.view().player.attack.kind,'jab','a fresh Strike starts its normal move after the hold ends');
+});
+function assertFreeHold(r,targetId){
+  assert(!r.view().player.grapple);assert(!r.view().player.attack);
+  assert.equal(r.view().enemies.find(e=>e.id===targetId).grappledBy,null);samplePlayer(r);
+}
+check('real damage interrupts an active pummel and releases both hold owners without a throw',()=>{
+  const r=rig();nearEnemy(r);r.step(press('throw'));const targetId=r.view().player.grapple.targetId;
+  r.until(s=>s.enemies.some(e=>e.hp&&!e.grappledBy&&e.phase==='active'&&Math.abs(e.x-s.player.x)<150),{throw:{held:true}},3000);
+  r.step({throw:{held:true},...press('strike')});assert.equal(r.view().player.attack.kind,'pummel');
+  const hp=r.view().player.hp;
+  r.until(s=>s.player.hp<hp,()=>{samplePlayer(r);return {throw:{held:true},strike:{held:true}};},500);
+  assertFreeHold(r,targetId);assert(r.events.some(e=>e.type==='grab-end'&&e.reason==='hit'));
+  assert(!r.events.some(e=>e.type==='throw-release'));r.game.releaseInputs('pause');r.run(800);samplePlayer(r);
+  assert(r.game.getControlState().strike.ready,'ordinary hurt/recovery eventually permits a fresh Strike');
+});
+check('releasing Throw during pummel keeps the real committed throw and recovery',()=>{
+  const r=rig();nearEnemy(r);r.step(press('throw'));const targetId=r.view().player.grapple.targetId;
+  r.step({throw:{held:true},...press('strike')});assert.equal(r.view().player.attack.kind,'pummel');
+  r.step();samplePlayer(r);assert(!r.view().player.attack);assert(r.view().player.grapple.released);
+  assert(!r.game.getControlState().strike.ready,'throw recovery is still committed');
+  r.until(s=>!s.player.grapple,()=>{samplePlayer(r);return {};},700);assertFreeHold(r,targetId);
+  assert.equal(r.events.filter(e=>e.type==='throw-release').length,1);assert.equal(r.view().player.throwMs,0);
+});
+for(const reason of ['pause','cancel','blur'])check(reason+' input release clears an active pummel with no free throw',()=>{
+  const r=rig();nearEnemy(r);r.step(press('throw'));const targetId=r.view().player.grapple.targetId;
+  r.step({throw:{held:true},...press('strike')});assert.equal(r.view().player.attack.kind,'pummel');
+  r.game.releaseInputs(reason);assertFreeHold(r,targetId);
+  for(let n=0;n<36;n++){r.step();samplePlayer(r);}
+  assert.equal(r.events.filter(e=>e.type==='grab-end'&&e.reason===reason).length,1);
+  assert(!r.events.some(e=>e.type==='throw-release'||e.type==='enemy-hit'&&e.cause==='pummel'));
+});
 check('double tap runs at429; guard creeps57.2 and input release removes run history',()=>{
   const r=rig(120);r.run(50,{move_x:1});r.step();r.step({move_x:1});assert(r.view().player.running);
   const x=r.view().player.x;r.run(150,{move_x:1});assert(Math.abs(r.view().player.x-x-429*.15)<.01);
@@ -78,7 +141,7 @@ check('enemy strength timeout is <=3s and one uninterrupted L hold cannot regrab
   for(let n=0;n<Math.ceil(4200/(1000/60));n++){
     const s=r.view(),warning=s.enemies.find(e=>e.hp&&!e.grappledBy&&['windup','active'].includes(e.phase));
     const move_y=warning?Math.abs(M.constants.laneMin-warning.attackLaneY)>Math.abs(M.constants.laneMax-warning.attackLaneY)?-1:1:-1;
-    r.step({throw:{held:true},move_y});
+    r.step({throw:{held:true},move_y});samplePlayer(r);
   }
   assert.equal(r.events.filter(e=>e.type==='grab-start').length,1);assert(r.events.some(e=>e.type==='grab-end'&&e.reason==='strength-limit'),JSON.stringify(r.events.filter(e=>/grab|player-hit/.test(e.type))));
   assert(!r.view().player.grapple);assert(r.events.filter(e=>e.type==='throw-release').length<=1,'a later enemy hit can interrupt release; it cannot repeat the held activation');
@@ -91,7 +154,7 @@ check('another enemy hitting Mac breaks the held enemy grip without a free throw
 check('held Strike pummels in real attack phases for <=1s total per grab',()=>{
   const r=rig();nearEnemy(r);r.step(press('throw'));r.step({throw:{held:true},...press('strike')});
   assert.equal(r.view().player.attack.kind,'pummel');assert.deepEqual(plain(r.view().player.attack.timing),{windupMs:75,activeMs:65,recoveryMs:105});
-  r.run(1600,{throw:{held:true},strike:{held:true}});const p=r.view().player;
+  for(let n=0;n<96;n++){r.step({throw:{held:true},strike:{held:true}});samplePlayer(r);}const p=r.view().player;
   assert(p.grapple);assert(p.grapple.pummelUsedMs<=1000);assert(p.grapple.pummelUsedMs>=975);assert(!p.attack);
   const hits=r.events.filter(e=>e.type==='enemy-hit'&&e.cause==='pummel');assert.equal(hits.length,4);assert(hits.every(e=>e.damage===6));
   r.game.releaseInputs('pause');assert(!r.view().player.grapple);assert(!r.view().player.attack);
@@ -147,6 +210,42 @@ function routeInput(r,s){const p=s.player,controls=r.game.getControlState(),inpu
   else if(controls.strike.ready&&!r.lastStrike&&Math.abs(dx)<(p.weapon?M.weapons[p.weapon.kind].reach:100)&&Math.abs(foe.laneY-p.laneY)<35)input.strike={pressed:true,held:true};
   r.lastThrow=!!input.throw;r.lastStrike=!!input.strike;return input;
 }
+function earnedBarrierApproach(){
+  const r=rig();r.equipped=new Set(Object.keys(M.weapons));r.used=new Set(Object.keys(M.weapons));
+  r.until(s=>s.zone.state==='zone-clear',s=>routeInput(r,s),100000);
+  const car=r.view().props.find(p=>p.kind==='car');walkTo(r,car.x-145,car.laneY);
+  r.until(s=>s.props.find(p=>p.id===car.id).broken,s=>r.game.getControlState().strike.ready&&!s.player.attack?press('strike'):{},15000);
+  r.until(s=>!s.player.attack);walkTo(r,car.x,car.laneY);assert.equal(r.view().player.powerups.barrierCharges,3);
+  r.until(s=>s.zone.index===2,{move_x:1,run:{held:true}},10000);
+  r.until(()=>r.game.getControlState().throw.ready&&r.game.getControlState().throw.targetType==='enemy',{move_x:1},5000);
+  r.step();assert(r.view().player.powerups.barrierCharges>0);return r;
+}
+check('earned Barrier interrupts a live pummel without damage or a stale committed pose',()=>{
+  const r=earnedBarrierApproach();r.step(press('throw'));assert(r.view().player.grapple);
+  const targetId=r.view().player.grapple.targetId,hp=r.view().player.hp,charges=r.view().player.powerups.barrierCharges;
+  r.until(s=>s.enemies.some(e=>e.hp&&!e.grappledBy&&e.phase==='windup'&&e.attackTell.remainingMs<90),{throw:{held:true}},2500);
+  r.step({throw:{held:true},...press('strike')});assert.equal(r.view().player.attack.kind,'pummel');
+  const eventStart=r.events.length;
+  r.until(()=>r.events.slice(eventStart).some(e=>e.type==='barrier-block'),()=>{samplePlayer(r);return {throw:{held:true},strike:{held:true}};},500);
+  samplePlayer(r);assertFreeHold(r,targetId);assert.equal(r.view().player.hp,hp);
+  assert.equal(r.view().player.powerups.barrierCharges,charges-1);
+  assert(r.events.slice(eventStart).some(e=>e.type==='grab-end'&&e.reason==='barrier-hit'));
+  assert(!r.events.slice(eventStart).some(e=>e.type==='throw-release'));
+  const ends=r.events.filter(e=>e.type==='grab-start').length;r.run(400,{throw:{held:true}});samplePlayer(r);
+  assert.equal(r.events.filter(e=>e.type==='grab-start').length,ends,'uninterrupted Throw cannot silently regrab');
+  r.game.releaseInputs('pause');r.step(press('strike'));assert(r.view().player.attack);samplePlayer(r);
+});
+check('Barrier preserves an ordinary jab through its unchanged recovery',()=>{
+  const r=earnedBarrierApproach();r.step({move_x:-1});r.step();
+  r.until(s=>s.enemies.some(e=>e.hp&&e.phase==='windup'&&e.attackTell.remainingMs<90),{},2500);
+  r.step(press('strike'));assert.equal(r.view().player.attack.kind,'jab');
+  assert.deepEqual(plain(r.view().player.attack.timing),{windupMs:90,activeMs:80,recoveryMs:155});
+  const eventStart=r.events.length,hp=r.view().player.hp;
+  r.until(()=>r.events.slice(eventStart).some(e=>e.type==='barrier-block'),()=>{samplePlayer(r);return {};},500);
+  assert.equal(r.view().player.hp,hp);assert.equal(r.view().player.attack.kind,'jab','hold cancellation cannot clear an unrelated attack');
+  r.until(s=>s.player.attack?.phase==='recovery',()=>{samplePlayer(r);return {};},300);
+  assert.equal(r.view().player.attack.kind,'jab');r.until(s=>!s.player.attack,{},300);samplePlayer(r);
+});
 let route;
 check('all8 weapons are earned/equipped/fired through all6 districts with30 real defeats',()=>{
   const r=rig();r.equipped=new Set();r.used=new Set();
