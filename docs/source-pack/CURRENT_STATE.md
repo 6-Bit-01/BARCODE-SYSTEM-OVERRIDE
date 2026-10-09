@@ -1,3 +1,11 @@
+## October 8, 2026 — combat stability and presentation preferences
+
+Ending a held enemy now ends its linked pummel attack as well, including lethal pummels, barrier hits and other grab interruptions. The complete-character animation sampler stays authoritative; the fix clears the invalid combat state instead of hiding rendering failures. Existing attack timings, artwork, weapon grips and earned Level 2 continuation remain.
+
+The guard tutorial requires a connected counter follow-up. Blocking, parrying without striking, and missing a counter do not complete that lesson. Mac respects Screen Shake Off independently of Reduced Motion, which also keeps pickups still. Level 1 respects Flash Accents Off when rendering damage feedback.
+
+Focused regressions exercise real combat inputs and production frame registrations, counter contacts and actual draw boundaries. Exact-head full checks, independent review, source/site packaging, publication and the merged source archive are tracked in the retained D: release record; they remain pending at this edit. Physical-device pacing, controller feel and listening acceptance remain separate.
+
 ## October 8, 2026 — earned Level 2 continuation into Mac
 
 The campaign repair adds Continue to Level 3 to earned Cache Line results after its ending, including existing authored road-clear saves. Keyboard Enter, controller confirm and direct touch use the same guarded transition into the approved Mac chapter. Ending replay remains separately available. No race replay is needed for an already earned clear.
