@@ -17,18 +17,36 @@ function enemy(w, dx, dy = 0, type = 'virus') {
   e.health = 100; e.active = true; e.entranceComplete = true; return e;
 }
 
-// The real damaged player reaches its native sprite boundary with stable opacity
-// when Flash Accents is disabled; motion/shake flags must remain independent.
-for (const values of [null, {}, {flashAccents:true}, {screenShake:false,reducedMotion:false}, {reducedMotion:true}, {flashAccents:false,reducedMotion:false,screenShake:true}]) {
-  const {w,tick}=createRig(),player=w.player;w.rhythmSystem.hide();
-  if(values!==null)w.BARCODE.Preferences={values};
+// Load the real saved preference owner: Flash accents is persisted as flashes.
+// Screen shake/reduced motion remain independent of the damaged native body.
+for (const savedValues of [null, {}, {flashes:true}, {screenShake:false,reducedMotion:false}, {reducedMotion:true}, {flashes:false,reducedMotion:false,screenShake:true}]) {
+  const {w,tick,context}=createRig(),player=w.player;w.rhythmSystem.hide();
+  const storage=new Map();
+  if(savedValues!==null){
+    storage.set('barcode.presentation.v1',JSON.stringify(savedValues));
+    w.localStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)};
+    load(context,'src/game/pause-menu.js');
+  }
   player.takeDamage(1);assert(player.invulnerableUntil>w.Date.now(),'Actual damage grants invulnerability');
+  const immuneUntil=player.invulnerableUntil;
   const alpha=[];player.spriteReady=true;player.sprite=w.MakkoEngine.sprite();player.sprite.draw=(ctx,x,y,options)=>alpha.push(options.alpha);
   const ctx=new Proxy({save(){},restore(){},transform(){}},{get:(o,k)=>o[k]??(()=>{})});
   for(let i=0;i<4;i++){player.draw(ctx);tick(25);}
   assert.equal(alpha.length,4,'One native body draw remains readable per sample');
-  if(values?.flashAccents===false)assert.deepStrictEqual(alpha,[1,1,1,1],'Flash Accents Off prevents damage-opacity flashing at the body draw');
+  if(savedValues?.flashes===false){
+    assert.strictEqual(w.BARCODE.Preferences.values.flashes,false,'Real owner restores saved Flash accents Off');
+    assert.strictEqual(w.BARCODE_RENDER_QUALITY.flashes,false,'Saved setting reaches the render preferences');
+    assert.deepStrictEqual(alpha,[1,1,1,1],'Saved Flash accents Off prevents damage-opacity flashing at the body draw');
+    w.BARCODE.Preferences.set('flashes',true);player.draw(ctx);
+    assert(alpha.at(-1)>=.1&&alpha.at(-1)<=.9,'Live Flash accents On restores damage flashing');
+    w.BARCODE.Preferences.set('flashes',false);player.draw(ctx);
+    assert.equal(alpha.at(-1),1,'Live Flash accents Off makes the damaged body opaque immediately');
+    assert.strictEqual(JSON.parse(storage.get('barcode.presentation.v1')).flashes,false,'Real owner saves the live flash toggle');
+    load(context,'src/game/pause-menu.js');player.draw(ctx);
+    assert.equal(alpha.at(-1),1,'Reloading the saved toggle preserves damage opacity');
+  }
   else {assert(new Set(alpha).size>1,'Legacy/default and independent motion flags preserve damage flash');assert(alpha.every(v=>v>=.1&&v<=.9));}
+  assert.strictEqual(player.invulnerableUntil,immuneUntil,'Presentation flags preserve the damage-immunity deadline');
   assert(player.invulnerableUntil>w.Date.now(),'Presentation flags preserve damage immunity');
   tick(3000);player.draw(ctx);assert.equal(alpha.at(-1),1,'The body remains opaque after ordinary invulnerability expires');
 }
