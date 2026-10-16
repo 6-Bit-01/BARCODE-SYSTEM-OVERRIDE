@@ -1,3 +1,15 @@
+## October 15 - checkpoint tooling reconciled with current main
+
+- Reconcile PR #173 with main through PR #192 without changing gameplay, assets,
+  review evidence, workflows, dependencies or existing validation gates.
+- Record the verified merged main separately from this maintenance review; retain
+  all later dated owner constraints and evidence without treating them as a task queue.
+- Preserve schema 1 exports while schema 2 clarifies dated owner constraints; accept
+  Windows CRLF headers and retain the original 13 regression intents with targeted
+  compatibility and modern-export coverage.
+- Exact final validation and publication results belong to the PR/export receipt.
+  No new human playtest acceptance or deployment is established by this repair.
+
 ## October 8, 2026 — earned Level 2 continuation into Mac
 
 - Add Continue to Level 3 on earned Level 2 results and route existing saved authored clears into the approved Mac chapter through existing lifecycle/input/audio/frame owners.
@@ -331,6 +343,21 @@ The small functional preparation pool now reserves up to 1.5 Mi-pixels inside th
 ## October 2 — blood splatters and crew radio popups
 
 Add three authored blood sprays with matching stable road stains, new canonical crew reaction portraits, compact comic radio callouts and distinct queued holds. Preserve contact ledgers, world/mirror ground depth, Reduced Motion/Flashes Off, score/health/resources and legacy rules. Add focused native raster/queue/layout checks and hosted browser readiness/painting checks; record exact final validation in the export receipt.
+
+## October 2 — continuation checkpoint consistency review
+
+- Add one dated current-checkpoint record and deterministic generated headers at
+  the repository and source-pack entrypoints; identify merged PR #172 separately
+  from this documentation review and unrecorded owner device acceptance.
+- Retain historical task, branch, source-hash and validation notes as history;
+  check current remote/owner state before continuing rather than replaying them.
+- Add dependency-free mismatch/repair and exact-revision export regressions to
+  the existing npm validation gate. The source-pack builder verifies committed
+  headers before export and adds the committed continuation entrypoint at root.
+- Preserve the existing manifest, checksums, evidence receipts and CI artifact
+  workflow, including exact historical exports without new checkpoint metadata.
+- No gameplay, assets, roadmap, merge, deployment or canonical archive change.
+  Exact final validation and publication results belong to the PR/export receipt.
 
 ## October 1 — crosswalks and controlled pursuit
 

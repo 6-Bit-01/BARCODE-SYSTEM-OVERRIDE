@@ -1,5 +1,30 @@
 # Repository Guidance
 
+<!-- CURRENT_CHECKPOINT:START -->
+## Current checkpoint
+
+Generated from `docs/source-pack/CURRENT_CHECKPOINT.json`; edit that record, then run `npm run checkpoint:sync`.
+Recorded at 2026-10-15T23:49:00Z; this is a dated handoff, not a live GitHub status query.
+
+- Latest verified merged code: [PR #192](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/192) on `main` at `59427681c18f289e539f18f2c1ea89d61f88d1e1`
+- Merged checkpoint: Current main through saved Flash accents preference repair; retains later GPU rendering, mobile controls, standalone runtime and Mac chapter work
+- Latest recorded continuation task: Reconcile checkpoint synchronization and source-pack export integrity with current main (review)
+- Review branch: `agent/checkpoint-consistency`; base `59427681c18f289e539f18f2c1ea89d61f88d1e1`
+- Approved scope: Preserve all current gameplay, assets, review evidence, owner constraints and existing validation gates; add synchronized dated headers and committed-tree export preflight only
+- Recorded automated validation: not-recorded at `59427681c18f289e539f18f2c1ea89d61f88d1e1`; No new workflow evidence is recorded here for this reconciliation; exact tested review revisions and results belong to the PR and export receipts
+- Automated evidence: none recorded
+- Human acceptance: not-recorded; No new owner device, controller, listening, motion comfort, balance or frame-pacing acceptance is established by this maintenance review
+- Human evidence: Preserve all scoped owner acceptance and limitations in the dated records below; automated checks do not add human acceptance
+- Next step: Finish and review PR #173 exact-head checks and preservation evidence under the owner's October 15 merge-or-close request; the coordinating parent handles merge or closure decisions. Recheck remote state before continuation; this repair performs no deployment
+
+The exported tree/review/merge status and exact test receipt belong to `SOURCE_MANIFEST.json` and `test-evidence.json` when present.
+A prior checkpoint or passing CI does not certify this review, owner acceptance, or permission to merge/deploy.
+Before continuing, recheck the current owner request and remote branch/PR state; update the record when those facts change.
+
+Dated sections below retain their recorded scope, evidence and owner constraints. Check their dates and the newest owner request before resuming work.
+Retained gameplay constraints and engineering rules still apply unless explicitly superseded by the owner.
+<!-- CURRENT_CHECKPOINT:END -->
+
 ## October 5, 2026 — direct mobile actions
 
 The owner rejects the published PR185 combat drawer: opening More during action is unacceptable. This correction supersedes the secondary-drawer instruction below. All active gameplay abilities must be directly accessible in compact fixed thumb slots. During combat, show Guard and Boost with recharge/pending feedback, target-dependent Strike/Fire, nearby-enemy/projectile Jam and the manually tapped current Sync cue. Preserve proactive Guard/Boost, exact action eligibility, held semantic actions, steering and completed taps. Surface Level 1 Inspect/Continue/Close through the stage owner; running remains the outer joystick gesture. More is only for non-action cinematic extras.

@@ -1,3 +1,30 @@
+# Acceptance and Test Status
+
+<!-- CURRENT_CHECKPOINT:START -->
+## Current checkpoint
+
+Generated from `docs/source-pack/CURRENT_CHECKPOINT.json`; edit that record, then run `npm run checkpoint:sync`.
+Recorded at 2026-10-15T23:49:00Z; this is a dated handoff, not a live GitHub status query.
+
+- Latest verified merged code: [PR #192](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/192) on `main` at `59427681c18f289e539f18f2c1ea89d61f88d1e1`
+- Merged checkpoint: Current main through saved Flash accents preference repair; retains later GPU rendering, mobile controls, standalone runtime and Mac chapter work
+- Latest recorded continuation task: Reconcile checkpoint synchronization and source-pack export integrity with current main (review)
+- Review branch: `agent/checkpoint-consistency`; base `59427681c18f289e539f18f2c1ea89d61f88d1e1`
+- Approved scope: Preserve all current gameplay, assets, review evidence, owner constraints and existing validation gates; add synchronized dated headers and committed-tree export preflight only
+- Recorded automated validation: not-recorded at `59427681c18f289e539f18f2c1ea89d61f88d1e1`; No new workflow evidence is recorded here for this reconciliation; exact tested review revisions and results belong to the PR and export receipts
+- Automated evidence: none recorded
+- Human acceptance: not-recorded; No new owner device, controller, listening, motion comfort, balance or frame-pacing acceptance is established by this maintenance review
+- Human evidence: Preserve all scoped owner acceptance and limitations in the dated records below; automated checks do not add human acceptance
+- Next step: Finish and review PR #173 exact-head checks and preservation evidence under the owner's October 15 merge-or-close request; the coordinating parent handles merge or closure decisions. Recheck remote state before continuation; this repair performs no deployment
+
+The exported tree/review/merge status and exact test receipt belong to `SOURCE_MANIFEST.json` and `test-evidence.json` when present.
+A prior checkpoint or passing CI does not certify this review, owner acceptance, or permission to merge/deploy.
+Before continuing, recheck the current owner request and remote branch/PR state; update the record when those facts change.
+
+Dated sections below retain their recorded scope, evidence and owner constraints. Check their dates and the newest owner request before resuming work.
+Retained gameplay constraints and engineering rules still apply unless explicitly superseded by the owner.
+<!-- CURRENT_CHECKPOINT:END -->
+
 ## October 8, 2026 — earned Level 2 continuation into Mac
 
 The Level 3 routing regression must earn the actual Level 2 finish, reopen existing authored road-clear saves, and run Road, Mac, Campaign, input, music profiles/transport and lifecycle in one window with a running single gameplay frame. Verify keyboard, controller and the direct touch Continue action; the carried confirmation cannot skip the first Mac scene.
