@@ -1,0 +1,64 @@
+{
+  "status": "PASS",
+  "scope": "Animation study revision 2 only; installed game unchanged",
+  "nativePNGsByteIdentical": true,
+  "images": [
+    {
+      "sheet": "basic",
+      "path": "mac-basic-v2.png",
+      "sha256": "3924a5621c417da3328fcd9979acc37be6be0802d8ec0808194fa188aaa47046",
+      "bytes": 1067994
+    },
+    {
+      "sheet": "advanced",
+      "path": "mac-advanced-v1.png",
+      "sha256": "cc7525692ae6ea5b73b6b5feac312875b0bd55958c9482220133dd8cdff606ab",
+      "bytes": 1393877
+    },
+    {
+      "sheet": "walk",
+      "path": "mac-walk-v1.png",
+      "sha256": "ae95eaeed9f8e51112c5fd41f19347c41b5662b1a1e5411e48076d9718d06abd",
+      "bytes": 1294926
+    },
+    {
+      "sheet": "contacts",
+      "path": "mac-walk-contacts-v1.png",
+      "sha256": "046be2474814495be239db517c3cdd82ed3a643c82f441a90b2a37613b86b6f6",
+      "bytes": 999311
+    },
+    {
+      "sheet": "jump",
+      "path": "mac-jump-kick-v1.png",
+      "sha256": "ffb03183717c172c788848a446f7bfa0b1ee79b1c4ea0fbe47f41e1a7afea9ed",
+      "bytes": 1222895
+    }
+  ],
+  "frameCount": 36,
+  "walk": [
+    "walk_contact_left",
+    "walk_3",
+    "walk_contact_right",
+    "walk_7"
+  ],
+  "airKick": [
+    "idle_a",
+    "load",
+    "takeoff",
+    "chamber",
+    "kick_extend",
+    "kick_contact",
+    "kick_retract",
+    "descent",
+    "landing",
+    "idle_a"
+  ],
+  "standingHeights": {
+    "basic": 321,
+    "advanced": 343,
+    "walk": 430,
+    "contacts": 825,
+    "jump": 458
+  },
+  "productionPublication": false
+}

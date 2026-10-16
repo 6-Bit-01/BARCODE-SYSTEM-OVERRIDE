@@ -27,7 +27,13 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
     overclocked:Object.freeze({spawnMs:4700,warningMs:1100,gap:.55})
   });
   const SKILLS=Object.freeze({attack:550,defend:4000,turbo:7000,disrupt:8500});
-  const syncBenefits=count=>({power:1+count*.25,recharge:1-count*.1,ammoMs:4500-count*750,footprint:1-count*.12});
+  const syncBenefits=(count,adrenaline=0)=>{
+    const charge=B.CacheRoadAdrenaline?.benefits?.(adrenaline)||
+      {power:1,recharge:1,ammo:1,guardMs:0,trackingMs:0,footprint:1};
+    return {power:(1+count*.25)*charge.power,recharge:(1-count*.1)*charge.recharge,
+      ammoMs:(4500-count*750)*charge.ammo,footprint:(1-count*.12)*charge.footprint,
+      guardMs:charge.guardMs,trackingMs:charge.trackingMs};
+  };
   const inFlight=state=>state.projectiles.find(item=>item.friendly);
   const object=value=>!!value&&typeof value==='object'&&!Array.isArray(value);
   const number=(n,lo,hi)=>Number.isFinite(n)&&n>=lo&&n<=hi;
@@ -36,6 +42,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
     return {...input,progress:clamp(finite(input.progress),0,24000),
       lanePos:clamp(finite(input.lanePos,1.5),0,3),speed:clamp(finite(input.speed,52),10,110),
       bar:clamp(finite(input.bar),0,100),syncCount:clamp(Math.floor(finite(input.syncCount)),0,4),
+      adrenaline:clamp(finite(input.adrenaline),0,100),
       boosting:input.boosting===true,invulnerableMs:Math.max(0,finite(input.invulnerableMs))};
   }
   function create({difficultyId='standard',seed=27469}={}) {
@@ -100,7 +107,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
   function pose(state,input={}) {
     if(state?.version!==4)return null;
     const view=inputOf({...input,progress:input.progress??state.lastProgress,bar:input.bar??state.lastBar});
-    const benefits=syncBenefits(view.syncCount),flight=inFlight(state);
+    const benefits=syncBenefits(view.syncCount,view.adrenaline),flight=inFlight(state);
     const active={attack:0,defend:state.defendMs,turbo:state.boosting?1:0,disrupt:state.disruptMs};
     return {version:4,actors:state.enemies.filter(enemy=>enemy.at-view.progress>=-300&&enemy.at-view.progress<=440)
         .map(enemy=>actorPose(enemy,view)),
@@ -120,7 +127,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
       skills:Object.fromEntries(Object.keys(SKILLS).map(kind=>[kind,{ready:state.cooldowns[kind]<=0&&(kind!=='attack'||!flight),
         cooldownMs:state.cooldowns[kind],rechargeMs:SKILLS[kind]*benefits.recharge,activeMs:active[kind],active:active[kind]>0,
         ...(kind==='attack'?{charges:state.ammo,inFlight:!!flight}:{}),...(kind==='turbo'?{pending:state.turboPending}:{})}])),
-      syncCount:view.syncCount,benefits,footprint:round(1-view.syncCount*.12),stats:{...state.stats}};
+      syncCount:view.syncCount,adrenaline:view.adrenaline,benefits,footprint:round(benefits.footprint),stats:{...state.stats}};
   }
   function occupied(input,at,lane) {
     return (input.actors||[]).some(actor=>Number.isFinite(actor.at)&&Number.isFinite(actor.lane)&&
@@ -238,7 +245,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
   function ram(state,input,source,events) {
     if(!source||!Number.isFinite(source.hp)||source.hp<=0||source.phase==='flee'||state.ramContacts.includes(source.id))return;
     state.ramContacts.push(source.id);
-    hurt(state,source,2*syncBenefits(input.syncCount).power,'turbo',events);
+    hurt(state,source,2*syncBenefits(input.syncCount,input.adrenaline).power,'turbo',events);
     stagger(source);
     events.push(event('ram-impact',source,{cause:'turbo',combat:true}));
   }
@@ -253,10 +260,11 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
       if(kind==='combat projectile'&&source?.hp>0&&!inFlight(state)&&state.projectiles.length<MAX_PROJECTILES) {
         const reflected={id:`shot-${state.projectileSeq++}`,sourceId:'player',owner:'player',friendly:true,
           targetId:source.id,at:input.progress+12,lane:input.lanePos,ageMs:0,
-          damage:syncBenefits(input.syncCount).power,kind:'reflected'};
+          damage:syncBenefits(input.syncCount,input.adrenaline).power,kind:'reflected'};
         state.projectiles.push(reflected);
         events.push(event('shot',source,{projectile:copy(reflected),cause:'guard',combat:true}));
-      } else if(source?.hp>0)hurt(state,source,1+input.syncCount*.15,'guard',events);
+      } else if(source?.hp>0)hurt(state,source,(1+input.syncCount*.15)*
+        (B.CacheRoadAdrenaline?.benefits?.(input.adrenaline)?.power||1),'guard',events);
       stagger(source);
       events.push(event('defend',source,{cause:'guard',combat:true}));return;
     }
@@ -271,7 +279,7 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
     const input=inputOf({...rawInput,progress:rawInput.progress??state.lastProgress,bar:rawInput.bar??state.lastBar});
     if(state.defeated)return {accepted:false,reason:'runway',events:[]};
     if(state.cooldowns[kind]>0)return {accepted:false,reason:'recharging',events:[]};
-    const events=[],benefits=syncBenefits(input.syncCount);
+    const events=[],benefits=syncBenefits(input.syncCount,input.adrenaline);
     if(kind==='attack'&&inFlight(state))return {accepted:false,reason:'in-flight',events:[]};
     if(kind==='attack') {
       const target=targetFor(state,input);
@@ -292,7 +300,8 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
         state.projectiles.push(shot);events.push(event('shot',enemy,{projectile:copy(shot),combat:true}));
       }
     } else if(kind==='defend') {
-      state.cooldowns.defend=SKILLS.defend*benefits.recharge;state.defendMs=800+input.syncCount*50;state.stats.defends++;
+      state.cooldowns.defend=SKILLS.defend*benefits.recharge;
+      state.defendMs=800+input.syncCount*50+benefits.guardMs;state.stats.defends++;
       events.push({type:'defend-ready',durationMs:state.defendMs,combat:true});
     } else if(kind==='turbo') {
       state.cooldowns.turbo=SKILLS.turbo*benefits.recharge;state.turboPending=true;state.stats.turbos++;
@@ -346,14 +355,16 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-combat.js',
     const dt=clamp(finite(delta),0,100),input=inputOf(rawInput),events=[];
     if(!dt)return events;
     const before=state.lastProgress,beforeLane=state.lastLanePos??input.lanePos,tuning=SETTINGS[state.difficultyId];
+    const benefits=syncBenefits(input.syncCount,input.adrenaline);
     state.lastProgress=input.progress;state.lastBar=Math.max(state.lastBar,input.bar);state.elapsedMs+=dt;
     state.lastLanePos=input.lanePos;
-    state.trackedLane+=(input.lanePos-state.trackedLane)*Math.min(1,dt/(260+input.syncCount*140));
+    state.trackedLane+=(input.lanePos-state.trackedLane)*Math.min(1,dt/
+      (260+input.syncCount*140+benefits.trackingMs));
     state.defendMs=Math.max(0,state.defendMs-dt);state.disruptMs=Math.max(0,state.disruptMs-dt);
     if((!input.boosting||!state.boosting)&&state.ramContacts.length)state.ramContacts=[];
     state.boosting=input.boosting;if(input.boosting)state.turboPending=false;
     for(const kind of Object.keys(SKILLS))state.cooldowns[kind]=Math.max(0,state.cooldowns[kind]-dt);
-    if(state.ammo<2){state.ammoMs+=dt;const refill=syncBenefits(input.syncCount).ammoMs;
+    if(state.ammo<2){state.ammoMs+=dt;const refill=benefits.ammoMs;
       if(state.ammoMs>=refill){state.ammo++;state.ammoMs=Math.max(0,state.ammoMs-refill);}}
     else state.ammoMs=0;
     stepWrecks(state,input,before,beforeLane,dt,events);

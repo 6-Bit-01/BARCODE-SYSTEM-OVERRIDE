@@ -1,0 +1,347 @@
+{
+  "schemaVersion": 1,
+  "scope": "Owner corrections to review artwork only; story script and approved Mac hero v2 preserved.",
+  "updatedAtUtc": "2026-10-06T03:59:31.113Z",
+  "sourceBase": "57f6698d3c9187596b7c443e506111e5e3ad32c7",
+  "initialProvenanceAtSourceBaseSHA256": "ce19ab5e8455f1059876fc2731b83dc358468e9e5fecb487f062b959f87ecdce",
+  "additionalBuiltInGenerationCalls": 4,
+  "retainedPriorCallRecords": 1,
+  "acceptedForRuntime": false,
+  "ownerAcceptance": "New Cache and Kave artwork remain candidates; independent visual audit is not owner acceptance.",
+  "records": [
+    {
+      "id": "cache-walk-to-car-v4",
+      "status": "owner-rejected-arm-behind-back",
+      "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v4.png",
+      "acceptedForRuntime": false,
+      "rawGenerationRecord": "docs/source-pack/review-mac-street-art/cache-walk-to-car-v4-generation-record.json",
+      "rawGenerationRecordSHA256": "1589539f8b5ca25dd1aaa02cfe1fa2ad939ba6452862ce64528f676dcc102587",
+      "toolArguments": {
+        "prompt": "Use case: identity-preserve. Edit target is image1. Image2 is exact Cache identity reference.\nChange ONLY Cache Back's BODY STRIDE DIRECTION in image1 so he is unmistakably walking TOWARD the visible driver's door of the yellow car at screen-right. At present he reads as walking toward the viewer; fix this.\nPreserve the entire exact garage, skyline, wet night street, yellow hatchback, its parked orientation, roof recorder, rear glass two tape reels, stripes/emblems, tires, light/color and detailed comic style. Do NOT redraw the car or change any object arrangement.\nRotate Cache's shoulders/hips/legs into a right-facing three-quarter walking profile. His near shoulder and back edge face the viewer a little; knees, hips and leading toe point DIAGONALLY RIGHT toward the left-side driver door at the car's screen-left side. One foot is naturally stepping toward that door, other behind. Keep his head turned slightly back toward camera so both clear glasses and black tech mask remain recognizable; relaxed confident badass glance, not surprise.\nKeep his small metal key ring in his RIGHT hand closest to the driver door, keys visible, natural finger/thumb holding ring. Keep the exact protected black archive cassette with yellow hazard band secured under his LEFT arm against his hip. Do not swap/destroy cassette or duplicate props. Preserve yellow cap's two rounded protrusions, yellow Greek-key short sleeves, clear glasses, mechanical collar and dark trousers. Slim natural human anatomy, correct connected arms/hands, no giant action-hero muscles.\nMaintain existing foreground scale, place him on the same pavement with natural foot contact, allow knees/shoes to remain inside bottom image if possible. No walking toward viewer and no walking away from car. Leave car door shut until the next implied action. No new text, captions, effects, HUD, characters or weapons. Opaque background.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/cache-walk-to-car-v3.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png"
+        ],
+        "transparent_background": false
+      },
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-66461160-06f6-48d3-a44f-edeaaeb6d849.png",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v3.png",
+          "originalPathAtGeneration": "assets/mac-street-review/cache-walk-to-car-v3.png",
+          "sha256": "96ee4b0d425f82db57e67f299019fc10e02e07b50f1405d127daf182d9b5007c",
+          "bytes": 2886177,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/cache-model.png",
+          "originalPathAtGeneration": "docs/source-pack/review-level3-story/references/cache-model.png",
+          "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3",
+          "bytes": 7306986,
+          "dimensions": {
+            "width": 1600,
+            "height": 2848,
+            "format": "PNG"
+          }
+        }
+      ],
+      "sha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe",
+      "bytes": 2812836,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG"
+      }
+    },
+    {
+      "id": "cache-walk-to-car-v5",
+      "status": "owner-rejected-direction-mismatch",
+      "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v5.png",
+      "acceptedForRuntime": false,
+      "rawGenerationRecord": "docs/source-pack/review-mac-street-art/cache-walk-to-car-v5-generation.json",
+      "rawGenerationRecordSHA256": "a59f0c53f0617240217e1380ddc41f056d0d1d6ce5c4f654b680dcf59dd2db9e",
+      "toolArguments": {
+        "prompt": "Use case: identity-preserve.\nAsset type: corrected detailed comic game cutscene, wide landscape panel matching image 1 (1860x845 composition).\nPrimary request: EDIT IMAGE 1. Correct ONLY Cache Back's walking torso and arm pose. The current case-holding arm is behind his back; that is rejected. Give him an anatomically natural confident walk toward the same yellow car at screen-right, with BOTH forearms and BOTH hands fully and clearly visible in FRONT of his torso. This is a targeted pose correction, not a redesigned scene.\nInput images: Image 1 is the actual edit target and locks the street, garage, car, viewpoint, lighting and illustration style. Image 2 locks the SAME yellow hatchback's rear geometry, roof recorder and two rear-window reels, vehicle stripes/emblem, tow hook and exhaust. Image 3 locks Cache's exact face, cap, glasses, tech mask/collar and yellow-shirt identity; DO NOT copy its twisted rear-facing pose.\nCorrected pose: show the FRONT of Cache's chest in an easy three-quarter orientation toward screen-right and the driver's door. His shoulders, ribs and hips turn together toward his walking direction without an extreme spinal twist. His head makes only a small confident glance toward the viewer. Reposition him within the same left foreground if necessary so his approach to the car remains credible. Natural walking stride and grounded yellow shoes; he is not walking toward the viewer or away from the car.\nArms and carried items, critical: exactly two connected human arms. Each shoulder-to-upper-arm-to-elbow-to-forearm-to-wrist path must be visible and anatomically plausible. His forward hand (toward the car) holds a small metal key ring at WAIST LEVEL, with clearly visible keys dangling below the fingers. The opposite hand and forearm support the protected chunky black original-recording case with its yellow hazard band IN FRONT OF HIS LOWER CHEST/ABDOMEN. That hand cups the case's bottom/front; its naturally bent elbow and forearm remain visible alongside and in front of his torso. The case is never behind him or under a hidden backward arm. Both wrists and both hands visible. Keep elbows relaxed rather than forced backward; shoulders level and natural. Hands, fingers, keys and case must be distinct at normal panel size.\nIdentity/style invariants: same Cache, yellow cap with side flaps, dark glasses, black tech mask and mechanical collar, yellow short-sleeve shirt with black Greek-key trim, black pants and yellow/black sneakers. No other characters. Same detailed painted comic-ink realism, crisp edges and wet amber/cyan/plum night city. Preserve the existing SAME yellow hatchback parked on screen-right, unchanged left driver-door side and rear three-quarter angle, rooftop recorder straps, twin reels, hatch design, stripes, emblem, wheels, left exhaust and tow hook. Keep the garage opening at left, road/city props and wet reflections.\nAvoid: NO arm or hand behind back, hip or torso; NO hidden forearm, shoulder dislocation, twisted torso, extra limb, fused fingers, floating key ring, bent impossible wrist, sleeve covering the hand, changed face/clothes, changed vehicle, mirrored car, new props, text/captions or watermarks. Preserve existing background and vehicle as closely as possible. The only intended change is a clearly readable natural forward-carry walking pose.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/cache-walk-to-car-v4.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-bridge/bridge-08-cache-line.webp",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png"
+        ],
+        "transparent_background": false
+      },
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-4571f57e-d43e-4445-8392-0acc56ad4d38.png",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v4.png",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/cache-walk-to-car-v4.png",
+          "sha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe",
+          "bytes": 2812836,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG"
+          }
+        },
+        {
+          "path": "assets/cache-bridge/bridge-08-cache-line.webp",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-bridge/bridge-08-cache-line.webp",
+          "sha256": "acd64c5f5e958c3905a0da11ebaddc54dc6a4309f893c4dce423ac79a4ec23ab",
+          "bytes": 600228,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "WebP"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/cache-model.png",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png",
+          "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3",
+          "bytes": 7306986,
+          "dimensions": {
+            "width": 1600,
+            "height": 2848,
+            "format": "PNG"
+          }
+        }
+      ],
+      "sha256": "305c89ad1eb0145e3befa8cccadab21a56350f2b808c47097e607f193fb1b6b6",
+      "bytes": 2778409,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG"
+      }
+    },
+    {
+      "id": "cache-walk-to-car-v6",
+      "status": "private-preview-candidate-owner-review-pending",
+      "path": "assets/mac-street-review/cache-walk-to-car-v6.png",
+      "acceptedForRuntime": false,
+      "rawGenerationRecord": "docs/source-pack/review-mac-street-art/cache-walk-to-car-v6-generation.json",
+      "rawGenerationRecordSHA256": "0ac57ec776d664a9d0c4983660396f164e08cb2b1856f9942f4c3461bde6fcbe",
+      "toolArguments": {
+        "prompt": "Use case: identity-preserve.\nAsset type: revised detailed comic game cutscene, wide landscape 1860x845 composition.\nPrimary request: In IMAGE 1, REPLACE THE ENTIRE CACHE CHARACTER from cap to both shoes with a NEW, SINGLE anatomically coherent rightward walking pose. Keep the background and yellow car unchanged. The old legs/feet and the last torso edit were rejected for pointing in different directions. DO NOT preserve any of the old character pose, limbs or shoes' angles. This must be a full character-pose replacement, not an upper-body patch.\nInput images: Image 1 is BACKGROUND/VEHICLE/STYLE only, not a pose reference. It locks the same wet avenue, left garage, night skyline, yellow car position/camera, roof recorder, two rear-window reels, stripes/emblem/tow hook/exhaust. Image 2 supplies Cache's facial identity, yellow cap, dark glasses, black tech mask/collar and yellow shirt trim only; do not copy its torso twist or camera glance.\nNEW coherent pose: Cache occupies the left foreground and walks unmistakably toward screen RIGHT, toward the visible driver door of the same car. Near SIDE PROFILE of the WHOLE body, with only slight front-quarter visibility (about 10-15 degrees) for the carried case. His cap brim, nose/mask, gaze, chest/shoulders, pelvis/hips, BOTH knees and BOTH shoe toes all point along the SAME direction to the RIGHT. Chin confidently up, eyes looking FORWARD to the car, no look-back or face turned toward the camera. Shoulder girdle and pelvis aligned along the same forward axis; no twisting between ribs and hips. Natural relaxed male walking gait, connected joints, clean full-body silhouette.\nLegs/feet are critical: construct BOTH LEGS anew. Leading leg steps gently toward screen-right, leading knee and shoe toe point RIGHT, leading heel makes grounded contact on the wet pavement. Rear leg trails to screen-left, with heel raised naturally while its forefoot remains on pavement and its toes also point RIGHT. Two realistic sneakers, same scale and correct left/right anatomy, neither foot points left, toward the viewer, or across the other leg. Both knees bend along the rightward walking direction; no crossed or reversed knees/ankles, no pigeon toes, no outward splayed soles. The whole figure could take its next step to the RIGHT naturally without rotating or untwisting.\nBoth hands and forearms must remain readable on the front/rightward side of the silhouette: one forward hand at waist level carries a small metal key ring with visible keys dangling. The other arm bends naturally across the FRONT of his abdomen to support the protected black original-recording case with yellow hazard band. Both shoulder-to-elbow-to-wrist paths plausible; forearms/hands visible, not hidden behind back, hip or torso. Case stays in front of the abdomen, never behind his back. No forceful backward elbows. Keep the arms compact enough that they do not obscure the hips or direction of the gait.\nIdentity/style invariants: same Cache in yellow cap with side flaps, dark glasses, black mechanical mask/collar, yellow short-sleeve Greek-key-trim shirt, black pants, yellow/black sneakers, protected original case. Detailed sharp painted comic ink matching IMAGE 1. Same car/garage/avenue props and wet amber/cyan/plum night lighting. No extra people, no scene redesign.\nAvoid: preserving old legs, hybrid front torso/rear legs, a front-facing chest, backward head glance, opposite-pointing feet, extreme perspective foreshortening, torso twist, extra limbs, floating/disconnected hands, impossible wrists, hidden case-holding forearm, changed vehicle geometry, mirrored car, added props, captions/text or watermarks.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/cache-arm-fix/cache-walk-to-car-v5.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png"
+        ],
+        "transparent_background": false
+      },
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-869c6f82-3478-40a4-be3d-50079ed14167.png",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v5.png",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/cache-arm-fix/cache-walk-to-car-v5.png",
+          "sha256": "305c89ad1eb0145e3befa8cccadab21a56350f2b808c47097e607f193fb1b6b6",
+          "bytes": 2778409,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-level3-story/references/cache-model.png",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png",
+          "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3",
+          "bytes": 7306986,
+          "dimensions": {
+            "width": 1600,
+            "height": 2848,
+            "format": "PNG"
+          }
+        }
+      ],
+      "sha256": "dfd8d743acc68ffaf0c410a8a9397c3799ef2351b546a0e109b2a15e2cfaca8b",
+      "bytes": 2781221,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG"
+      }
+    },
+    {
+      "id": "scene03-kave-dead-air-v2",
+      "status": "superseded-beard-refinement",
+      "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v2.png",
+      "acceptedForRuntime": false,
+      "rawGenerationRecord": "docs/source-pack/review-mac-street-art/kave-nohat-v2-generation.json",
+      "rawGenerationRecordSHA256": "5f9a2d2508d2d2f87b03295d65a7c22db3e7f4bafbd9751dd007e3041eaadd3a",
+      "toolArguments": {
+        "prompt": "Use case: identity-preserve, illustration-story.\nAsset: replacement KaveMan Brown cameo panel in BARCODE System Override, the same very wide inked comic scene as image 1.\nInput roles: Image 1 is ONLY the edit target for the established room, composition, props and illustration style. Its person and cowboy costume were rejected by the owner and MUST be replaced. Images 2, 3, 4, 5 are photographs of the SAME real person, KaveMan Brown, and are the mandatory identity references. Prioritize the sharp close selfie in image 2 for his recognizable face, image 3 for today's frontal expression and short-sleeved casual hoodie, image 4 for the nose/cheek/jaw side profile, image 5 for frontal proportions and beard. Any baseball caps or hoods in reference photographs are incidental; they are NOT requested on his head.\nPrimary request: redraw Kave as the real person in these photographs, recognizable in his actual everyday artist/music-review look. Absolutely REMOVE THE COWBOY HAT, do not reuse the old painted man's face, cowboy hat, coat, pose stereotypes or pointed cowboy beard. NO HAT AT ALL. Short close-cropped black fade with clean edged hairline, exposed broad forehead, naturally half-lidded almond eyes and thin gently curved brows matching references, rounded broad nose tip, his actual mouth/lip shape and full groomed black beard with the correct cheek line and substantial rounded chin shape. Preserve natural facial proportions, skin tone and small bright ear stud from photos. Do not substitute a generic handsome rapper, round-faced different man, or beautify the facial structure.\nKave wears a black short-sleeved casual hoodie with its hood DOWN BEHIND HIS NECK, a silver chain with the geometric pendant visible in photo 2. Natural relaxed forearms at the desk, one open conversational hand and one resting near the submissions. He is a warm, grounded music-review host mid-conversation, steady eyes toward the viewer, slight confident smile. His face stays clearly lit and recognizable.\nPreserve from image 1: wide landscape aspect ratio, camera, same red-brick storefront and teal awning with magenta edge, warm amber lamps/cyan rainy street, desk position, mic boom, tape submissions, headphones on desk, two separate cyan/amber waveform monitors, speakers, plants, cassette clutter, wet street outside. Preserve exact environmental arrangement and current comic linework/painterly detail. No other people, no changed location, no new signs or captions. Do not add UI or text. Keep both hands anatomically plausible and visible. Change the complete head, hair, face, clothing and jewellery as specified, while preserving the established room.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/scene03-kave-dead-air-v1.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/instagram-candidates/linktree-tiktok-feature-source.jpg",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/tiktok-candidates/kave-7688807440946580749-inspection.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/tiktok-candidates/kave-7688852422864866574-inspection.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/root-candidates/kave-soundcloud-profile-1080.jpg"
+        ],
+        "transparent_background": false
+      },
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a1033a-c1a6-7aa0-9ce9-295e72ae3419/exec-30a813f7-2f83-4f7c-844d-40d00b19bdeb.png",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v1.png",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/scene03-kave-dead-air-v1.png",
+          "sha256": "f74ac5197495069502f519f5ef46a916246b3f90e9baa7b6b80c415a85b19fb5",
+          "bytes": 2831184,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-mac-street-art/references/kave-linktree-sharp-selfie.jpg",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/instagram-candidates/linktree-tiktok-feature-source.jpg",
+          "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+          "sha256": "5cda4f4c2836e07b3bd233d3cfd3c2017970a05e1c4f2ae5accce46bd49f6c83",
+          "bytes": 116947,
+          "dimensions": {
+            "width": 990,
+            "height": 990,
+            "format": "JPEG"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-mac-street-art/references/kave-own-tiktok-frontal-inspection.png",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/tiktok-candidates/kave-7688807440946580749-inspection.png",
+          "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+          "sha256": "bf7e02847a256057ffaa64969b9f9db537d0cccc06dc9cd1e849184c6cb9994b",
+          "bytes": 197033,
+          "dimensions": {
+            "width": 405,
+            "height": 720,
+            "format": "PNG"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-mac-street-art/references/kave-own-tiktok-profile-inspection.png",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/tiktok-candidates/kave-7688852422864866574-inspection.png",
+          "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+          "sha256": "85215b8aeb1eab0c56d3858b54b28ddfb1f4467abf408aaf0576ff1d49cd8c7d",
+          "bytes": 298479,
+          "dimensions": {
+            "width": 405,
+            "height": 720,
+            "format": "PNG"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-mac-street-art/references/kave-soundcloud-profile-1080.jpg",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/root-candidates/kave-soundcloud-profile-1080.jpg",
+          "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+          "sha256": "aa177988d38db7dbd4cca7fbf998d8c8a1a1568525d4759152c15caf42bf15c3",
+          "bytes": 156083,
+          "dimensions": {
+            "width": 1080,
+            "height": 1080,
+            "format": "JPEG"
+          }
+        }
+      ],
+      "sha256": "ccef567dc6eb6ece4971ff7733215ea86bb4d1bb8467931081efdfb4e8ad1589",
+      "bytes": 2676354,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG"
+      }
+    },
+    {
+      "id": "scene03-kave-dead-air-v3",
+      "status": "owner-rejected-open-wall-room-and-scale",
+      "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v3.png",
+      "acceptedForRuntime": false,
+      "rawGenerationRecord": "docs/source-pack/review-mac-street-art/kave-nohat-v3-generation.json",
+      "rawGenerationRecordSHA256": "ede916b6c03d9e4e70ee9b0b63eae9d403fb7e7504adb75ce8ee1e9a8f6343cd",
+      "toolArguments": {
+        "prompt": "Edit image 1 only with a precise likeness correction. Image 1 is the new hat-free KaveMan Brown game panel; images 2, 3, 4 are his REAL first-party face references. Preserve the face, short fade/hairline, eyebrows, eyelids, nose, mouth, skin tone, clothing, pose, hands, chain and triangle pendant, room and wide composition. Change ONLY the lower beard silhouette and density so it matches the real Kave. The current drawing narrows into a pointed triangular chin beard; his real beard in the sharp selfie image 2, the RIGHT portrait in Instagram image 3, and frontal image 4 is fuller across the bottom and lower jaw, with a broad rounded lower edge. Give the lower beard that broader, denser, softly rounded rectangular shape, following his real cheek/jaw growth and with natural black textured hair; avoid a long narrow point, stylized goatee or exaggerated width. Keep it clearly the same real person, with no other facial change. NO HAT, no cowboy clothing. Hood stays down, cropped black hair stays visible. Everything else in image 1 remains unchanged, especially the exact room, monitor waveforms, microphone, desk, hands, light and inky comic detail. Same wide landscape panel.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/kave-nohat/scene03-kave-dead-air-v2.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/instagram-candidates/linktree-tiktok-feature-source.jpg",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/instagram-candidates/public-browser-0-image-6.jpg",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/root-candidates/kave-soundcloud-profile-1080.jpg"
+        ],
+        "transparent_background": false
+      },
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a1033a-c1a6-7aa0-9ce9-295e72ae3419/exec-138771b2-3787-4cbf-b787-d9fcfc4b6c38.png",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v2.png",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/kave-nohat/scene03-kave-dead-air-v2.png",
+          "sha256": "ccef567dc6eb6ece4971ff7733215ea86bb4d1bb8467931081efdfb4e8ad1589",
+          "bytes": 2676354,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-mac-street-art/references/kave-linktree-sharp-selfie.jpg",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/instagram-candidates/linktree-tiktok-feature-source.jpg",
+          "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+          "sha256": "5cda4f4c2836e07b3bd233d3cfd3c2017970a05e1c4f2ae5accce46bd49f6c83",
+          "bytes": 116947,
+          "dimensions": {
+            "width": 990,
+            "height": 990,
+            "format": "JPEG"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-mac-street-art/references/kave-own-instagram-body-beard-reference.jpg",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/instagram-candidates/public-browser-0-image-6.jpg",
+          "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+          "sha256": "5d0ad098947abe3411fd6aab1d790b4e09b1410ee8deface7cf3551dd66f3144",
+          "bytes": 23270,
+          "dimensions": {
+            "width": 361,
+            "height": 640,
+            "format": "JPEG"
+          }
+        },
+        {
+          "path": "docs/source-pack/review-mac-street-art/references/kave-soundcloud-profile-1080.jpg",
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/root-candidates/kave-soundcloud-profile-1080.jpg",
+          "sourceProvenance": "docs/source-pack/KAVE_REFERENCE_RESEARCH.md",
+          "sha256": "aa177988d38db7dbd4cca7fbf998d8c8a1a1568525d4759152c15caf42bf15c3",
+          "bytes": 156083,
+          "dimensions": {
+            "width": 1080,
+            "height": 1080,
+            "format": "JPEG"
+          }
+        }
+      ],
+      "sha256": "babff824674c90b76fb08a0bfe3cfb5720bc314d1dd391fbc4e5ba84dea7b738",
+      "bytes": 2516405,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG"
+      },
+      "previousRuntimePath": "assets/mac-street-review/scene03-kave-dead-air-v3.png"
+    }
+  ],
+  "runtimeFiles": [
+    "cache-walk-to-car-v6.png",
+    "mac-hero-v2.png",
+    "mac-poses-v3-frames.json",
+    "mac-poses-v3.png",
+    "scene03-kave-dead-air-v5.png",
+    "scene05-margin-note-v1.png",
+    "scene06-record-straight-v1.png",
+    "street-panorama-v1.png"
+  ],
+  "pixelChangesAfterGeneration": false,
+  "originalsPreserved": true,
+  "referenceRule": "Exact historical tool arguments retained in unchanged generation records; current local reference paths/hashes in this addendum make the chain recoverable.",
+  "activeStudioCorrectionProvenance": "docs/source-pack/review-mac-street-art/studio-correction-provenance.json"
+}

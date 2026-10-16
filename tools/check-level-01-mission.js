@@ -428,7 +428,10 @@ function loadRealSector({ spriteLoadedInitially = false } = {}) {
   window.player.position.x = 960;
   const edgeTutorialEnemy = p.spawnTutorialEnemy(0);
   assert(edgeTutorialEnemy.position.x > window.player.position.x, 'near the left world edge, tutorial spawn uses the available right offscreen edge');
-  assert(edgeTutorialEnemy._entranceTarget.x > window.player.position.x + 350, 'near a world edge, the entrance target stays on its spawn side and cannot cross through the player');
+  assert(Math.abs(edgeTutorialEnemy._entranceTarget.x - window.player.position.x) >= 350,
+    'near a world edge, the protected entrance still clears the player');
+  assert(edgeTutorialEnemy._entranceTarget.x < window.Sector1Progression.ENCOUNTER_GATES[0].x - 40,
+    'a required tutorial target cannot finish behind its locked wall');
 }
 {
   const { window } = loadRealSector();

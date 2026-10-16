@@ -4,24 +4,24 @@
 ## Current checkpoint
 
 Generated from `docs/source-pack/CURRENT_CHECKPOINT.json`; edit that record, then run `npm run checkpoint:sync`.
-Recorded at 2026-10-02T10:32:00Z; this is a dated handoff, not a live GitHub status query.
+Recorded at 2026-10-15T23:49:00Z; this is a dated handoff, not a live GitHub status query.
 
-- Latest verified merged code: [PR #172](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/172) on `main` at `351f9885397ca8aaf8ec2600c3b530ec144f1b28`
-- Merged checkpoint: Crosswalks, grounded rider splats, sustained mirror moods and controlled pursuit spacing; cutscene artwork unchanged
-- Latest recorded continuation task: Continuation/source-pack checkpoint consistency (review)
-- Review branch: `agent/checkpoint-consistency`; base `351f9885397ca8aaf8ec2600c3b530ec144f1b28`
-- Approved scope: One checkpoint record, synchronized current headers and drift validation; preserve history and the existing exact-revision source-pack automation; no gameplay or roadmap changes
-- Recorded automated validation: passed at `d29da48e5e1a397fb7adf273316df843f5ce6c99`; PR #172 final head: full regression, all-file syntax and hosted Chromium checks on both push and pull_request events; this is prior gameplay evidence, not validation of the current documentation review
-- Automated evidence: [run 36966098995](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36966098995), [run 36966100957](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36966100957)
-- Human acceptance: not-recorded; Owner Makko, physical controller, listening/audio, motion comfort, human balance/fun and device frame pacing for the merged checkpoint
-- Human evidence: No new owner acceptance recorded; scripted/native/CI results remain separate
-- Next step: Review the checkpoint-consistency draft and its exact-head checks; no merge or deployment is authorized for this maintenance task. Recheck remote work before any continuation
+- Latest verified merged code: [PR #192](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/192) on `main` at `59427681c18f289e539f18f2c1ea89d61f88d1e1`
+- Merged checkpoint: Current main through saved Flash accents preference repair; retains later GPU rendering, mobile controls, standalone runtime and Mac chapter work
+- Latest recorded continuation task: Reconcile checkpoint synchronization and source-pack export integrity with current main (review)
+- Review branch: `agent/checkpoint-consistency`; base `59427681c18f289e539f18f2c1ea89d61f88d1e1`
+- Approved scope: Preserve all current gameplay, assets, review evidence, owner constraints and existing validation gates; add synchronized dated headers and committed-tree export preflight only
+- Recorded automated validation: not-recorded at `59427681c18f289e539f18f2c1ea89d61f88d1e1`; No new workflow evidence is recorded here for this reconciliation; exact tested review revisions and results belong to the PR and export receipts
+- Automated evidence: none recorded
+- Human acceptance: not-recorded; No new owner device, controller, listening, motion comfort, balance or frame-pacing acceptance is established by this maintenance review
+- Human evidence: Preserve all scoped owner acceptance and limitations in the dated records below; automated checks do not add human acceptance
+- Next step: Finish and review PR #173 exact-head checks and preservation evidence under the owner's October 15 merge-or-close request; the coordinating parent handles merge or closure decisions. Recheck remote state before continuation; this repair performs no deployment
 
 The exported tree/review/merge status and exact test receipt belong to `SOURCE_MANIFEST.json` and `test-evidence.json` when present.
 A prior checkpoint or passing CI does not certify this review, owner acceptance, or permission to merge/deploy.
 Before continuing, recheck the current owner request and remote branch/PR state; update the record when those facts change.
 
-Earlier task/status descriptions below, including old current/next/candidate/publication wording, are historical. Do not resume an old task from them.
+Dated sections below retain their recorded scope, evidence and owner constraints. Check their dates and the newest owner request before resuming work.
 Retained gameplay constraints and engineering rules still apply unless explicitly superseded by the owner.
 <!-- CURRENT_CHECKPOINT:END -->
 

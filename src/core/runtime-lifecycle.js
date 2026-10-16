@@ -74,6 +74,14 @@ window.BARCODE = window.BARCODE || {};
     if (button) { button.disabled = false; button.textContent = 'START SYSTEM'; }
   }
 
+  async function awaitStartResource(pending) {
+    let cancel;
+    const stopped=new Promise(resolve=>{cancel=()=>resolve();});
+    cleanupRegistry.push(cancel);
+    try {return await Promise.race([pending,stopped]);}
+    finally {const index=cleanupRegistry.indexOf(cancel);if(index>=0)cleanupRegistry.splice(index,1);}
+  }
+
   function initRuntimeSystems() {
     if (typeof window.initParallax === 'function') window.initParallax();
     if (typeof window.initSpaceShips === 'function') window.initSpaceShips();
@@ -100,9 +108,9 @@ window.BARCODE = window.BARCODE || {};
     window.BARCODE?.Campaign?.resetSession();
     if (window.player) {
       window.player.health = window.player.maxHealth;
-      window.player.position = new window.Vector2D(200, 500);
+      window.player.cancelEntranceAnimation?.();
+      window.player.position = new window.Vector2D(200, window.Player?.GROUND_Y ?? 784);
       window.player.velocity = new window.Vector2D(0, 0);
-      if (typeof window.player.startEntranceAnimation === 'function') window.player.startEntranceAnimation();
     }
     const preserveDefeats = !!options.preserveProgress;
     if (window.enemyManager && typeof window.enemyManager.clear === 'function') window.enemyManager.clear({ preserveDefeats });
@@ -117,6 +125,12 @@ window.BARCODE = window.BARCODE || {};
       window.sector1Progression.reset({ preserveDefeats });
     }
     if (window.hackingSystem && typeof window.hackingSystem.reset === 'function') window.hackingSystem.reset();
+    if (options.entrance && window.player) {
+      window.renderer?.resetFollowCamera?.(200);
+      window.renderer?.clearCinematicZoomOverride?.();
+      if (window.renderer) window.renderer.zoomLevel = window.renderer.targetZoomLevel = 1;
+      window.player.startEntranceAnimation?.({ targetX: 200 });
+    }
   }
 
   async function runInitializer(options) {
@@ -129,8 +143,37 @@ window.BARCODE = window.BARCODE || {};
     const button = document.getElementById('startButton');
     if (button && !options.restart) { button.disabled = true; button.textContent = 'INITIALIZING...'; }
 
+    // An explicit private Mac entry does not initialize or restore a campaign run.
+    const macResume = options.resume?.levelId === 'level-03' && namespace.MacCombatPreview?.validateCampaign?.(options.resume);
+    if (options.privatePreview === 'mac-firstslice' || macResume) {
+      await awaitStartResource(namespace.MacCombatPreview.prepare());
+      if (generation !== initializerGeneration || state !== STATES.STARTING) return;
+      await awaitStartResource(namespace.MacCombatPreview.enter({campaign:!!macResume}));
+      if (generation !== initializerGeneration || state !== STATES.STARTING) return;
+      if (macResume && !namespace.Campaign?.restore(options.resume)) throw new Error('Saved Mac entry could not be restored.');
+      window.gameState ||= {};
+      window.gameState.running = true; window.gameState.gameOver = false; window.gameState.victory = false;
+      document.getElementById('startOverlay')?.classList.add('hidden');
+      const previewCanvas = document.getElementById('gameCanvas');
+      if (previewCanvas) previewCanvas.style.display = 'block';
+      if (loading) loading.classList.remove('visible');
+      window.startGameLoop?.();
+      return { ok: true, status: 'started', state, generation };
+    }
+
+    if(options.resume?.levelId!=='level-02'&&namespace.PresentationAssets?.selectLevel1Scene) {
+      await awaitStartResource(namespace.PresentationAssets.selectLevel1Scene());
+      if (generation !== initializerGeneration || state !== STATES.STARTING) return;
+    }
     if (typeof window.startGameInitialization === 'function') await window.startGameInitialization({ restart: !!options.restart });
     if (generation !== initializerGeneration || state !== STATES.STARTING) return;
+    // The road releases the prior level's shared sprite atlases. The cached
+    // general initializer does not reload them on Return or a new run.
+    if(options.resume?.levelId!=='level-02'&&namespace.StandaloneSprites?.isLoaded?.()===false&&
+        typeof window.initSprites==='function') {
+      await awaitStartResource(window.initSprites());
+      if (generation !== initializerGeneration || state !== STATES.STARTING) return;
+    }
     if (window.audioSystem && typeof window.audioSystem.stopTitleScreenMusic === 'function') window.audioSystem.stopTitleScreenMusic();
     window.titleScreenMusicBlocked = true;
     initRuntimeSystems();
@@ -151,7 +194,7 @@ window.BARCODE = window.BARCODE || {};
       if (loading) loading.classList.remove('visible');
     }
 
-    resetRunState({ preserveProgress: !!options.restart });
+    resetRunState({ preserveProgress: !!options.restart, entrance: !options.resume });
     if (!options.resume) window.BARCODE?.LevelDifficulty?.beginLevel('level-01');
     if (['level-02', 'level-03'].includes(options.resume?.levelId)) {
       const proof = options.resume.levelId === 'level-02' ? namespace.CacheRoadProof : namespace.RunAndGunProof;
@@ -170,6 +213,10 @@ window.BARCODE = window.BARCODE || {};
     // state before asking audio to start, and keep a completed result silent.
     const roadResume=options.resume?.levelId==='level-02';
     if (roadResume && !namespace.Campaign?.restore(options.resume)) throw new Error('Saved checkpoint could not be restored. Start a new run or retry Continue.');
+    if (roadResume) {
+      await namespace.CacheRoadProof?.preparePresentation?.();
+      if (generation !== initializerGeneration || state !== STATES.STARTING) return;
+    }
     const bridgeResume=options.resume?.levelId==='level-01'&&options.resume.checkpointId==='intermission';
     const completedRoadResume=roadResume&&namespace.CacheRoadProof?.status==='clear';
     if (!bridgeResume && !completedRoadResume && (options.restart || options.resume) && window.audioSystem && typeof window.audioSystem.startRuntimeGameplayMusic === 'function') {
@@ -244,6 +291,13 @@ window.BARCODE = window.BARCODE || {};
   }
 
   function pause(reason) {
+    if(namespace.CacheRoadProof?.presentationPreparing)
+      return Promise.resolve({ok:false,status:'road-preparing',state,generation});
+    if (state === STATES.PAUSED && transitionInFlight?.kind === 'resume') {
+      transitionInFlight.cancelled = true;
+      window.audioSystem?.cancelRuntimeAudioResume?.('resume-cancelled-by-pause');
+      return Promise.resolve({ ok: true, status: 'already-paused', state, generation });
+    }
     const joined = joinOrReject('pause', 'pause');
     if (joined) return joined;
     if (state === STATES.PAUSED) return Promise.resolve({ ok: true, status: 'already-paused', state, generation });
@@ -269,10 +323,20 @@ window.BARCODE = window.BARCODE || {};
     if (joined) return joined;
     if (state === STATES.RUNNING) return Promise.resolve({ ok: true, status: 'already-running', state, generation });
     if (state !== STATES.PAUSED) return Promise.resolve({ ok: false, status: 'invalid-resume-state', state, generation });
+    const resumeGeneration = generation;
+    const resumeOperation = { kind: 'resume', generation, promise: null, cancelled: false };
     const promise = (async function() {
-      const audioResult = window.audioSystem && typeof window.audioSystem.resumeRuntimeAudio === 'function'
-        ? await window.audioSystem.resumeRuntimeAudio()
+      let audioResult = window.audioSystem && typeof window.audioSystem.resumeRuntimeAudio === 'function'
+        // Mac's fixed simulation remains playable without an audio beat. The
+        // road/rhythm genres must retain their paused, retryable beat clock.
+        ? await window.audioSystem.resumeRuntimeAudio({ allowDeferred: !!namespace.MacCombatPreview?.active })
         : { ok: true, reason: 'no-audio-system' };
+      if (generation !== resumeGeneration || state !== STATES.PAUSED || resumeOperation.cancelled)
+        return { ok: false, status: 'resume-cancelled', state, generation };
+      if (audioResult?.degraded && !namespace.MacCombatPreview?.active) {
+        window.audioSystem?.cancelRuntimeAudioResume?.('resume-requires-audio');
+        audioResult = { ...audioResult, ok: false, reason: 'resume-requires-audio' };
+      }
       if (!audioResult || audioResult.ok === false) {
         if (typeof window.pauseGame === 'function') window.pauseGame();
         projectCompatibility();
@@ -280,16 +344,17 @@ window.BARCODE = window.BARCODE || {};
       }
       // Resuming the audio context must not start a pre-race or completed road clock.
       // Its finite reading cues may be stopped; the next authored cue is fresh.
-      if (namespace.CacheEnding?.active || namespace.CacheRoadProof?.active &&
-          (namespace.CacheRoadProof.status === 'clear' || namespace.CacheRoadProof.introMs != null)) {
+      if (namespace.MacCombatPreview?.active && namespace.MacCombatPreview.phase === 'intro' || namespace.CacheEnding?.active || namespace.CacheRoadProof?.active &&
+          (namespace.CacheRoadProof.presentationPreparing || namespace.CacheRoadProof.status === 'clear' || namespace.CacheRoadProof.introMs != null)) {
         window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
         window.audioSystem?.stopRoadEngine?.();
       }
+      // The loop's resume guard needs the actual paused flags before projection.
+      if (typeof window.resumeGame === 'function') window.resumeGame();
       const result = transition(STATES.RUNNING, reason || 'resume');
-      if (result.ok && typeof window.resumeGame === 'function') window.resumeGame();
-      return result;
-    })().finally(() => { transitionInFlight = null; });
-    transitionInFlight = { kind: 'resume', generation, promise };
+      return audioResult.degraded ? { ...result, audioDegraded: true, diagnostic: audioResult } : result;
+    })().finally(() => { if (transitionInFlight?.promise === promise) transitionInFlight = null; });
+    resumeOperation.promise = promise; transitionInFlight = resumeOperation;
     return promise;
   }
 
@@ -297,8 +362,10 @@ window.BARCODE = window.BARCODE || {};
 
   function stopOwnedResources(options) {
     options = options || {};
+    namespace.MacCombatPreview?.dispose?.();
     namespace.CacheEnding?.dispose?.();
     namespace.CacheRoadProof?.dispose?.();
+    namespace.PresentationAssets?.releaseScene?.();
     namespace.CacheBridge?.dispose?.();
     namespace.RunAndGunProof?.dispose?.();
     namespace.LevelDifficulty?.stop();
@@ -332,7 +399,7 @@ window.BARCODE = window.BARCODE || {};
   }
 
   async function returnToTitle({ source = 'chapter-title' } = {}) {
-    if (transitionInFlight) return { ok: false, status: 'transition-in-flight', state, generation };
+    if (transitionInFlight && transitionInFlight.kind !== 'resume') return { ok: false, status: 'transition-in-flight', state, generation };
     const result = await stop(source, { stopMusic: true, preserveProgress: true });
     if (!result.ok) return result;
     resetRetryUi();

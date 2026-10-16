@@ -34,7 +34,9 @@ function getFrameContext() {
   }
   if (!frameContext && !frameContextAttempted) {
     frameContextAttempted = true;
-    try { frameContext = canvas.getContext('2d'); }
+    // Alternate road/bridge startup can acquire before Renderer. Apply the
+    // same draw-heavy hint here; later getContext calls cannot change it.
+    try { frameContext = canvas.getContext('2d', { willReadFrequently: false }); }
     catch (error) { console.error('Game canvas context unavailable:', error?.message || error); }
   }
   return frameContext;
@@ -89,6 +91,7 @@ window.gameLoop = function(timestamp) {
   if (!window.isRunning) return;
 
   if (window.isPaused) {
+    window.BARCODE?.MacCombatPreview?.syncDialogueReadout?.();
     window.parallaxBackground?.syncSkyPlayback?.();
     if (window.inputManager && typeof window.inputManager.updatePausedInput === 'function') {
       window.inputManager.updatePausedInput();
@@ -113,6 +116,16 @@ window.gameLoop = function(timestamp) {
 
   // Cap delta time to prevent spiral of death (if tab was inactive)
   const cappedDelta = Math.min(deltaTime, 100); // Max 100ms (10fps minimum)
+  if (window.BARCODE?.MacCombatPreview?.active) {
+    window.BARCODE?.PauseMenu?.sync();
+    window.inputManager?.update?.();
+    window.BARCODE.MacCombatPreview.update(cappedDelta);
+    window.BARCODE.MacCombatPreview.draw(getFrameContext());
+    window.audioSystem?.updateLayers?.();
+    window.lastTime = timestamp;
+    scheduleNextGameplayFrame();
+    return;
+  }
   if (window.BARCODE?.LevelDifficulty?.open) {
     window.inputManager?.update?.();
     window.renderGame?.();
@@ -142,6 +155,7 @@ window.gameLoop = function(timestamp) {
     return;
   }
   if (window.BARCODE?.CacheRoadProof?.active) {
+    window.BARCODE.CacheRoadProof.renderFrameIntervalMs=deltaTime;
     window.BARCODE?.PauseMenu?.sync();
     window.inputManager?.update?.();
     window.BARCODE.CacheRoadProof.update(cappedDelta);

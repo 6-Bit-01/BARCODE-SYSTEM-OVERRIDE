@@ -134,6 +134,39 @@
           },
           "frameCount": 48,
           "animationLength": 4
+        },
+        "6_bit_run_run": {
+          "fps": 18.333333333333336,
+          "json": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/330fa55849539b24393d66cc80faad1da658380f/assets/level1-run-v2/6_bit_run_run.json",
+          "image": "https://raw.githubusercontent.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/330fa55849539b24393d66cc80faad1da658380f/assets/level1-run-v2/6_bit_run_run.webp",
+          "anchor": {
+            "x": 256,
+            "y": 512,
+            "normalized": {
+              "x": 0.5,
+              "y": 0.8888888888888888
+            },
+            "strategy": "pelvis-registered-gait-ground"
+          },
+          "metadata": {
+            "anchor": {
+              "x": 256,
+              "y": 512,
+              "normalized": {
+                "x": 0.5,
+                "y": 0.8888888888888888
+              },
+              "strategy": "pelvis-registered-gait-ground"
+            },
+            "scale": 1
+          },
+          "priority": "medium",
+          "dimensions": {
+            "width": 512,
+            "height": 576
+          },
+          "frameCount": 11,
+          "animationLength": 0.6
         }
       },
       "metadata": {

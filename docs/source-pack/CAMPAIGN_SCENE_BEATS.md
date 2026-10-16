@@ -1,5 +1,7 @@
 # Campaign scene beats and 9 Bit intrusions — September 23 working design
 
+**October 5 production pointer:** [BROADCAST_SLUM_STORY_PRODUCTION.md](BROADCAST_SLUM_STORY_PRODUCTION.md) expands the Level 2-to-3 treatment into eight proposed scenes, satisfying the owner's minimum seven, with two reconverging choices, useful cameos, 9 Bit setup/payoffs and distinct final Cache/Mac hero poses. The [asset manifest](STORY_PRODUCTION_ASSETS.json) and [review page](STORY_PRODUCTION_REVIEW.html) track available references, two generated hero PNG concepts awaiting owner art review, Kave public references found, with final likeness and scene 3/5/6 art still needed. Browser review is pending at this checkpoint. This is unmerged planning/review work; runtime still has the current four-scene ending and eight-scene Cache bridge. No new canon revelation, gameplay or release is claimed.
+
 `CAMPAIGN_REDESIGN.md` records the owner's selected genre order, Sheila correction and 9 Bit's player-aware presence. The owner also wants him to occasionally prank the crew and player, including a saved-game button that dodges a click. This sheet is a **draft presentation treatment**, not approved final dialogue, art or a runtime checklist. Keep the existing eight-page opening and three written Level 1 records intact. All later scene lengths, visuals and exact words require gameplay context and owner review.
 
 ## Scene grammar

@@ -1,0 +1,58 @@
+{
+  "id": "cache-walk-to-car-v4",
+  "path": "assets/mac-street-review/cache-walk-to-car-v4.png",
+  "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-66461160-06f6-48d3-a44f-edeaaeb6d849.png",
+  "tool": "image_gen.imagegen (built-in)",
+  "toolArguments": {
+    "prompt": "Use case: identity-preserve. Edit target is image1. Image2 is exact Cache identity reference.\nChange ONLY Cache Back's BODY STRIDE DIRECTION in image1 so he is unmistakably walking TOWARD the visible driver's door of the yellow car at screen-right. At present he reads as walking toward the viewer; fix this.\nPreserve the entire exact garage, skyline, wet night street, yellow hatchback, its parked orientation, roof recorder, rear glass two tape reels, stripes/emblems, tires, light/color and detailed comic style. Do NOT redraw the car or change any object arrangement.\nRotate Cache's shoulders/hips/legs into a right-facing three-quarter walking profile. His near shoulder and back edge face the viewer a little; knees, hips and leading toe point DIAGONALLY RIGHT toward the left-side driver door at the car's screen-left side. One foot is naturally stepping toward that door, other behind. Keep his head turned slightly back toward camera so both clear glasses and black tech mask remain recognizable; relaxed confident badass glance, not surprise.\nKeep his small metal key ring in his RIGHT hand closest to the driver door, keys visible, natural finger/thumb holding ring. Keep the exact protected black archive cassette with yellow hazard band secured under his LEFT arm against his hip. Do not swap/destroy cassette or duplicate props. Preserve yellow cap's two rounded protrusions, yellow Greek-key short sleeves, clear glasses, mechanical collar and dark trousers. Slim natural human anatomy, correct connected arms/hands, no giant action-hero muscles.\nMaintain existing foreground scale, place him on the same pavement with natural foot contact, allow knees/shoes to remain inside bottom image if possible. No walking toward viewer and no walking away from car. Leave car door shut until the next implied action. No new text, captions, effects, HUD, characters or weapons. Opaque background.",
+    "referenced_image_paths": [
+      "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/cache-walk-to-car-v3.png",
+      "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png"
+    ],
+    "transparent_background": false
+  },
+  "prompt": "Use case: identity-preserve. Edit target is image1. Image2 is exact Cache identity reference.\nChange ONLY Cache Back's BODY STRIDE DIRECTION in image1 so he is unmistakably walking TOWARD the visible driver's door of the yellow car at screen-right. At present he reads as walking toward the viewer; fix this.\nPreserve the entire exact garage, skyline, wet night street, yellow hatchback, its parked orientation, roof recorder, rear glass two tape reels, stripes/emblems, tires, light/color and detailed comic style. Do NOT redraw the car or change any object arrangement.\nRotate Cache's shoulders/hips/legs into a right-facing three-quarter walking profile. His near shoulder and back edge face the viewer a little; knees, hips and leading toe point DIAGONALLY RIGHT toward the left-side driver door at the car's screen-left side. One foot is naturally stepping toward that door, other behind. Keep his head turned slightly back toward camera so both clear glasses and black tech mask remain recognizable; relaxed confident badass glance, not surprise.\nKeep his small metal key ring in his RIGHT hand closest to the driver door, keys visible, natural finger/thumb holding ring. Keep the exact protected black archive cassette with yellow hazard band secured under his LEFT arm against his hip. Do not swap/destroy cassette or duplicate props. Preserve yellow cap's two rounded protrusions, yellow Greek-key short sleeves, clear glasses, mechanical collar and dark trousers. Slim natural human anatomy, correct connected arms/hands, no giant action-hero muscles.\nMaintain existing foreground scale, place him on the same pavement with natural foot contact, allow knees/shoes to remain inside bottom image if possible. No walking toward viewer and no walking away from car. Leave car door shut until the next implied action. No new text, captions, effects, HUD, characters or weapons. Opaque background.",
+  "references": [
+    {
+      "path": "docs/source-pack/review-mac-street-art/candidates/cache-walk-to-car-v3.png",
+      "sha256": "96ee4b0d425f82db57e67f299019fc10e02e07b50f1405d127daf182d9b5007c",
+      "originalPathAtGeneration": "assets/mac-street-review/cache-walk-to-car-v3.png",
+      "bytes": 2886177,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 2
+      }
+    },
+    {
+      "path": "docs/source-pack/review-level3-story/references/cache-model.png",
+      "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3",
+      "bytes": 7306986,
+      "dimensions": {
+        "width": 1600,
+        "height": 2848,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 6
+      }
+    }
+  ],
+  "status": "candidate-owner-review",
+  "acceptedForRuntime": false,
+  "visualReview": "Three-quarter stride toward left driver door, confident glance back, visible key ring leading hand, original cassette secured under opposite arm. Same parked yellow archive hatchback/recorder/two rear reels and wet garage street. Candidate replaces old ignition illustration; original final car shot unchanged.",
+  "pixelDerivation": "Original generated PNG copied unchanged; no CLI/Python raster editing, resampling, cropping or re-encoding.",
+  "sha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe",
+  "bytes": 2812836,
+  "dimensions": {
+    "width": 1860,
+    "height": 845,
+    "format": "PNG",
+    "bitDepth": 8,
+    "colorType": 2
+  },
+  "originalGeneratedSha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe",
+  "originalGeneratedBytes": 2812836,
+  "originalCopyVerified": true
+}

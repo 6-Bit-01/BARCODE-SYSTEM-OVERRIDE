@@ -14,7 +14,9 @@ function rig(legacy=false, seed=12345) {
   traffic.imagesLoaded=[true,true,true];traffic.shipImages=[{},{},{}];traffic.shipSheets=w.BARCODE.trafficSheets;
   return {...r,traffic};
 }
-const fields=['x','y','size','speed','depth','direction','shipType','opacity','flipH','rotation','bobOffset','bobAmount','animationSpeed'];
+// Presentation playback is intentionally type-specific now. Every original
+// physical route, hull, direction, bob and contact property remains exact.
+const fields=['x','y','size','speed','depth','direction','shipType','opacity','flipH','rotation','bobOffset','bobAmount'];
 const shape=s=>Object.fromEntries(fields.map(f=>[f,s[f]]));
 for(let seed=1;seed<=80;seed++) {
   const old=rig(true,seed), current=rig(false,seed);

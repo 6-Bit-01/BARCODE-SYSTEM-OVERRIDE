@@ -117,7 +117,7 @@ class CheckpointTests(CheckpointFixture, unittest.TestCase):
 
     def test_invalid_record_fields_fail(self):
         mutations = [
-            lambda r: r.update(schemaVersion=2),
+            lambda r: r.update(schemaVersion=3),
             lambda r: r.update(recordedAtUtc='yesterday'),
             lambda r: r['mergedCheckpoint'].update(revision='351f988'),
             lambda r: r['mergedCheckpoint'].update(pullRequest=True),
@@ -143,6 +143,35 @@ class CheckpointTests(CheckpointFixture, unittest.TestCase):
         self.assertIn('Recorded automated validation: passed', header)
 
 
+    def test_crlf_headers_sync_idempotently_and_preserve_history(self):
+        for name in checkpoint.TARGETS:
+            self.write(name, self.read(name).replace('\r\n', '\n').replace('\n', '\r\n'))
+        before = {name: (self.root / name).read_bytes() for name in checkpoint.TARGETS}
+        self.run_check()
+        self.run_check(write=True)
+        self.assertEqual(before, {name: (self.root / name).read_bytes() for name in checkpoint.TARGETS})
+        self.record['activeWork']['task'] = 'Updated Windows handoff'
+        self.write(checkpoint.RECORD_PATH, json.dumps(self.record))
+        self.run_check(write=True)
+        self.run_check()
+        for name in checkpoint.TARGETS:
+            actual = (self.root / name).read_bytes()
+            self.assertEqual(actual.split(checkpoint.END.encode(), 1)[1],
+                             before[name].split(checkpoint.END.encode(), 1)[1])
+            self.assertNotIn(b'\n', actual.replace(b'\r\n', b''))
+
+    def test_schema_two_preserves_owner_constraints_and_schema_one_rendering(self):
+        original = checkpoint.render_header(checkpoint.load_record(json.dumps(self.record)))
+        self.assertIn('Earlier task/status descriptions below', original)
+        self.record['schemaVersion'] = 2
+        current = checkpoint.render_header(checkpoint.load_record(json.dumps(self.record)))
+        self.assertIn('Dated sections below retain their recorded scope', current)
+        self.assertNotIn('Earlier task/status descriptions below', current)
+        self.assertEqual(original.replace(
+            'Earlier task/status descriptions below, including old current/next/candidate/publication wording, are historical. Do not resume an old task from them.',
+            'Dated sections below retain their recorded scope, evidence and owner constraints. Check their dates and the newest owner request before resuming work.'), current)
+
+
 class SourcePackTests(CheckpointFixture, unittest.TestCase):
     def setUp(self):
         super().setUp()
@@ -156,6 +185,8 @@ class SourcePackTests(CheckpointFixture, unittest.TestCase):
         self.write('project_sources/old.zip', 'historical source input')
         self.write('docs/source-pack/review-old/old.png', 'historical review image')
         self.git('init', '-q')
+        self.git('config', 'core.autocrlf', 'false')
+        self.git('config', 'commit.gpgsign', 'false')
         self.git('config', 'user.name', 'Checkpoint test')
         self.git('config', 'user.email', 'checkpoint-test@example.invalid')
         self.commit()
@@ -259,6 +290,27 @@ class SourcePackTests(CheckpointFixture, unittest.TestCase):
         evidence.write_text(json.dumps({'revision': 'f' * 40}))
         with self.assertRaisesRegex(ValueError, 'exact exported commit'):
             self.build(evidence=evidence)
+
+
+    def test_modern_runtime_and_review_media_policy_survive_checkpoint_export(self):
+        for name in ('tools/build-standalone.py', 'src/engine/standalone-sprites.js',
+                     'sprites-manifest.json', 'assets/standalone/originals.json',
+                     'src/vendor/pixi-8.22.0/pixi.min.js', 'src/vendor/pixi-8.22.0/LICENSE',
+                     'src/vendor/basis-2.50/basis_transcoder.js',
+                     'src/vendor/basis-2.50/basis_transcoder.wasm',
+                     'src/vendor/basis-2.50/LICENSE', 'assets/cache-road/gpu-textures/manifest.json',
+                     'docs/source-pack/review-mac-combat-frames/current.png',
+                     'docs/source-pack/review-level3-story/references/original.avif'):
+            self.write(name, 'modern committed input')
+        self.commit()
+        with zipfile.ZipFile(self.build()) as archive:
+            root = pack.PACK_ROOT + '/'
+            manifest = json.loads(archive.read(root + 'SOURCE_MANIFEST.json'))
+            self.assertIn('standalone builder', manifest['runtimeLimitations'][0])
+            self.assertIn('Pinned PixiJS', manifest['runtimeLimitations'][-1])
+            for name in ('review-mac-combat-frames/current.png',
+                         'review-level3-story/references/original.avif'):
+                self.assertIn(root + 'repository-snapshot/docs/source-pack/' + name, archive.namelist())
 
 
 if __name__ == '__main__':

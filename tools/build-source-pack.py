@@ -27,8 +27,9 @@ RETAINED_REVIEW_MEDIA = {
     "review-cache-visual-drive/Foreground-Pass.mp4",
     "review-cache-lamps-chip-sound/Chip-SFX-Audition.mp3",
 }
-CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/", "review-cache-drive-feedback/", "review-cache-visual-drive/")
-REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".gif", ".mp3", ".wav"}
+CURRENT_REVIEWS = ("review-cache-bridge/", "review-cache-ending/", "review-cache-drive-feedback/", "review-cache-visual-drive/", "review-level3-story/", "review-mac-street-art/", "review-kave-likeness/", "review-mac-city-art/", "review-mac-combat-rigs/", "review-mac-combat-frames/")
+RETAINED_REFERENCE_PREFIXES = ("review-level3-story/references/", "review-mac-street-art/references/", "review-kave-likeness/")
+REVIEW_MEDIA_SUFFIXES = {".webp", ".png", ".mp4", ".jpg", ".jpeg", ".avif", ".gif", ".mp3", ".wav"}
 ROOT_DOCUMENT_SUFFIXES = {".md", ".json", ".txt"}
 
 
@@ -39,6 +40,8 @@ def exclusion_reason(path):
         relative = path.as_posix()[len(DOC_PREFIX):]
         if relative in RETAINED_REVIEW_MEDIA or (
             relative.startswith(CURRENT_REVIEWS) and path.suffix.lower() in {".webp", ".png"}
+        ) or (
+            relative.startswith(RETAINED_REFERENCE_PREFIXES) and path.suffix.lower() in {".jpg", ".jpeg", ".avif"}
         ):
             return None
         return "Review media retained in Git; omitted from the current source archive to keep complete code and source art within one downloadable file."
@@ -71,6 +74,32 @@ def read_checkpoint(revision):
         documents[name] = git("show", revision + ":" + name).decode("utf-8")
     checkpoint_state.verify_documents(record, documents)
     return record
+
+
+
+def runtime_limitations(entries):
+    """Describe the exported commit's entry modes, never the current checkout."""
+    snapshot = "repository-snapshot/"
+    standalone = all(snapshot + name in entries for name in (
+        "tools/build-standalone.py", "src/engine/standalone-sprites.js",
+        "sprites-manifest.json", "assets/standalone/originals.json"))
+    if not standalone:
+        return [
+            "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
+            "Artwork and audio referenced by remote URLs remain externally hosted.",
+            "This source snapshot is not a self-contained offline build."
+        ]
+    limitations = [
+        "This committed snapshot includes the standalone builder, local sprite adapter and original assets; generate the playable game document with tools/build-standalone.py.",
+        "The authored entry retains Makko embedding compatibility. Generated standalone output replaces that host SDK and resolves artwork and audio locally.",
+        "Standalone fonts may request Google Fonts; a source archive does not establish offline browser operation, gameplay or performance."
+    ]
+    if all(snapshot + name in entries for name in (
+        "src/vendor/pixi-8.22.0/pixi.min.js", "src/vendor/pixi-8.22.0/LICENSE",
+        "src/vendor/basis-2.50/basis_transcoder.js", "src/vendor/basis-2.50/basis_transcoder.wasm",
+        "src/vendor/basis-2.50/LICENSE", "assets/cache-road/gpu-textures/manifest.json")):
+        limitations.append("Pinned PixiJS and Basis Universal distributions and their licenses are local committed inputs; GPU texture derivatives are separate from preserved originals.")
+    return limitations
 
 
 def build(args):
@@ -147,11 +176,7 @@ def build(args):
         "checkpointRecordedAtUtc": checkpoint["recordedAtUtc"] if checkpoint is not None else None,
         "checkpointStatusScope": "Dated continuation facts only; revision and implementationStatus above identify this export. No live branch or human acceptance is inferred.",
         "verification": evidence or {"automatedTests": "not recorded in this export", "makkoPlaytest": "not recorded in this export"},
-        "runtimeLimitations": [
-            "Makko supplies /lib/MakkoEngine.min.js; it is not included in Git.",
-            "Artwork and audio referenced by remote URLs remain externally hosted.",
-            "This source snapshot is not a self-contained offline build."
-        ],
+        "runtimeLimitations": runtime_limitations(entries),
         "hashScope": "FILE_HASHES.sha256 covers every archive file except itself."
     }
     entries["SOURCE_MANIFEST.json"] = (json.dumps(manifest, indent=2) + "\n").encode()

@@ -1,0 +1,212 @@
+{
+  "sourceImage": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\docs\\source-pack\\review-mac-combat-frames\\art\\mac-walk-v1.png",
+  "sourceSHA256": "ae95eaeed9f8e51112c5fd41f19347c41b5662b1a1e5411e48076d9718d06abd",
+  "dimensions": {
+    "width": 1774,
+    "height": 887
+  },
+  "frames": [
+    {
+      "id": "walk_1",
+      "source": {
+        "x": 0,
+        "y": 0,
+        "width": 464,
+        "height": 448
+      },
+      "feetPivot": {
+        "x": 229.0,
+        "y": 442
+      },
+      "visibleBounds": {
+        "x": 57,
+        "y": 12,
+        "width": 343,
+        "height": 430
+      },
+      "transparentMargins": {
+        "left": 57,
+        "top": 12,
+        "right": 64,
+        "bottom": 6
+      }
+    },
+    {
+      "id": "walk_2",
+      "source": {
+        "x": 464,
+        "y": 0,
+        "width": 438,
+        "height": 448
+      },
+      "feetPivot": {
+        "x": 214.0,
+        "y": 444
+      },
+      "visibleBounds": {
+        "x": 64,
+        "y": 16,
+        "width": 295,
+        "height": 428
+      },
+      "transparentMargins": {
+        "left": 64,
+        "top": 16,
+        "right": 79,
+        "bottom": 4
+      }
+    },
+    {
+      "id": "walk_3",
+      "source": {
+        "x": 902,
+        "y": 0,
+        "width": 409,
+        "height": 448
+      },
+      "feetPivot": {
+        "x": 212.5,
+        "y": 445
+      },
+      "visibleBounds": {
+        "x": 80,
+        "y": 12,
+        "width": 238,
+        "height": 433
+      },
+      "transparentMargins": {
+        "left": 80,
+        "top": 12,
+        "right": 91,
+        "bottom": 3
+      }
+    },
+    {
+      "id": "walk_4",
+      "source": {
+        "x": 1311,
+        "y": 0,
+        "width": 463,
+        "height": 448
+      },
+      "feetPivot": {
+        "x": 245.5,
+        "y": 442
+      },
+      "visibleBounds": {
+        "x": 92,
+        "y": 13,
+        "width": 310,
+        "height": 429
+      },
+      "transparentMargins": {
+        "left": 92,
+        "top": 13,
+        "right": 61,
+        "bottom": 6
+      }
+    },
+    {
+      "id": "walk_5",
+      "source": {
+        "x": 0,
+        "y": 448,
+        "width": 472,
+        "height": 439
+      },
+      "feetPivot": {
+        "x": 242.0,
+        "y": 427
+      },
+      "visibleBounds": {
+        "x": 57,
+        "y": 4,
+        "width": 367,
+        "height": 423
+      },
+      "transparentMargins": {
+        "left": 57,
+        "top": 4,
+        "right": 48,
+        "bottom": 12
+      }
+    },
+    {
+      "id": "walk_6",
+      "source": {
+        "x": 472,
+        "y": 448,
+        "width": 432,
+        "height": 439
+      },
+      "feetPivot": {
+        "x": 269.0,
+        "y": 427
+      },
+      "visibleBounds": {
+        "x": 48,
+        "y": 7,
+        "width": 304,
+        "height": 420
+      },
+      "transparentMargins": {
+        "left": 48,
+        "top": 7,
+        "right": 80,
+        "bottom": 12
+      }
+    },
+    {
+      "id": "walk_7",
+      "source": {
+        "x": 904,
+        "y": 448,
+        "width": 393,
+        "height": 439
+      },
+      "feetPivot": {
+        "x": 175.0,
+        "y": 427
+      },
+      "visibleBounds": {
+        "x": 80,
+        "y": 4,
+        "width": 219,
+        "height": 423
+      },
+      "transparentMargins": {
+        "left": 80,
+        "top": 4,
+        "right": 94,
+        "bottom": 12
+      }
+    },
+    {
+      "id": "walk_8",
+      "source": {
+        "x": 1297,
+        "y": 448,
+        "width": 477,
+        "height": 439
+      },
+      "feetPivot": {
+        "x": 259.5,
+        "y": 424
+      },
+      "visibleBounds": {
+        "x": 95,
+        "y": 3,
+        "width": 338,
+        "height": 421
+      },
+      "transparentMargins": {
+        "left": 95,
+        "top": 3,
+        "right": 44,
+        "bottom": 15
+      }
+    }
+  ],
+  "analysis": "Alpha >8, measured nonuniform row/figure separation and lowest18-row opaque-strip midpoint; no pixels changed",
+  "edgeContacts": []
+}

@@ -15,6 +15,7 @@
     "src/core/gamepad-ui.js",
     "src/game/player-combat.js",
     "src/core/input.js",
+    "src/core/touch-controls.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
@@ -32,6 +33,7 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/presentation-assets.js",
+    "src/engine/level-scene-resources.js",
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
@@ -46,6 +48,7 @@
     "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
+    "src/game/level1-signal-art.js",
     "src/game/jammer-environment.js",
     "src/game/hacking.js",
     "src/game/rhythm.js",
@@ -59,14 +62,29 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-adrenaline.js",
     "src/game/cache-road-combat.js",
     "src/game/cache-road-combat-art.js",
     "src/game/cache-road-crosswalks.js",
+    "src/game/cache-road-crew-callouts.js",
     "src/game/cache-road-mirror.js",
     "src/game/cache-road-boss-art.js",
+    "src/game/cache-road-instruments.js",
     "src/game/cache-road-guidance.js",
+    "src/game/cache-road-beat-surface.js",
+    "src/game/cache-road-beat-feedback.js",
+    "src/game/cache-road-cinematics.js",
+    "src/game/cache-road-render-budget.js",
+    "src/vendor/pixi-8.22.0/pixi.min.js",
+    "src/engine/cache-road-texture-bank.js",
+    "src/engine/cache-road-gpu-renderer.js",
+    "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
+    "src/game/mac-street-combat.js",
+    "src/game/mac-street-story.js",
+    "src/game/mac-combat-frames.js",
+    "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",
@@ -93,6 +111,7 @@
     "src/core/gamepad-ui.js",
     "src/game/player-combat.js",
     "src/core/input.js",
+    "src/core/touch-controls.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
@@ -110,6 +129,7 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/presentation-assets.js",
+    "src/engine/level-scene-resources.js",
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
@@ -124,6 +144,7 @@
     "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
+    "src/game/level1-signal-art.js",
     "src/game/jammer-environment.js",
     "src/game/hacking.js",
     "src/game/rhythm.js",
@@ -137,14 +158,29 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-adrenaline.js",
     "src/game/cache-road-combat.js",
     "src/game/cache-road-combat-art.js",
     "src/game/cache-road-crosswalks.js",
+    "src/game/cache-road-crew-callouts.js",
     "src/game/cache-road-mirror.js",
     "src/game/cache-road-boss-art.js",
+    "src/game/cache-road-instruments.js",
     "src/game/cache-road-guidance.js",
+    "src/game/cache-road-beat-surface.js",
+    "src/game/cache-road-beat-feedback.js",
+    "src/game/cache-road-cinematics.js",
+    "src/game/cache-road-render-budget.js",
+    "src/vendor/pixi-8.22.0/pixi.min.js",
+    "src/engine/cache-road-texture-bank.js",
+    "src/engine/cache-road-gpu-renderer.js",
+    "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
+    "src/game/mac-street-combat.js",
+    "src/game/mac-street-story.js",
+    "src/game/mac-combat-frames.js",
+    "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",
@@ -160,21 +196,26 @@
     "src/game/main-new.js"
   ],
   "unloadedRepositoryJs": [
+    "docs/source-pack/review-mac-combat-frames/review-data.js",
     "src/core/game-manager.js",
+    "src/engine/cache-road-texture-worker.js",
     "src/engine/game-logic.js",
     "src/engine/jammer-arrow-indicator.js",
+    "src/engine/standalone-sprites.js",
     "src/game/cache-road-districts.js",
     "src/game/cache-road-puppet-study.js",
     "src/game/jammer-arrow.js",
     "src/game/jammer-arrows.js",
     "src/game/jammer-simple.js",
     "src/game/jammer.js",
+    "src/game/mac-combat-animation.js",
     "src/game/main-legacy-backup.js",
     "src/game/main-legacy-removed.js",
     "src/game/main.js",
     "src/game/music-controls.js",
     "src/game/rhythm-fixed.js",
     "src/game/simple-jammer.js",
+    "src/vendor/basis-2.50/basis_transcoder.js",
     "test-rhythm-functionality.js",
     "test-rhythm-system-verification.js",
     "tools/audit-external-assets.js",
@@ -217,6 +258,8 @@
     "tools/check-runtime-lifecycle.js",
     "tools/check-smart-box-motion.js",
     "tools/check-solid-ledges.js",
+    "tools/check-standalone-build.js",
+    "tools/check-standalone-sprites.js",
     "tools/check-startup-lifecycle.js",
     "tools/check-street-depth.js",
     "tools/check-syntax.js",
@@ -262,6 +305,10 @@
       },
       {
         "file": "src/core/input.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/core/touch-controls.js",
         "status": "pass"
       },
       {
@@ -333,6 +380,10 @@
         "status": "pass"
       },
       {
+        "file": "src/engine/level-scene-resources.js",
+        "status": "pass"
+      },
+      {
         "file": "src/engine/jammer-indicator.js",
         "status": "pass"
       },
@@ -389,6 +440,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/level1-signal-art.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/jammer-environment.js",
         "status": "pass"
       },
@@ -441,6 +496,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-adrenaline.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-combat.js",
         "status": "pass"
       },
@@ -453,6 +512,10 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-crew-callouts.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-mirror.js",
         "status": "pass"
       },
@@ -461,7 +524,43 @@
         "status": "pass"
       },
       {
+        "file": "src/game/cache-road-instruments.js",
+        "status": "pass"
+      },
+      {
         "file": "src/game/cache-road-guidance.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/cache-road-beat-surface.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/cache-road-beat-feedback.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/cache-road-cinematics.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/cache-road-render-budget.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/vendor/pixi-8.22.0/pixi.min.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/cache-road-texture-bank.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/cache-road-gpu-renderer.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/engine/cache-road-gpu-context.js",
         "status": "pass"
       },
       {
@@ -470,6 +569,22 @@
       },
       {
         "file": "src/game/broadcast-slum-proof.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/mac-street-combat.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/mac-street-story.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/mac-combat-frames.js",
+        "status": "pass"
+      },
+      {
+        "file": "src/game/mac-combat-preview.js",
         "status": "pass"
       },
       {
@@ -527,11 +642,11 @@
     ],
     "inlineScripts": [
       {
-        "index": 75,
+        "index": 93,
         "status": "pass"
       },
       {
-        "index": 77,
+        "index": 95,
         "status": "pass"
       }
     ]
@@ -567,6 +682,12 @@
       ]
     },
     {
+      "host": "cdn.jsdelivr.net",
+      "sourceFiles": [
+        "src/vendor/pixi-8.22.0/pixi.min.js"
+      ]
+    },
+    {
       "host": "dcnmwoxzefwqmvvkpqap.supabase.co",
       "sourceFiles": [
         "src/engine/level-01-music-profile.js"
@@ -590,6 +711,13 @@
       ]
     },
     {
+      "host": "localhost",
+      "sourceFiles": [
+        "src/engine/standalone-sprites.js",
+        "tools/check-standalone-sprites.js"
+      ]
+    },
+    {
       "host": "raw.githubusercontent.com",
       "sourceFiles": [
         "index.html",
@@ -605,31 +733,50 @@
         "tools/check-intro.js",
         "tools/check-presentation-assets.js"
       ]
+    },
+    {
+      "host": "www.opensource.org",
+      "sourceFiles": [
+        "src/vendor/pixi-8.22.0/pixi.min.js"
+      ]
+    },
+    {
+      "host": "www.pixijs.com",
+      "sourceFiles": [
+        "src/vendor/pixi-8.22.0/pixi.min.js"
+      ]
+    },
+    {
+      "host": "www.w3.org",
+      "sourceFiles": [
+        "src/engine/presentation-assets.js",
+        "src/vendor/pixi-8.22.0/pixi.min.js"
+      ]
     }
   ],
   "criticalGlobalAssignments": [
     {
       "global": "window.EnemyManager",
       "file": "src/game/enemies.js",
-      "line": 1401,
+      "line": 1438,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "src/game/enemies.js",
-      "line": 2128,
+      "line": 2175,
       "loaded": true
     },
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 382,
+      "line": 384,
       "loaded": false
     },
     {
       "global": "window.enemyManager",
       "file": "tools/check-action-combat.js",
-      "line": 462,
+      "line": 464,
       "loaded": false
     },
     {
@@ -647,7 +794,7 @@
     {
       "global": "window.gameLoop",
       "file": "src/core/loop.js",
-      "line": 86,
+      "line": 88,
       "loaded": true
     },
     {
@@ -677,19 +824,19 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 318,
+      "line": 320,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 416,
+      "line": 418,
       "loaded": false
     },
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 459,
+      "line": 461,
       "loaded": false
     },
     {
@@ -701,7 +848,7 @@
     {
       "global": "window.gameState",
       "file": "tools/check-action-combat.js",
-      "line": 517,
+      "line": 519,
       "loaded": false
     },
     {
@@ -719,31 +866,31 @@
     {
       "global": "window.player",
       "file": "src/game/player.js",
-      "line": 1809,
+      "line": 1928,
       "loaded": true
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 319,
+      "line": 321,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 381,
+      "line": 383,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 417,
+      "line": 419,
       "loaded": false
     },
     {
       "global": "window.player",
       "file": "tools/check-action-combat.js",
-      "line": 460,
+      "line": 462,
       "loaded": false
     },
     {
@@ -773,13 +920,13 @@
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 547,
+      "line": 550,
       "loaded": true
     },
     {
       "global": "window.renderer",
       "file": "src/engine/renderer.js",
-      "line": 564,
+      "line": 567,
       "loaded": true
     },
     {
@@ -797,25 +944,25 @@
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 463,
+      "line": 466,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 481,
+      "line": 484,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 561,
+      "line": 564,
       "loaded": false
     },
     {
       "global": "window.renderer",
       "file": "tools/check-level-01-mission.js",
-      "line": 601,
+      "line": 604,
       "loaded": false
     },
     {
@@ -827,7 +974,7 @@
     {
       "global": "window.startGameInitialization",
       "file": "src/game/game-initializer.js",
-      "line": 363,
+      "line": 364,
       "loaded": true
     },
     {
@@ -839,7 +986,7 @@
     {
       "global": "window.startGameLoop",
       "file": "src/core/loop.js",
-      "line": 211,
+      "line": 225,
       "loaded": true
     },
     {
@@ -888,6 +1035,7 @@
     "src/core/gamepad-ui.js",
     "src/game/player-combat.js",
     "src/core/input.js",
+    "src/core/touch-controls.js",
     "src/engine/music-profiles.js",
     "src/engine/music-transport.js",
     "src/engine/level-01-music-profile.js",
@@ -905,6 +1053,7 @@
     "src/engine/spaceships.js",
     "src/engine/lore.js",
     "src/engine/presentation-assets.js",
+    "src/engine/level-scene-resources.js",
     "src/engine/jammer-indicator.js",
     "src/engine/title-screen.js",
     "src/game/objectives.js",
@@ -919,6 +1068,7 @@
     "src/core/runtime-lifecycle.js",
     "src/game/player.js",
     "src/game/enemies.js",
+    "src/game/level1-signal-art.js",
     "src/game/jammer-environment.js",
     "src/game/hacking.js",
     "src/game/rhythm.js",
@@ -932,14 +1082,29 @@
     "src/game/cache-road-encounters.js",
     "src/game/cache-road-reactions.js",
     "src/game/cache-road-pursuit.js",
+    "src/game/cache-road-adrenaline.js",
     "src/game/cache-road-combat.js",
     "src/game/cache-road-combat-art.js",
     "src/game/cache-road-crosswalks.js",
+    "src/game/cache-road-crew-callouts.js",
     "src/game/cache-road-mirror.js",
     "src/game/cache-road-boss-art.js",
+    "src/game/cache-road-instruments.js",
     "src/game/cache-road-guidance.js",
+    "src/game/cache-road-beat-surface.js",
+    "src/game/cache-road-beat-feedback.js",
+    "src/game/cache-road-cinematics.js",
+    "src/game/cache-road-render-budget.js",
+    "src/vendor/pixi-8.22.0/pixi.min.js",
+    "src/engine/cache-road-texture-bank.js",
+    "src/engine/cache-road-gpu-renderer.js",
+    "src/engine/cache-road-gpu-context.js",
     "src/game/cache-road-proof.js",
     "src/game/broadcast-slum-proof.js",
+    "src/game/mac-street-combat.js",
+    "src/game/mac-street-story.js",
+    "src/game/mac-combat-frames.js",
+    "src/game/mac-combat-preview.js",
     "src/game/lost-data.js",
     "src/game/sector1-progression.js",
     "src/game/level-01-stage-fx.js",

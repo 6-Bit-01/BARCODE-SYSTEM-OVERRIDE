@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "id": "cache-walk-to-car-v5",
+  "status": "candidate-visual-review-completed-owner-acceptance-pending",
+  "createdAtUtc": "2026-10-06T03:42:43.435Z",
+  "generator": "image_gen.imagegen (built-in)",
+  "callCount": 1,
+  "classification": "identity-preserve targeted arm/torso pose correction",
+  "supersedesRejectedCandidate": "assets/mac-street-review/cache-walk-to-car-v4.png",
+  "sourceRevisionAtTaskStart": "57f6698d3c9187596b7c443e506111e5e3ad32c7",
+  "acceptedForRuntime": false,
+  "repositoryEdited": false,
+  "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-4571f57e-d43e-4445-8392-0acc56ad4d38.png",
+  "projectCandidatePath": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/kave-likeness-20261005/cache-arm-fix/cache-walk-to-car-v5.png",
+  "toolArguments": {
+    "prompt": "Use case: identity-preserve.\nAsset type: corrected detailed comic game cutscene, wide landscape panel matching image 1 (1860x845 composition).\nPrimary request: EDIT IMAGE 1. Correct ONLY Cache Back's walking torso and arm pose. The current case-holding arm is behind his back; that is rejected. Give him an anatomically natural confident walk toward the same yellow car at screen-right, with BOTH forearms and BOTH hands fully and clearly visible in FRONT of his torso. This is a targeted pose correction, not a redesigned scene.\nInput images: Image 1 is the actual edit target and locks the street, garage, car, viewpoint, lighting and illustration style. Image 2 locks the SAME yellow hatchback's rear geometry, roof recorder and two rear-window reels, vehicle stripes/emblem, tow hook and exhaust. Image 3 locks Cache's exact face, cap, glasses, tech mask/collar and yellow-shirt identity; DO NOT copy its twisted rear-facing pose.\nCorrected pose: show the FRONT of Cache's chest in an easy three-quarter orientation toward screen-right and the driver's door. His shoulders, ribs and hips turn together toward his walking direction without an extreme spinal twist. His head makes only a small confident glance toward the viewer. Reposition him within the same left foreground if necessary so his approach to the car remains credible. Natural walking stride and grounded yellow shoes; he is not walking toward the viewer or away from the car.\nArms and carried items, critical: exactly two connected human arms. Each shoulder-to-upper-arm-to-elbow-to-forearm-to-wrist path must be visible and anatomically plausible. His forward hand (toward the car) holds a small metal key ring at WAIST LEVEL, with clearly visible keys dangling below the fingers. The opposite hand and forearm support the protected chunky black original-recording case with its yellow hazard band IN FRONT OF HIS LOWER CHEST/ABDOMEN. That hand cups the case's bottom/front; its naturally bent elbow and forearm remain visible alongside and in front of his torso. The case is never behind him or under a hidden backward arm. Both wrists and both hands visible. Keep elbows relaxed rather than forced backward; shoulders level and natural. Hands, fingers, keys and case must be distinct at normal panel size.\nIdentity/style invariants: same Cache, yellow cap with side flaps, dark glasses, black tech mask and mechanical collar, yellow short-sleeve shirt with black Greek-key trim, black pants and yellow/black sneakers. No other characters. Same detailed painted comic-ink realism, crisp edges and wet amber/cyan/plum night city. Preserve the existing SAME yellow hatchback parked on screen-right, unchanged left driver-door side and rear three-quarter angle, rooftop recorder straps, twin reels, hatch design, stripes, emblem, wheels, left exhaust and tow hook. Keep the garage opening at left, road/city props and wet reflections.\nAvoid: NO arm or hand behind back, hip or torso; NO hidden forearm, shoulder dislocation, twisted torso, extra limb, fused fingers, floating key ring, bent impossible wrist, sleeve covering the hand, changed face/clothes, changed vehicle, mirrored car, new props, text/captions or watermarks. Preserve existing background and vehicle as closely as possible. The only intended change is a clearly readable natural forward-carry walking pose.",
+    "referenced_image_paths": [
+      "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/cache-walk-to-car-v4.png",
+      "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-bridge/bridge-08-cache-line.webp",
+      "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png"
+    ],
+    "transparent_background": false
+  },
+  "references": [
+    {
+      "index": 1,
+      "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/cache-walk-to-car-v4.png",
+      "role": "Actual edit target; scene/car/style invariants",
+      "sha256": "41d3a6f804fbcc0ae125267e10dda54ba7051d42674b7d8363d580d61ececefe",
+      "bytes": 2812836,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 2
+      }
+    },
+    {
+      "index": 2,
+      "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/cache-bridge/bridge-08-cache-line.webp",
+      "role": "Final car geometry/roof recorder/reels reference",
+      "sha256": "acd64c5f5e958c3905a0da11ebaddc54dc6a4309f893c4dce423ac79a4ec23ab",
+      "bytes": 600228
+    },
+    {
+      "index": 3,
+      "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-level3-story/references/cache-model.png",
+      "role": "Canonical Cache identity; pose expressly excluded",
+      "sha256": "7118608257c9d2e0166ae121d4b0083cd79cb40dedc4c8bab89c77d6a70982c3",
+      "bytes": 7306986,
+      "dimensions": {
+        "width": 1600,
+        "height": 2848,
+        "format": "PNG",
+        "bitDepth": 8,
+        "colorType": 6
+      }
+    }
+  ],
+  "toolOutputMetadata": {
+    "returnedFields": [
+      "image_url",
+      "output_hint"
+    ],
+    "outputHint": "Generated images are saved to C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-3f02-7590-ae8e-79bf5b15e439 as C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-3f02-7590-ae8e-79bf5b15e439\\exec-4571f57e-d43e-4445-8392-0acc56ad4d38.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+    "imagePayloadPreservedAs": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-4571f57e-d43e-4445-8392-0acc56ad4d38.png"
+  },
+  "pixelDerivation": "Original built-in generated PNG copied unchanged to versioned verification candidate; no cropping, re-encoding, pixel editing or CLI/API image generation.",
+  "visualInspection": {
+    "method": "Inspected actual local output with view_image at original resolution",
+    "bothArmsAndHandsVisible": true,
+    "caseHoldingArmInFront": true,
+    "keysHandInFrontAtWaist": true,
+    "shoulderElbowWristConnectionsPlausible": true,
+    "caseAcrossFrontAbdomen": true,
+    "naturalThreeQuarterTorso": true,
+    "headLookbackReduced": true,
+    "walkingDirection": "Toward same car at screen-right; forward shoe and torso lead toward approach",
+    "feet": "Two intact yellow/black sneakers; plausible walking contact on wet pavement",
+    "preservedScene": "Same garage/night city/car rear-left view, roof recorder, rear-window reels, stripes/emblem, exhaust and tow hook are visually consistent",
+    "criticalRejectedFaultResolved": "The protected case and its holding forearm are no longer behind the hip/back.",
+    "limitations": [
+      "Visual plausibility review is not owner acceptance.",
+      "Generated edit preserves scene visually; no claim that background pixels are bit-for-bit identical to v4.",
+      "Metal keys are small at full-panel scale, but distinguishable beneath the forward hand."
+    ]
+  },
+  "sha256": "305c89ad1eb0145e3befa8cccadab21a56350f2b808c47097e607f193fb1b6b6",
+  "bytes": 2778409,
+  "dimensions": {
+    "width": 1860,
+    "height": 845,
+    "format": "PNG",
+    "bitDepth": 8,
+    "colorType": 2
+  },
+  "originalGeneratedSha256": "305c89ad1eb0145e3befa8cccadab21a56350f2b808c47097e607f193fb1b6b6",
+  "originalGeneratedBytes": 2778409,
+  "originalCopyVerified": true,
+  "sealedAtUtc": "2026-10-06T03:42:44.927Z"
+}

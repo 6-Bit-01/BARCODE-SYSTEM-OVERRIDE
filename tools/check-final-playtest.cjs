@@ -55,7 +55,7 @@ async function main(){
   {
     const r=campaignRig(),{w,c,context}=r;
     load(context,'src/core/runtime-lifecycle.js');assert((await w.BARCODE.RuntimeLifecycle.start()).ok);
-    const d=w.BARCODE.LevelDifficulty;d.select(1);d.confirm();w.sector1Progression.startMission();
+    const d=w.BARCODE.LevelDifficulty;d.select(1);d.confirm();w.player.update(w.player.entranceDuration);w.sector1Progression.startMission();
     w.gameState.score=2300;c.checkpoint('encounter_3');w.player.health=0;w.checkGameConditions();
     const result=await c.retryObjective();assert(result.ok,JSON.stringify(result));
     assert.equal(w.sector1Progression.state,'encounter_3');assert.equal(w.player.health,3);

@@ -126,7 +126,11 @@ window.FILE_MANIFEST.push({ name:'src/game/cache-road-crosswalks.js',
     for(const item of crossings) {
       const crossing=state.crossings.find(candidate=>candidate.id===item.id);
       for(let index=0;index<2;index++) {
-        const hit=!!(crossing.hitMask&(1<<index)),walkingMs=clamp(crossing.ageMs-DELAYS[index],0,CROSSING_MS);
+        const hit=!!(crossing.hitMask&(1<<index));
+        // The contact ledger already records the fractional impact time.
+        // Keep that walking cel through the throw, landing and later mirror
+        // passage instead of cycling the legs under a grounded hit body.
+        const walkingMs=clamp((hit?crossing.hitTimes[index]:crossing.ageMs)-DELAYS[index],0,CROSSING_MS);
         const phase=hit?'hit':!crossing.started||crossing.ageMs<DELAYS[index]?'waiting':
           walkingMs>=CROSSING_MS?'cleared':'walking';
         people.push({id:personId(item.bar,index),crossingId:item.id,bar:item.bar,at:item.at,

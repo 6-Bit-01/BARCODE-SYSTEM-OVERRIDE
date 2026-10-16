@@ -44,6 +44,7 @@ const near = (a, b) => assert(Math.abs(a - b) < 1e-4, `${a} / ${b}`);
     const { w: world } = createRig(), player = world.player;
     player.sprite = createSprite(playerClips); player.spriteReady = true;
     player.state = 'walk'; player.grounded = true; player.landingPoseMs = 0;
+    player.velocity.x = player.speed;
     player.cinematicPoseActive = false; player.impactHoldMs = 0;
     player.playAnimation('walk');
     player.sprite.currentSprite.metadata.frames = Object.fromEntries(entries.map((f, i) => [String(i), f]));

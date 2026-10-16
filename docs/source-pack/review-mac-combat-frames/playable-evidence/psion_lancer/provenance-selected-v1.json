@@ -1,0 +1,23 @@
+{
+  "kind": "psion_lancer",
+  "method": "built-in image_gen; native PNG copied without pixel modification",
+  "selectedImage": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-combat-frames\\psion_lancer-frames-v1.png",
+  "nativeImage": "C:/Users/jondh/.codex/generated_images/01a11402-6b51-7763-86b9-337e359b17dc/exec-4461d862-3f8e-4c0c-891c-028515ee2911.png",
+  "nativeSHA256": "7d267e94b11578e0963dab394d986958a70e448ab9bc254b9841d90e952ea1f4",
+  "savedSHA256": "7d267e94b11578e0963dab394d986958a70e448ab9bc254b9841d90e952ea1f4",
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "prompt": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\enemy-generation\\psion_lancer\\prompt-poses-v3.txt",
+  "reference": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\assets\\mac-city-review\\psion_lancer-v2.png",
+  "referenceSHA256": "be1939968ea1e6cb5dde4b249d0b5e9ef3ed0b3e2550734fde0cf2827029b4fe",
+  "recoveredImage": "C:/Users/jondh/.codex/generated_images/01a10de1-3f02-7590-ae8e-79bf5b15e439/exec-800aac24-ae8c-45c7-9fd6-549f7a6d9fd1.png",
+  "recoveredSHA256": "f67bf0653825e65777b013a6995b456d73fe38c6e215079e92852ba272068284",
+  "analysis": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\verification\\mac-frame-animation-20261006\\enemy-generation\\psion_lancer\\analysis-poses-v3.json",
+  "edgeContacts": [],
+  "review": "All twelve whole-character poses visually inspected. Transparent separated rows and figures, full toes/blades/crest or antennae, falling and fully horizontal down present. Pose corrections preserved distinct primary/secondary attacks and bent passing step. Contact A/B use alternate near/far-leg presentation; silhouettes remain naturally similar.",
+  "packing": "Native arrangement is approximate 4-by-3. Use measured nonuniform source crops from alpha analysis, not equal-cell assumptions.",
+  "preservedOriginals": true,
+  "runtimeIntegrated": false
+}

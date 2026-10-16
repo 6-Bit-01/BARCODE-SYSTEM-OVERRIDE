@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 1,
+  "researchDate": "2026-10-05",
+  "identityChain": [
+    "https://linktr.ee/kavemanbrown",
+    "https://www.tiktok.com/@kavemanbrown",
+    "https://www.instagram.com/kavemanbrown/"
+  ],
+  "ownerDirection": "Reject previous cowboy/wide-brim likeness. Cameo has no hat; preserve real facial identity.",
+  "illustrationStatus": "Enclosed studio scene03-kave-dead-air-v5 is a proposed replacement; owner likeness/studio review pending. Prior v3 open-wall room rejected and preserved.",
+  "sourceScope": "Selected public account images and video frames, not complete account coverage",
+  "agreementsAccepted": false,
+  "images": [
+    {
+      "file": "kave-linktree-selfie-990.jpg",
+      "sourcePage": "https://linktr.ee/kavemanbrown",
+      "captureType": "native artist-hub image, unchanged JPEG",
+      "dimensions": [
+        990,
+        990
+      ],
+      "bytes": 116947,
+      "sha256": "5cda4f4c2836e07b3bd233d3cfd3c2017970a05e1c4f2ae5accce46bd49f6c83",
+      "sourceBytesUnchanged": true,
+      "inspectedUse": "Sharp face, shaped broader beard, brows, nose, triangular pendant. Baseball cap is present: face/jewelry input only; do not reproduce cap in no-hat cameo.",
+      "sourceEvidence": "verification/kave-likeness-20261005/instagram-candidates/secondary-retrieval-receipt.json",
+      "ownerLikenessAccepted": false,
+      "observedAssetURL": "https://ugc.production.linktr.ee/228ddec3-9804-4c69-baaa-4c83760b3f56_2a80947188bf0aa0e15050c135649d68-c5-1080x1080.jpeg",
+      "retrievedAt": "2026-10-06T03:43:31.770Z"
+    },
+    {
+      "file": "kave-7688807440946580749-native.avif",
+      "sourcePage": "https://www.tiktok.com/@kavemanbrown/video/7688807440946580749",
+      "captureType": "native public TikTok cover asset, unchanged AVIF",
+      "dimensions": [
+        405,
+        720
+      ],
+      "bytes": 10474,
+      "sha256": "16106ac7c106090a5a7ad06820a701dd75854c8dc50bcb1b676d59769b7d1e73",
+      "sourceBytesUnchanged": true,
+      "inspectedUse": "Clear frontal face; no hat; black short-sleeved hooded top, exposed forehead and visible hairline, expressive open mouth. Strongest detailed facial reference in this set.",
+      "sourceEvidence": "verification/kave-likeness-20261005/tiktok-candidates/native-asset-provenance.json",
+      "ownerLikenessAccepted": false,
+      "observedAssetURL": "https://p16-common-sign.tiktokcdn-us.com/tos-useast5-p-0068-tx/oM1eL3B0IELNkmNHEIVI0DbCaQHukumfAAdFej~tplv-photomode-zoomcover:720:720.avif?dr=9616&x-expires=1791428400&x-signature=XVbiPJWNKZxrlD9Lhr4DTrmj8ug%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast8&ftpl=1",
+      "postCaption": "Just talking my talk #Bars #Music #Fyp #Undergroundrapper  created by KaveMan Brown 🐐💯 with KaveMan Brown 🐐💯’s original sound",
+      "capturedAt": "2026-10-06T03:44:07.683Z",
+      "decodedPixelSHA256": "0f55b33e9dbdc2f2408ac6813a974fc37a8875f6cecb29ecba75aed6489761a8"
+    },
+    {
+      "file": "kave-7688807440946580749-decoded.png",
+      "sourcePage": "https://www.tiktok.com/@kavemanbrown/video/7688807440946580749",
+      "captureType": "lossless PNG decode of native AVIF; not a screenshot or edited photo",
+      "dimensions": [
+        405,
+        720
+      ],
+      "bytes": 197033,
+      "sha256": "bf7e02847a256057ffaa64969b9f9db537d0cccc06dc9cd1e849184c6cb9994b",
+      "sourceBytesUnchanged": true,
+      "inspectedUse": "Clear frontal face; no hat; black short-sleeved hooded top, exposed forehead and visible hairline, expressive open mouth. Strongest detailed facial reference in this set.",
+      "sourceEvidence": "verification/kave-likeness-20261005/tiktok-candidates/native-asset-provenance.json",
+      "ownerLikenessAccepted": false,
+      "nativeFile": "kave-7688807440946580749-native.avif",
+      "nativeSHA256": "16106ac7c106090a5a7ad06820a701dd75854c8dc50bcb1b676d59769b7d1e73",
+      "decodedPixelEquality": true,
+      "decodedPixelSHA256": "0f55b33e9dbdc2f2408ac6813a974fc37a8875f6cecb29ecba75aed6489761a8"
+    },
+    {
+      "file": "kave-7638429516762778894-native.avif",
+      "sourcePage": "https://www.tiktok.com/@kavemanbrown/video/7638429516762778894",
+      "captureType": "native public TikTok cover asset, unchanged AVIF",
+      "dimensions": [
+        540,
+        720
+      ],
+      "bytes": 42748,
+      "sha256": "345cebbe26d842dd56c4a6d972645ec06d18c2927ec76dc6e98024ec06cb1152",
+      "sourceBytesUnchanged": true,
+      "inspectedUse": "Kave is LEFT in red graphic hoodie, exposed forehead/scalp, daylight three-quarter profile looking up. RIGHT person is Seth Anthony; do not use that person for Kave.",
+      "sourceEvidence": "verification/kave-likeness-20261005/tiktok-candidates/native-asset-provenance.json",
+      "ownerLikenessAccepted": false,
+      "observedAssetURL": "https://p19-common-sign.tiktokcdn-us.com/tos-useast5-p-0068-tx/oMAmAfXLDDAqFATE6BEJSJEzACSIloegsqRRcA~tplv-photomode-zoomcover:720:720.avif?dr=9616&x-expires=1791428400&x-signature=PIg5OOS4lx4Fhqat%2FmTkbYDXFkE%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast8&ftpl=1",
+      "postCaption": "Tag @Seth Anthony if you enjoy this!! #Fyp #Openverse #Openversechallenge #Duet #ProjectKave  created by KaveMan Brown 🐐💯 with Seth Anthony’s original sound",
+      "capturedAt": "2026-10-06T03:44:07.683Z",
+      "decodedPixelSHA256": "d37bb4a6edb084892c6ea91dcd892d09d6157bb8b6eec571d0463b63d66461f9"
+    },
+    {
+      "file": "kave-7638429516762778894-decoded.png",
+      "sourcePage": "https://www.tiktok.com/@kavemanbrown/video/7638429516762778894",
+      "captureType": "lossless PNG decode of native AVIF; not a screenshot or edited photo",
+      "dimensions": [
+        540,
+        720
+      ],
+      "bytes": 397890,
+      "sha256": "a10930490e124c3f80bc651e61ad0ba72b238a92003c213f5a623d0fecf2fccc",
+      "sourceBytesUnchanged": true,
+      "inspectedUse": "Kave is LEFT in red graphic hoodie, exposed forehead/scalp, daylight three-quarter profile looking up. RIGHT person is Seth Anthony; do not use that person for Kave.",
+      "sourceEvidence": "verification/kave-likeness-20261005/tiktok-candidates/native-asset-provenance.json",
+      "ownerLikenessAccepted": false,
+      "nativeFile": "kave-7638429516762778894-native.avif",
+      "nativeSHA256": "345cebbe26d842dd56c4a6d972645ec06d18c2927ec76dc6e98024ec06cb1152",
+      "decodedPixelEquality": true,
+      "decodedPixelSHA256": "d37bb4a6edb084892c6ea91dcd892d09d6157bb8b6eec571d0463b63d66461f9"
+    },
+    {
+      "file": "kave-7689561967853358350-native.avif",
+      "sourcePage": "https://www.tiktok.com/@kavemanbrown/video/7689561967853358350",
+      "captureType": "native public TikTok cover asset, unchanged AVIF",
+      "dimensions": [
+        405,
+        720
+      ],
+      "bytes": 7927,
+      "sha256": "eba2f93a73ecae5fa58a84b126a5c07dc393e077de7efc351d7211e66af90dd7",
+      "sourceBytesUnchanged": true,
+      "inspectedUse": "Kave is LEFT in blue hood, exposed forehead/scalp, low three-quarter face. RIGHT person is Ekoh; exclude him. Face is smaller than the main frontal reference.",
+      "sourceEvidence": "verification/kave-likeness-20261005/tiktok-candidates/native-asset-provenance.json",
+      "ownerLikenessAccepted": false,
+      "observedAssetURL": "https://p19-common-sign.tiktokcdn-us.com/tos-useast5-p-0068-tx/oIQj8kVAZKb7WXetGHIcibLV1UDCBAeXInIm0f~tplv-photomode-zoomcover:720:720.avif?dr=9616&x-expires=1791428400&x-signature=Vmcr8RMEohIIwV7ewiDY2BVCnx4%3D&t=4d5b0474&ps=13740610&shp=81f88b70&shcp=43f4a2f9&idc=useast8&ftpl=1",
+      "postCaption": "Aye turn me up right quick yall!! 💪🏾💯👑 #Openverse #Fyp #Openversechallenge #Music #ProjectKave  created by KaveMan Brown 🐐💯 with ekohmusic’s Ekoh NUMB rap duet",
+      "capturedAt": "2026-10-06T03:44:07.683Z",
+      "decodedPixelSHA256": "79ffedd950d643d99b3692e39a2374f61d0934bfdd41d6ae6f1d4e6f65320606"
+    },
+    {
+      "file": "kave-7689561967853358350-decoded.png",
+      "sourcePage": "https://www.tiktok.com/@kavemanbrown/video/7689561967853358350",
+      "captureType": "lossless PNG decode of native AVIF; not a screenshot or edited photo",
+      "dimensions": [
+        405,
+        720
+      ],
+      "bytes": 151153,
+      "sha256": "a27bad302521ad55e47eb2caffaee976666de90d846da1a3bf89376a7fca1352",
+      "sourceBytesUnchanged": true,
+      "inspectedUse": "Kave is LEFT in blue hood, exposed forehead/scalp, low three-quarter face. RIGHT person is Ekoh; exclude him. Face is smaller than the main frontal reference.",
+      "sourceEvidence": "verification/kave-likeness-20261005/tiktok-candidates/native-asset-provenance.json",
+      "ownerLikenessAccepted": false,
+      "nativeFile": "kave-7689561967853358350-native.avif",
+      "nativeSHA256": "eba2f93a73ecae5fa58a84b126a5c07dc393e077de7efc351d7211e66af90dd7",
+      "decodedPixelEquality": true,
+      "decodedPixelSHA256": "79ffedd950d643d99b3692e39a2374f61d0934bfdd41d6ae6f1d4e6f65320606"
+    },
+    {
+      "file": "kave-instagram-nohat-two-panel-361.jpg",
+      "sourcePage": "https://www.instagram.com/kavemanbrown/reel/Dawa0xbRk1y/",
+      "captureType": "native public Instagram reel poster, unchanged JPEG",
+      "dimensions": [
+        361,
+        640
+      ],
+      "bytes": 23270,
+      "sha256": "5d0ad098947abe3411fd6aab1d790b4e09b1410ee8deface7cf3551dd66f3144",
+      "sourceBytesUnchanged": true,
+      "inspectedUse": "Both panels show Kave. Uncovered head, short hairline, beard breadth and triangular pendant; right panel useful for broader beard. This is a 361-pixel poster, not a full-resolution photo.",
+      "sourceEvidence": "verification/kave-likeness-20261005/instagram-candidates/profile-links-browser-receipt.json",
+      "ownerLikenessAccepted": false,
+      "observedAssetURL": "https://scontent-sea5-1.cdninstagram.com/v/t51.71878-15/746004081_1058046533425366_4100890244005155543_n.jpg?stp=dst-jpg_e35_s640x640_tt6&_nc_cat=110&ccb=7-5&_nc_sid=18de74&efg=eyJlZmdfdGFnIjoiQ0xJUFMuYmVzdF9pbWFnZV91cmxnZW4uQzMifQ%3D%3D&_nc_ohc=ByHIPV7N1DwQ7kNvwE3R225&_nc_oc=AdqAmV4AAPDW62Fe6rj8tmBNCdzLpDBcsXk88_rF57rz1oWYdl3lR19E2d_EvPRt0D8fkLvsAvz0wt6AcdhMlJFt&_nc_zt=23&_nc_ht=scontent-sea5-1.cdninstagram.com&_nc_gid=k42XsddMnDhxMNGt9EqzWA&_nc_ss=7f689&oh=00_AQOmr7GauQlbZpPYV7ZRpXzmPPBiwMf_8RVDX6HXXuRZDA&oe=6ACA403E",
+      "publicPostDate": "2026-07-13",
+      "sourceAlt": "Video by KaveMan Brown on July 13, 2026."
+    },
+    {
+      "file": "kave-instagram-kaveman-tee-frame-480.png",
+      "sourcePage": "https://www.instagram.com/reel/DaN-ArkxYCl/",
+      "captureType": "native decoded Instagram video frame preserved as PNG; not an original still photograph",
+      "dimensions": [
+        480,
+        854
+      ],
+      "bytes": 457364,
+      "sha256": "0471c6093d7a6508e846db85ac7c7954df15d8b0434a1d68cc72abb25afaad8c",
+      "sourceBytesUnchanged": true,
+      "inspectedUse": "Kave is foreground in black KAVEMAN short-sleeved tee. Use clothing/arm proportions only. Baseball cap present; ignore cap and the different person behind him.",
+      "sourceEvidence": "verification/kave-likeness-20261005/instagram-candidates/native-frame-receipt.json",
+      "ownerLikenessAccepted": false,
+      "videoTimestampSeconds": 3.381517,
+      "publicOwnPost": true
+    },
+    {
+      "file": "kave-soundcloud-face-1080.jpg",
+      "sourcePage": "https://soundcloud.com/kaveman-brown",
+      "captureType": "native public artist profile image, unchanged JPEG",
+      "dimensions": [
+        1080,
+        1080
+      ],
+      "bytes": 156083,
+      "sha256": "aa177988d38db7dbd4cca7fbf998d8c8a1a1568525d4759152c15caf42bf15c3",
+      "sourceBytesUnchanged": true,
+      "inspectedUse": "Secondary facial check only: same car photograph as previous Slaps 600-pixel portrait, so it adds resolution, not an independent angle. Hood is up; not a costume lock.",
+      "sourceEvidence": "verification/kave-likeness-20261005/instagram-candidates/secondary-retrieval-receipt.json",
+      "ownerLikenessAccepted": false,
+      "observedAssetURL": "https://i1.sndcdn.com/avatars-HrOwJgyIxDlaVDCP-DCcqyQ-t1080x1080.jpg",
+      "duplicateAngleOf": "previous Slaps 600-pixel car portrait"
+    }
+  ],
+  "distinctions": [
+    "Native files copied byte-for-byte from inspected evidence.",
+    "TikTok PNGs are lossless decoded copies with identical dimensions, mode and pixels to paired native AVIFs.",
+    "Instagram clothing PNG is a decoded video frame at the recorded time, not a native photo.",
+    "Duet partners and background people are not Kave and must not influence the likeness.",
+    "Selfie/tee baseball caps and raised hoods are source details, not the approved no-hat/hood-down costume.",
+    "SoundCloud and Slaps show the same car photo; this is not a second independent facial angle."
+  ]
+}

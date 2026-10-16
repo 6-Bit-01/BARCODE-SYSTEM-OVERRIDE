@@ -217,7 +217,7 @@ async function main() {
               width: 100 * options.scale, height: 100 * options.scale };
           }
         };
-        enemy.drawSprite({ save() {}, restore() {} });
+        enemy.drawSprite({ save() {}, restore() {}, transform() {} });
         const box = enemy.getVisualBounds();
         assert.deepStrictEqual(queried, drawn, `${type}/${animation}/${facing}: visual diagnostics use the exact rendered sprite transform`);
         assert(Math.abs(box.width - 100 * drawn.scale * (1 - margin * 2)) < 1e-8, 'existing contact margin is preserved');

@@ -1,0 +1,800 @@
+{
+  "status": "passed",
+  "scope": "Focused whole-character playback/registration; no full game or visual acceptance claim",
+  "source": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003",
+  "moduleSHA256": "bfc0e79e55cf96881d72ff2e398d9c1d69b587cf046ea15dd2e80f3fe3ac5c48",
+  "groups": 16,
+  "checks": [
+    "exact eight roles expose six Mac moves, two enemy tactics and four boss attacks",
+    "missing committed actions and malformed crops, pivots, holds and sheets fail explicitly",
+    "one full-body draw uses the exact basic/advanced sheet, a common scale and feet pivot",
+    "single-sheet legacy pivot alias is explicit and decoded image identity is checked",
+    "different sheet density uses one uniform sheet scale without normalizing individual poses",
+    "finite per-cel baseline lift translates the complete body uniformly at actual height",
+    "authored holds are discrete, gait follows simulation distance and pause needs no hidden clock",
+    "actual jump velocity advances takeoff, chamber, fall and descent despite stale action age",
+    "actual public-input jab/cross/finisher timing retains every contact and recovery window",
+    "actual moving strike, aerial kick and earned guard-counter select distinct committed cels",
+    "actual throw release at 140ms, recovery at 280ms and 420ms commitment use authored holds",
+    "each enemy tactic has a distinct authored preparation/contact sequence and honest delayed contact",
+    "hurt, defeat and jump retain whole cels, with an explicit death clock and finite boss placement",
+    "sampling is defensive and preserves the core snapshot, blood, movement and ownership",
+    "native alpha reader reconstructs an independently specified PNG including transparent pixels",
+    "supplied prototype registration uses verified native whole-character PNG cels"
+  ],
+  "nativeArtChecked": true,
+  "native": [
+    {
+      "actor": "mac",
+      "registrationPath": "assets\\mac-combat-frames\\mac-frames-v1.json",
+      "registrationSHA256": "fb0b28fb1579a6353a4d1e44197ccc29cb33ccb1013a65091cd0437bfc5e6fde",
+      "complete": false,
+      "sheetCount": 5,
+      "frameCount": 42,
+      "measurements": [
+        {
+          "frameId": "idle_a",
+          "sheet": "basic",
+          "occupiedPixels": 32614,
+          "transparentPixels": 108374,
+          "actualVisibleBounds": {
+            "x": 79,
+            "y": 40,
+            "width": 217,
+            "height": 321
+          },
+          "feetPivot": {
+            "x": 187.5,
+            "y": 361
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "idle_b",
+          "sheet": "basic",
+          "occupiedPixels": 32493,
+          "transparentPixels": 103189,
+          "actualVisibleBounds": {
+            "x": 77,
+            "y": 40,
+            "width": 212,
+            "height": 321
+          },
+          "feetPivot": {
+            "x": 183,
+            "y": 361
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_a",
+          "sheet": "basic",
+          "occupiedPixels": 32314,
+          "transparentPixels": 102989,
+          "actualVisibleBounds": {
+            "x": 69,
+            "y": 41,
+            "width": 232,
+            "height": 320
+          },
+          "feetPivot": {
+            "x": 194.5,
+            "y": 361
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_pass_a",
+          "sheet": "basic",
+          "occupiedPixels": 32035,
+          "transparentPixels": 104784,
+          "actualVisibleBounds": {
+            "x": 57,
+            "y": 41,
+            "width": 226,
+            "height": 319
+          },
+          "feetPivot": {
+            "x": 176.5,
+            "y": 360
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_b",
+          "sheet": "basic",
+          "occupiedPixels": 30665,
+          "transparentPixels": 98503,
+          "actualVisibleBounds": {
+            "x": 51,
+            "y": 18,
+            "width": 253,
+            "height": 313
+          },
+          "feetPivot": {
+            "x": 183.5,
+            "y": 331
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_pass_b",
+          "sheet": "basic",
+          "occupiedPixels": 30159,
+          "transparentPixels": 91989,
+          "actualVisibleBounds": {
+            "x": 64,
+            "y": 18,
+            "width": 221,
+            "height": 313
+          },
+          "feetPivot": {
+            "x": 247.5,
+            "y": 331
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "jab_windup",
+          "sheet": "basic",
+          "occupiedPixels": 32650,
+          "transparentPixels": 96167,
+          "actualVisibleBounds": {
+            "x": 64,
+            "y": 24,
+            "width": 258,
+            "height": 307
+          },
+          "feetPivot": {
+            "x": 193,
+            "y": 331
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "jab_contact",
+          "sheet": "basic",
+          "occupiedPixels": 33255,
+          "transparentPixels": 94860,
+          "actualVisibleBounds": {
+            "x": 45,
+            "y": 28,
+            "width": 293,
+            "height": 305
+          },
+          "feetPivot": {
+            "x": 177.5,
+            "y": 333
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "jab_recovery",
+          "sheet": "basic",
+          "occupiedPixels": 30345,
+          "transparentPixels": 98883,
+          "actualVisibleBounds": {
+            "x": 64,
+            "y": 18,
+            "width": 239,
+            "height": 294
+          },
+          "feetPivot": {
+            "x": 183.5,
+            "y": 312
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "cross_windup",
+          "sheet": "basic",
+          "occupiedPixels": 32212,
+          "transparentPixels": 96304,
+          "actualVisibleBounds": {
+            "x": 60,
+            "y": 18,
+            "width": 252,
+            "height": 294
+          },
+          "feetPivot": {
+            "x": 186,
+            "y": 312
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "cross_contact",
+          "sheet": "basic",
+          "occupiedPixels": 32855,
+          "transparentPixels": 99933,
+          "actualVisibleBounds": {
+            "x": 50,
+            "y": 21,
+            "width": 291,
+            "height": 291
+          },
+          "feetPivot": {
+            "x": 182.5,
+            "y": 312
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hook_windup",
+          "sheet": "basic",
+          "occupiedPixels": 33717,
+          "transparentPixels": 91239,
+          "actualVisibleBounds": {
+            "x": 32,
+            "y": 18,
+            "width": 279,
+            "height": 294
+          },
+          "feetPivot": {
+            "x": 171.5,
+            "y": 312
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hook_contact",
+          "sheet": "advanced",
+          "occupiedPixels": 43595,
+          "transparentPixels": 87085,
+          "actualVisibleBounds": {
+            "x": 19,
+            "y": 14,
+            "width": 316,
+            "height": 343
+          },
+          "feetPivot": {
+            "x": 166.5,
+            "y": 357
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hook_followthrough",
+          "sheet": "advanced",
+          "occupiedPixels": 44036,
+          "transparentPixels": 87724,
+          "actualVisibleBounds": {
+            "x": 28,
+            "y": 13,
+            "width": 321,
+            "height": 344
+          },
+          "feetPivot": {
+            "x": 188.5,
+            "y": 357
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hook_recovery",
+          "sheet": "advanced",
+          "occupiedPixels": 42697,
+          "transparentPixels": 65663,
+          "actualVisibleBounds": {
+            "x": 18,
+            "y": 13,
+            "width": 265,
+            "height": 344
+          },
+          "feetPivot": {
+            "x": 150.5,
+            "y": 357
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "step_contact",
+          "sheet": "advanced",
+          "occupiedPixels": 43022,
+          "transparentPixels": 107458,
+          "actualVisibleBounds": {
+            "x": 19,
+            "y": 40,
+            "width": 385,
+            "height": 311
+          },
+          "feetPivot": {
+            "x": 210,
+            "y": 351
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "jump_rise",
+          "sheet": "advanced",
+          "occupiedPixels": 38908,
+          "transparentPixels": 78126,
+          "actualVisibleBounds": {
+            "x": 72,
+            "y": 3,
+            "width": 214,
+            "height": 322
+          },
+          "feetPivot": {
+            "x": 161,
+            "y": 325
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "air_kick",
+          "sheet": "advanced",
+          "occupiedPixels": 40411,
+          "transparentPixels": 113241,
+          "actualVisibleBounds": {
+            "x": 40,
+            "y": 25,
+            "width": 382,
+            "height": 253
+          },
+          "feetPivot": {
+            "x": 191.5,
+            "y": 278
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "jump_land",
+          "sheet": "advanced",
+          "occupiedPixels": 38018,
+          "transparentPixels": 79734,
+          "actualVisibleBounds": {
+            "x": 7,
+            "y": 102,
+            "width": 293,
+            "height": 246
+          },
+          "feetPivot": {
+            "x": 150,
+            "y": 348
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "counter_contact",
+          "sheet": "advanced",
+          "occupiedPixels": 42215,
+          "transparentPixels": 89179,
+          "actualVisibleBounds": {
+            "x": 29,
+            "y": 15,
+            "width": 304,
+            "height": 341
+          },
+          "feetPivot": {
+            "x": 176,
+            "y": 356
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "throw_grab",
+          "sheet": "advanced",
+          "occupiedPixels": 43543,
+          "transparentPixels": 86742,
+          "actualVisibleBounds": {
+            "x": 17,
+            "y": 32,
+            "width": 306,
+            "height": 302
+          },
+          "feetPivot": {
+            "x": 169.5,
+            "y": 334
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "throw_release",
+          "sheet": "advanced",
+          "occupiedPixels": 43964,
+          "transparentPixels": 94762,
+          "actualVisibleBounds": {
+            "x": 33,
+            "y": 4,
+            "width": 335,
+            "height": 333
+          },
+          "feetPivot": {
+            "x": 200.5,
+            "y": 337
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "hurt_stagger",
+          "sheet": "advanced",
+          "occupiedPixels": 49648,
+          "transparentPixels": 69627,
+          "actualVisibleBounds": {
+            "x": 10,
+            "y": 5,
+            "width": 304,
+            "height": 331
+          },
+          "feetPivot": {
+            "x": 181.5,
+            "y": 336
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "down",
+          "sheet": "advanced",
+          "occupiedPixels": 34637,
+          "transparentPixels": 108493,
+          "actualVisibleBounds": {
+            "x": 11,
+            "y": 185,
+            "width": 368,
+            "height": 162
+          },
+          "feetPivot": {
+            "x": 175,
+            "y": 347
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_1",
+          "sheet": "walk",
+          "occupiedPixels": 68213,
+          "transparentPixels": 139659,
+          "actualVisibleBounds": {
+            "x": 57,
+            "y": 12,
+            "width": 343,
+            "height": 430
+          },
+          "feetPivot": {
+            "x": 229,
+            "y": 442
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_2",
+          "sheet": "walk",
+          "occupiedPixels": 66417,
+          "transparentPixels": 129807,
+          "actualVisibleBounds": {
+            "x": 64,
+            "y": 16,
+            "width": 295,
+            "height": 428
+          },
+          "feetPivot": {
+            "x": 214,
+            "y": 444
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_3",
+          "sheet": "walk",
+          "occupiedPixels": 57830,
+          "transparentPixels": 125402,
+          "actualVisibleBounds": {
+            "x": 80,
+            "y": 12,
+            "width": 238,
+            "height": 433
+          },
+          "feetPivot": {
+            "x": 193,
+            "y": 445
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_4",
+          "sheet": "walk",
+          "occupiedPixels": 62436,
+          "transparentPixels": 144988,
+          "actualVisibleBounds": {
+            "x": 92,
+            "y": 13,
+            "width": 310,
+            "height": 429
+          },
+          "feetPivot": {
+            "x": 245.5,
+            "y": 442
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_5",
+          "sheet": "walk",
+          "occupiedPixels": 69026,
+          "transparentPixels": 138182,
+          "actualVisibleBounds": {
+            "x": 57,
+            "y": 4,
+            "width": 367,
+            "height": 423
+          },
+          "feetPivot": {
+            "x": 242,
+            "y": 427
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_6",
+          "sheet": "walk",
+          "occupiedPixels": 64670,
+          "transparentPixels": 124978,
+          "actualVisibleBounds": {
+            "x": 48,
+            "y": 7,
+            "width": 304,
+            "height": 420
+          },
+          "feetPivot": {
+            "x": 269,
+            "y": 427
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_7",
+          "sheet": "walk",
+          "occupiedPixels": 52896,
+          "transparentPixels": 119631,
+          "actualVisibleBounds": {
+            "x": 80,
+            "y": 4,
+            "width": 219,
+            "height": 423
+          },
+          "feetPivot": {
+            "x": 188,
+            "y": 427
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_8",
+          "sheet": "walk",
+          "occupiedPixels": 64659,
+          "transparentPixels": 144744,
+          "actualVisibleBounds": {
+            "x": 95,
+            "y": 3,
+            "width": 338,
+            "height": 421
+          },
+          "feetPivot": {
+            "x": 259.5,
+            "y": 424
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_left",
+          "sheet": "contacts",
+          "occupiedPixels": 250424,
+          "transparentPixels": 545215,
+          "actualVisibleBounds": {
+            "x": 129,
+            "y": 17,
+            "width": 713,
+            "height": 825
+          },
+          "feetPivot": {
+            "x": 470,
+            "y": 842
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "walk_contact_right",
+          "sheet": "contacts",
+          "occupiedPixels": 233427,
+          "transparentPixels": 544472,
+          "actualVisibleBounds": {
+            "x": 55,
+            "y": 17,
+            "width": 727,
+            "height": 834
+          },
+          "feetPivot": {
+            "x": 373,
+            "y": 851
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "load",
+          "sheet": "jump",
+          "occupiedPixels": 54872,
+          "transparentPixels": 59600,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 14,
+            "width": 300,
+            "height": 325
+          },
+          "feetPivot": {
+            "x": 165,
+            "y": 339
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "takeoff",
+          "sheet": "jump",
+          "occupiedPixels": 65187,
+          "transparentPixels": 88685,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 12,
+            "width": 298,
+            "height": 458
+          },
+          "feetPivot": {
+            "x": 178,
+            "y": 470
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "chamber",
+          "sheet": "jump",
+          "occupiedPixels": 55335,
+          "transparentPixels": 73135,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 13,
+            "width": 262,
+            "height": 414
+          },
+          "feetPivot": {
+            "x": 148,
+            "y": 427
+          },
+          "baselineLift": 13.624454148471616,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "kick_extend",
+          "sheet": "jump",
+          "occupiedPixels": 63266,
+          "transparentPixels": 111950,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 14,
+            "width": 437,
+            "height": 346
+          },
+          "feetPivot": {
+            "x": 119,
+            "y": 360
+          },
+          "baselineLift": 58.47161572052402,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "kick_contact",
+          "sheet": "jump",
+          "occupiedPixels": 61420,
+          "transparentPixels": 114668,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 10,
+            "width": 478,
+            "height": 324
+          },
+          "feetPivot": {
+            "x": 151,
+            "y": 334
+          },
+          "baselineLift": 49.956331877729255,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "kick_retract",
+          "sheet": "jump",
+          "occupiedPixels": 49496,
+          "transparentPixels": 65119,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 2,
+            "width": 255,
+            "height": 389
+          },
+          "feetPivot": {
+            "x": 124,
+            "y": 391
+          },
+          "baselineLift": 22.139737991266376,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "descent",
+          "sheet": "jump",
+          "occupiedPixels": 57981,
+          "transparentPixels": 85572,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 16,
+            "width": 299,
+            "height": 414
+          },
+          "feetPivot": {
+            "x": 157,
+            "y": 430
+          },
+          "baselineLift": 7.9475982532751095,
+          "edgeAlpha": false
+        },
+        {
+          "frameId": "landing",
+          "sheet": "jump",
+          "occupiedPixels": 54341,
+          "transparentPixels": 57835,
+          "actualVisibleBounds": {
+            "x": 14,
+            "y": 14,
+            "width": 276,
+            "height": 334
+          },
+          "feetPivot": {
+            "x": 157,
+            "y": 348
+          },
+          "baselineLift": 0,
+          "edgeAlpha": false
+        }
+      ],
+      "warning": "Native crop/hash/scale checks do not establish likeness or visual animation acceptance."
+    }
+  ],
+  "limitations": [
+    "Owner visual acceptance is separate",
+    "No hosted/FPS/full-route check performed"
+  ],
+  "wroteReceipt": true
+}

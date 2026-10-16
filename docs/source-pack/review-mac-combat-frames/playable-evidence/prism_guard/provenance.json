@@ -1,0 +1,23 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "selectedNativeVersion": 4,
+  "generatedNativePath": "C:/Users/jondh/.codex/generated_images/01a11402-38bf-7fb0-9b51-72cac68e310c/exec-97226188-e44d-49a9-8436-cea00ceaf276.png",
+  "savedNativePath": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/mac-frame-animation-20261006/enemy-generation/prism_guard/native-v4.png",
+  "chosenPath": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-combat-frames/prism_guard-frames-v1.png",
+  "sourceSHA256": "9d9f0fbef08aea5e846b3d42d9f2cfa07c1ee69c227324f7ba9daf232390bcec",
+  "nativeSHA256": "9d9f0fbef08aea5e846b3d42d9f2cfa07c1ee69c227324f7ba9daf232390bcec",
+  "identityReference": "level2-minimal-source-20261003/assets/mac-city-review/prism_guard-v1.png",
+  "prompts": [
+    "prompt-v1.txt",
+    "prompt-v2.txt",
+    "prompt-v3.txt",
+    "prompt-v4.txt"
+  ],
+  "inspection": "All 12 complete connected whole-character cels visually inspected; native generation bytes copied unchanged; right facing; guard shield-bash and shield-heavy silhouettes distinguishable; fixed gutters and alternate walking contact",
+  "discardedVersions": [
+    1,
+    2,
+    3
+  ],
+  "noPixelEdits": true
+}

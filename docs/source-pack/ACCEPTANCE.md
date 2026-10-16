@@ -4,26 +4,480 @@
 ## Current checkpoint
 
 Generated from `docs/source-pack/CURRENT_CHECKPOINT.json`; edit that record, then run `npm run checkpoint:sync`.
-Recorded at 2026-10-02T10:32:00Z; this is a dated handoff, not a live GitHub status query.
+Recorded at 2026-10-15T23:49:00Z; this is a dated handoff, not a live GitHub status query.
 
-- Latest verified merged code: [PR #172](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/172) on `main` at `351f9885397ca8aaf8ec2600c3b530ec144f1b28`
-- Merged checkpoint: Crosswalks, grounded rider splats, sustained mirror moods and controlled pursuit spacing; cutscene artwork unchanged
-- Latest recorded continuation task: Continuation/source-pack checkpoint consistency (review)
-- Review branch: `agent/checkpoint-consistency`; base `351f9885397ca8aaf8ec2600c3b530ec144f1b28`
-- Approved scope: One checkpoint record, synchronized current headers and drift validation; preserve history and the existing exact-revision source-pack automation; no gameplay or roadmap changes
-- Recorded automated validation: passed at `d29da48e5e1a397fb7adf273316df843f5ce6c99`; PR #172 final head: full regression, all-file syntax and hosted Chromium checks on both push and pull_request events; this is prior gameplay evidence, not validation of the current documentation review
-- Automated evidence: [run 36966098995](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36966098995), [run 36966100957](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36966100957)
-- Human acceptance: not-recorded; Owner Makko, physical controller, listening/audio, motion comfort, human balance/fun and device frame pacing for the merged checkpoint
-- Human evidence: No new owner acceptance recorded; scripted/native/CI results remain separate
-- Next step: Review the checkpoint-consistency draft and its exact-head checks; no merge or deployment is authorized for this maintenance task. Recheck remote work before any continuation
+- Latest verified merged code: [PR #192](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/192) on `main` at `59427681c18f289e539f18f2c1ea89d61f88d1e1`
+- Merged checkpoint: Current main through saved Flash accents preference repair; retains later GPU rendering, mobile controls, standalone runtime and Mac chapter work
+- Latest recorded continuation task: Reconcile checkpoint synchronization and source-pack export integrity with current main (review)
+- Review branch: `agent/checkpoint-consistency`; base `59427681c18f289e539f18f2c1ea89d61f88d1e1`
+- Approved scope: Preserve all current gameplay, assets, review evidence, owner constraints and existing validation gates; add synchronized dated headers and committed-tree export preflight only
+- Recorded automated validation: not-recorded at `59427681c18f289e539f18f2c1ea89d61f88d1e1`; No new workflow evidence is recorded here for this reconciliation; exact tested review revisions and results belong to the PR and export receipts
+- Automated evidence: none recorded
+- Human acceptance: not-recorded; No new owner device, controller, listening, motion comfort, balance or frame-pacing acceptance is established by this maintenance review
+- Human evidence: Preserve all scoped owner acceptance and limitations in the dated records below; automated checks do not add human acceptance
+- Next step: Finish and review PR #173 exact-head checks and preservation evidence under the owner's October 15 merge-or-close request; the coordinating parent handles merge or closure decisions. Recheck remote state before continuation; this repair performs no deployment
 
 The exported tree/review/merge status and exact test receipt belong to `SOURCE_MANIFEST.json` and `test-evidence.json` when present.
 A prior checkpoint or passing CI does not certify this review, owner acceptance, or permission to merge/deploy.
 Before continuing, recheck the current owner request and remote branch/PR state; update the record when those facts change.
 
-Earlier task/status descriptions below, including old current/next/candidate/publication wording, are historical. Do not resume an old task from them.
+Dated sections below retain their recorded scope, evidence and owner constraints. Check their dates and the newest owner request before resuming work.
 Retained gameplay constraints and engineering rules still apply unless explicitly superseded by the owner.
 <!-- CURRENT_CHECKPOINT:END -->
+
+## October 8, 2026 — earned Level 2 continuation into Mac
+
+The Level 3 routing regression must earn the actual Level 2 finish, reopen existing authored road-clear saves, and run Road, Mac, Campaign, input, music profiles/transport and lifecycle in one window with a running single gameplay frame. Verify keyboard, controller and the direct touch Continue action; the carried confirmation cannot skip the first Mac scene.
+
+Verify city-entry checkpoint/title Continue, corrupted-entry rejection, unchanged earned reward facts, legacy prototype restore, failed audio preparation rollback, stale cancellation without disturbing a newer chapter, Pause during loading retaining paused road results, retry after resume, and ordinary Level 1 scene/binding ownership after returning from restored Mac. The fixture uses real source owners with simulated browser/device hosts; native browser layout/play checks and final package/cloud/release evidence remain separate.
+
+## October 7, 2026 — full equipment transition and concise dialogue review
+
+The owner requested all selected frames and legal combinations be checked after rejecting the remaining bat/weapon holds. Inspect each of the eight weapons in both facings through idle, every walk/run cel, guard/creep/impact, jump/landing, kicks/counters and attack windup/contact/recovery. Handles must cross the actual palm with natural wrist direction; tools must keep their held size and holding hand across pose changes, and remain visible during the final finite-charge attack. Hurt/defeat must cancel/drop equipment without a ghost model.
+
+Inspect every enemy's real hold, pummel contact, pre-release and released state; check crate/barrel pickup, hold, movement and the actual hand-to-world throw transition. Props must keep street proportions while hands support them and Modem's head stays readable. Earned public-input snapshots and the complete native review matrix are separately recorded in `verification/mac-combat-refine-20261007`; sampler assertions alone do not establish visual quality.
+
+The eight-scene introduction is one readable cue per scene: nine Continue inputs, or ten including the optional answer. Only 9 Bit's explicit player-address fourth-wall scene presents “Get it heard” / “Keep the receipts”; either adds one short response, and Continue remains optional. Kave's ordinary scenes and one-cue desk payoff have no choices. Check keyboard, controller Continue and direct phone choice buttons without leaking into gameplay Jump.
+
+Final refine2 release receipts must establish exact changed-head wrapper/native/syntax checks, committed standalone package, source/site cloud validation and visible hosted observation. Preserve refine1 source `f902da7` / website `dfa5560` and their evidence. Both PRs remain private draft/unmerged. Physical-device frame rate, owner appearance/fun and final Mac music remain pending; software diagnostic workflow success must not be reported as a passed numerical FPS budget.
+
+## October 7, 2026 — combat refinement review pending
+
+This changed pass follows retained city1 source `bcd25f4` / website `1eee336e`. Play both fight pockets in every district, collect the fixed tutorial Pipe and later seeded floor caches, and break a selected crate/stall/barrel or sturdy car to earn its actual finite-charge weapon. Verify that full replay varies positions/rewards while normal checkpoint retry restores the same seed and checkpoint loot. The final combined-core loot checkpoint passes four groups, including 64 seeds and an earned twelve-floor/ten-prop full-city route, on hash `ebb43230912d86de9b00d08e17704aa0c8c32044786742dd48b3a79080e08957`. This is focused evidence, not final hosted acceptance.
+
+Inspect the implemented uniform native scale, all four running hand-contact phases in both facings, directional torso attack contact and grounded spacing. Later districts allow two close commitments, faster approach/recovery and modest added damage with heal22, while full locked warnings and boss recovery remain. On Null Regent, normal coaching must yield to actual warning/committed/exposed windows while hold/carry instructions stay readable. Preserve phase/tell commitments, authentic recovery countdown, whole cels, prop proportions and pause/retry/title flows. Eight introduction scenes and exactly two optional Kave choices remain.
+
+Final source/arsenal/loot, wrapper/touch/native, syntax, strict committed build, exact source/site cloud checks, installed/hosted identities and visible-startup observation belong in project-root `verification/mac-combat-refine-20261007`. Do not infer a playable hosted result from a semantic click beneath a visible boot overlay, or use prior city1 receipts for the changed runtime. Source PR189/site PR485 remain private review drafts. Owner appearance/fun, physical-device performance and final Mac music are separate pending judgments; this entry records scope rather than final acceptance.
+
+## October 7, 2026 — Mac city polish playtest
+
+Private preview revision `city1` is the next Mac city review. Inspect all six districts: each first fight clears before traversal to its second pocket; melee roles share space while ranged enemies retain their own pressure. Follow the committed lane/response warning, interrupt one powered fixture near aliens, and check that its discharge happens once without hurting Mac. Watch Null Regent phase changes and the actual exposed timer; attack during recovery and verify that a threshold crossed mid-tell preserves the announced attack. Try keyboard, controller and direct touch controls through pickups, grabs and slow guard walking. Eight intro scenes, two optional Kave choices, one-time sparse reactions, native artwork/scale and ordinary pause/retry/title flows remain.
+
+Recorded technical and code-rendered diagnostics do not establish owner appearance acceptance, a physical phone's frame rate or final Mac music. Both PRs remain draft/unmerged. Exact changed-head CI, installed/hosted payload identities and visual evidence are recorded separately under project-root/verification/mac-city-polish-20261007; do not reuse the guardfit5 baseline results as this pass's release results.
+
+## October 7, 2026 — guard attachment follow-up
+
+The owner rejected the five reused sideways melee guard holds. Each corrected attachment uses the measured bare-fist contact, its own defensive angle/layer and original whole-cel palm overlap, across all four guard cels in both directions. Existing gun/disc guard contact and all native bitmaps remain. Fresh responsive gameplay fits the window; the earlier off-center black area did not reproduce, and its cause remains unproven.
+
+Fresh exact-head evidence belongs to project-root/verification/mac-guard-fit-20261007. Prior grips4 receipts apply only to the completed8768b318/625c866e baseline and its preserved full source archive. The private preview revision is guardfit5; both PRs remain drafts. Owner visual/playtest, fullscreen and physical-device performance acceptance remain pending. Historical preparation states below do not supersede the completed grips4 checkpoint.
+
+## October 7, 2026 — grips4 recovery checkpoint
+
+Saved candidate evidence in project-root/verification/mac-weapon-grips-20261007 remains current: `strict-registration-probes.json` passes 16 groups with all 19 recorded input hashes matching; `native-packaging-candidate.json` passes the selected 55 cels/eight sheets with all 18 recorded inputs matching; `strict-tools-final.json` matches both frozen packaging tool hashes. `whole-weapon-render-review.json` records 54 production-rendered placements of the 27 new cels in both facings; its ten input hashes and nine image hashes match. These checks and renders must be reused within their recorded scope.
+
+`sampler-embedded-intermediate.json` is stale for the current module/checker. `sampler-stow-intermediate.json` uses the current module/checker but its native row is the older 28-cel/five-sheet bank. Neither is a final 55-cel native receipt. Fresh `dynamic-frame-check.exit.json` now records success for the final registration without `--equipment` and its 24-group `dynamic-frames-native.json`; `base-frame-check.exit.json` records 19 passed groups and `presentation-integration.exit.json` records 28 passed real-wrapper groups. The arsenal muzzle check failed its close-target assertion because the old setup allowed distances beyond the shorter native rifle muzzle; a corrected public-input scenario and successful final receipt remain pending.
+
+The source selects 55/eight in its working tree, preserving bat3's measured ready grips and six swing cels. The website still selects 28/five. No grips4 source commit, strict committed build, website installation, final source/site CI, hosted gameplay observation or final source archive is established here. Still images do not establish live motion, physical-phone performance or owner approval. Record fresh exact-head receipts as each remaining stage completes; preserve prior bat3 receipts and any actual browser-unavailable limitation.
+
+## October 7, 2026 — measured ready grips for bat3
+
+The owner's annotated bat location is the near tattooed hand, with the shaft upright beside the head. Its native wrapped-handle contact moves toward the butt to crop point (70,306), native sheet point (93,375); the floor pickup pivot stays unchanged. Both accepted idle cels have individually measured near-hand registrations and palm overlap. Crowbar, shock baton, energy blade and gravity hammer use that anatomical contact with separate reviewed orientations that keep the eyes readable. Firearms now retain the complete aiming cel for idle and recovery, replacing the separated-fist ready pose that visibly put a hand inside the barrel. Projectile muzzle profiles were recalculated from the current complete native recoil cel; existing damage, timing and collision sweeps stay intact.
+
+Actual still-image inspection covers each weapon's idle, contact, guard and first running cel in both facings, both bat idle cels, the second idle cel of the four other melee weapons, and all six whole bat swing cels. This scoped inspection does not certify every rendered combination, physical phone performance, or owner visual acceptance. The six bat attack cels embed the pipe and suppress its duplicate overlay. The private review page can play their actual phase sequence. The earlier grip2 blanket visual acceptance was rejected by the owner and is superseded here. Current scoped evidence is in project-root/verification/mac-bat-placement-20261007; fresh build/release receipts are in project-root/verification/mac-bat-grip-20261007. Source PR189 and website PR485 stay drafts pending owner playtest.
+
+## October 7, 2026 — authored bat swing and two-braid Mac correction
+
+The owner rejects grip2's horizontal pipe/bat hold and straight-punch attack. Idle now places its wrapped handle in the marked lower tattooed hand, upright beside the head; the fully-behind candidate was rejected because it hid the shaft. The attack uses six newly drawn complete Mac-and-pipe cels: two-hand load, rear-foot pivot, rotating contact, through, wraparound finish and recovery. The pipe is painted into each complete attack cel; its matching external overlay is suppressed. Actual combat phases and the existing gameplay/input/audio clocks remain authoritative. New art is copied unchanged from built-in imagegen; prompts and provenance are in MAC_PIPE_SWING_PROVENANCE_20261007.md.
+
+Mac's model rule is exactly two reddish-brown braided plaits, with the far braid allowed to overlap in side view. Accepted base locomotion/cel bytes remain after a two-braid audit; multi-braid supplemental block/run/hold/weapon drawings receive hair-only sibling corrections and fresh registration. Inspect every selected complete cel, both idle grips and all swing cels in both facings. Structural checks establish loading/sampling integrity; the prior all-weapon visual pass was rejected and does not establish correct holds. Other weapons retain their behavior and remain subject to owner review. Source PR189 and website PR485 remain private drafts; bat3 is this playtest revision. Preserve grip2 and its exact archive. Fresh evidence belongs to project-root/verification/mac-bat-grip-20261007 and mac-bat-swing-20261007; owner visual/playtest acceptance remains pending.
+
+## October 6, 2026 — individual weapon grips, street scale and running kick
+
+The owner rejected the arsenal1 weapon holds and small cars/props, and explicitly requires each weapon to be positioned and checked individually. This correction adds per-weapon, per-cel grip, angle and front/behind layering, with native palm/forearm overlap drawn from the same complete character cel. The accepted character drawings remain complete; no articulated body animation returns. Both facing directions and equipped idle, guard, movement and attack states belong to the review.
+
+Cars use new longer side-view native drawings, with one uniform scale for each intact/cracked/wrecked family. Street objects are calibrated against the unchanged 260-unit Mac. Stronger cars absorb several attacks and use a finite hit bounce driven by the existing combat clock, while collision/floor anchors, one-time wrecking and loot remain authoritative. Run plus Strike commits a grounded running kick with forward momentum and launch; ordinary strikes, airborne kicks and counters retain their own behavior. Equipped gear remains in inventory and is not spent by the running kick.
+
+Source PR189 and website PR485 remain private drafts. The arsenal1 source6df3cf81/site3dfb10cf checkpoint and verified archive are preserved. The production equipment review page, native review images, final source/site identities, fresh focused/full checks, hosted observations and exact source ZIP are recorded in project-root/verification/mac-street-grip-20261006 and its delivery receipts. The website playtest revision is grip2. Technical validation does not establish owner visual/playtest acceptance, physical-phone performance or final Mac music acceptance. Six districts, twelve waves, thirty enemies, boss, cameos, both Kave choices and the original 624 artwork/audio identities remain.
+
+# Acceptance and Test Status
+
+## October 6, 2026 — weapons, held grabs and a destructible city
+
+The owner requested eight distinct weapon types, liftable boxes/props, wreckable futuristic cars, destructible fixtures attached to the city, coherent proportions, a stronger complete-character guard, very slow guarded walking, strength-based held grabs capped at three seconds, a one-second pummel allowance, double-tap running and dynamic power-ups. This continues the existing private Mac review (source PR189 / website PR485), preserving the verified source58efb9a/site5451664 power2 source archive as a recoverable checkpoint.
+
+Grounded Strike uses the equipped pipe, crowbar, shock baton, energy blade, gravity hammer, scatter blaster, coil rifle or plasma disc. They have different reach, commitments and contact rules: pull/shield break, stun, cleave, launch, spread, piercing and returning disc. Durability/ammo is finite and visible. Actual unblocked hurt knocks equipment onto the floor with its remaining charges; guard, parry and Barrier absorption preserve it. Grip/carry poses sheath the inventory weapon.
+
+L is contextual: hold an exposed enemy, lift a carryable crate/barrel, or equip a nearby weapon. Enemy strength limits the hold to one–three seconds; release or timeout commits the throw. Strike while holding pummels for at most one second total per grip. An actual hit breaks the grip; pause, input cancellation, checkpoint retry and zone exit drop safely. Carryable props stay held while L stays held, with reduced movement and no arbitrary three-second limit. Thrown props have real ballistic flight and deduplicated contacts with enemies/cars/fixtures.
+
+Double-tap a horizontal direction within 280 simulation milliseconds to run at 1.65 times normal speed; the phone joystick's outer travel and the existing run action supply the same intent. Guarded walking is 0.22 times normal speed with raised forearms and small careful steps. Grip/carry/guard commitments suppress running. The expanded skippable tutorial follows real combat receipts and names the active keyboard/controller/phone controls; no More menu or added action surface is required.
+
+Futuristic coupe/van damage states, barrels, streetlights and wall-backed terminals enter the existing scene/depth owner. Fixture destruction retains its wall recess/base. Cars appear only in suitable outdoor streets, canal service road and plaza, with no cars on the rooftop or inside the concourse. Whole prop families share a single scale across intact/cracked/broken states against the accepted 260-unit Mac. Overdrive speeds attacks temporarily, Barrier absorbs a hit, and Impact gives a one-use airborne finisher pulse through existing controls.
+
+The original eight actor banks, 126 complete base cels, twelve native PNGs, six district backdrops, story portraits, eight introduction scenes, both Kave choices and original artwork/audio seal are preserved. Twenty-two new complete Mac action cels supplement the accepted bank; whole native equipment attaches at calibrated grips. The power manifest registers six native sheets and forty-seven cells. No body-part renderer, additional frame loop, save/award writer, music transport owner or permanent new button is introduced.
+
+Focused combat, frame, native registration, touch and real-wrapper results, followed by final full-suite, strict-package, exact-head cloud, hosted browser and archive evidence, are retained under project-root/verification/mac-street-dynamic-20261006. Technical validation does not establish owner visual/gameplay acceptance or physical-phone FPS. This is a private playable preview; both PRs remain unmerged and final Mac music remains pending. See [production review](review-mac-street-dynamic/PRODUCTION_REVIEW.md) and [native art and prompt provenance](review-mac-street-dynamic/art-provenance.md).
+
+## October 6, 2026 — Modem power pass and hands-on tutorial
+
+The owner approved the gameplay pass, tutorial and stronger damage presentation. The first two districts now have flying-body crowd contacts, finisher launches, knockdowns, destructible crates/stall, automatic grounded recovery, coordinated melee positioning and ranged retreat. A small skippable coach follows actual moves and uses keyboard, controller or touch prompts. Existing contextual Throw and Inspect/Link remain direct actions.
+
+Native browser review exposed an unbounded browser audio-resume wait that could leave Pause pending. Resume now has a finite deadline in the existing audio owner. Mac can resume its fixed combat simulation with delayed audio; beat-dependent chapters remain safely paused with a retryable menu until their clock is available. Late audio completion is cancelled by pause, stop or title return, and the original loop owner resumes before compatibility flags are projected. Exact regression and final deployment results are retained with the release receipts.
+
+The two native transparent atlases register eighteen cells for intact/cracked/collapsed props, relay states, recovery and red/green/purple blood bursts/floor marks. Complete drawn actor cels stay in use; no separate-part animation returns. Brief impact pauses retain input, finite shake honors Reduced Motion, and sounds use the existing owner. Restoring the market relay triggers short 9 Bit/Kave reactions without another dialogue choice. All six districts, twelve waves, thirty enemies, boss and both Kave choices remain playable.
+
+Existing twenty-five combat groups and six new actual-core groups pass, including the complete public-input city route, secondary body contact deduplication, ordinary-strike destruction, grounded pickups, finisher launch, buffered impact input and retry. Final wrapper, full-suite, strict-package, exact-head CI, hosted observations and archive results belong to the project-root/verification/mac-street-power-20261006 release receipts. These are technical checks; the owner has not yet accepted this playable power pass or physical-phone performance. This is a private draft review, with temporary Level 03 proof audio and no production publication.
+
+
+## October 6, 2026 — complete drawn cels integrated into the playable private city
+
+The owner confirmed that work should continue into the game after accepting revised Walk and Air kick study revision 2. The private Mac wrapper now uses complete-character held drawings for Mac, six alien species and the four-armed Null Regent. It loads the exact eight hashed registrations and twelve native transparent PNGs from `assets/mac-combat-frames/mac-combat-frames-v1.json`; the entry launches `MacCombatFrames` instead of the rejected articulated renderer. The registered sibling bank adds exactly 21 assets, preserving the sealed 624 original artwork/audio identities, earlier city art and rejected rig history.
+
+Mac's accepted walk alternates the two opposite contact keys with passing cels at the existing movement speed. Jump pose progression follows real launch velocity/gravity, with constant pelvis registration applied to each complete airborne cel. The landing key follows the real land event. Kick contact starts with the actual active damage window. Enemy preparations and contacts follow their existing distinct attack types and delayed hit timing. Passing poses use visually registered waist projections; the mantid's aerial contact uses its hip rather than its low scythe tips. A defeated airborne Mac settles onto the lane using the existing presentation clock; pause still freezes presentation.
+
+Six districts, twelve waves, enemy combinations, six Mac attacks, throws, green/purple alien blood, red damage blood, both Kave choices, music, saves, mobile controls and the shared lifecycle/input/frame owners remain intact. There is one complete cel draw per fighter and no extra frame loop or old-rig fallback. Selected native bytes, prompts, analyses and focused receipts are retained with this review.
+
+The owner has accepted the study walk and air kick for now. Acceptance of the integrated chapter, new enemy motion and physical-device performance remains owner playtesting. This is a private draft branch; production publication is not implied. Exact build, installed payload, CI, hosted observation and archive identities are recorded in the final release receipts.
+
+## October 6, 2026 — owner accepts revised Walk and Air kick for now
+
+After playing the refreshed study, the owner said, "Awesome! That works for now!" Keep the two revised clips and their illustrated complete-body frames. This accepts the standalone animation study for now; it does not claim that the playable chapter has already switched rendering.
+
+The website revision `25359faf5399a511d6609169c0717ad7df1af82c` is deployed and its CI passed. Hosted inspection showed both opposite walk contacts, the kick extension/contact, normal playback and pause/step controls without console errors. The other ten clip objects remain unchanged.
+
+Source CI on the initial study snapshot caught two packaging errors: review PNGs were counted inside the protected 624-original game bank, and the new review data script was absent from the generated inventory. Keep the original-bank checks intact. Selected study art is now saved under `review-mac-combat-frames/art/`, separate from canonical runtime assets; the archive includes it and the inventory records exactly one new unloaded review script. Original working images and unfinished enemy/module work are preserved. The game source and entry stay unchanged. Corrected source/package checks are recorded in the delivery receipts. Remaining work is enemy complete frames and in-game frame playback integration.
+
+## Earlier October 6 checkpoint — articulated sprites rejected; frame study in progress
+
+The owner rejected the separate-part Mac/enemy presentation in source `fe2e92e45b2dd40d500d7b80c5451197c2ecd382`: the chapter must use classic beat-em-up animation with complete drawn character cels, strong held poses, intentional frame reuse and visual quality before delivery. Passing geometry, gameplay or delivery checks did not establish acceptable artwork or animation. Preserve those receipts as technical history, not owner acceptance.
+
+The owner reviewed the complete-frame study and specifically rejected the walk and requested air-kick improvements. Website study revision 2 (`25359faf5399a511d6609169c0717ad7df1af82c`) replaces only those two clips. Walking reuses two clearly opposite whole-body contact drawings and two passing drawings at the existing 260px/s movement speed; waist-projected horizontal registration replaces the changing lowest-shoe midpoint that shifted Mac sideways. The kick uses eight complete load/takeoff/chamber/extension/contact/retraction/descent/landing drawings, uniform per-sheet scale, waist registration and the existing 560px/s launch / 1500px/s² gravity arc. These are complete held cels, not articulated body parts.
+
+The study has 36 registered drawings on five unchanged native PNGs. Focused checks verify exact hashes, native crops, finite placement, pause/step consistency, unchanged other ten clips and no canvas clipping at gameplay or 2× size. Jump ink uses individually separated rectangles: faint alpha1–8 halos meet some crop edges, while every visible alpha>8 pixel remains intact. The owner subsequently accepted the revised Walk and Air kick for now; in-game integration remains pending. No in-game frame-bank integration or production publication is claimed. The installed private game still uses source `fe2e92e45b2dd40d500d7b80c5451197c2ecd382`; enemy cels and the new discrete playback module remain unfinished working files outside this committed study milestone. Selected art, review page, measurements and focused receipts are saved in `review-mac-combat-frames/`.
+
+Keep the six districts, twelve waves, six ordinary species and four-armed boss, existing attack/damage/blood rules, both Kave choices, approved story/art boundaries, music, saves and shared lifecycle/input/frame owners. Keep the rejected rig assets and previous backups as recoverable history. Final native artwork, motion review, integration and exact-release checks remain pending for the replacement.
+
+## October 5, 2026 — articulated implementation; owner motion acceptance pending
+
+In response to the owner's rejection of the previous Mac/enemy motion, the private branch now implements continuous articulated animation using eight native actors and 126 registered parts: 15 for each ordinary actor and 21 for the Regent. The exact selected rig bank contains 17 files. Mac has jab, cross, finisher, step-strike, air-kick and counter moves, plus a contextual throw. Each ordinary enemy has two distinct tactics, with the Regent retaining its three-phase patterns. Real damage creates Mac's red blood or the alien's green/purple blood; blocks, misses and invulnerable contacts create none.
+
+Focused combat checks pass all 25 groups and the final native animation-math review passes all 14 groups, including interrupted movement handoff, planted recovery and all eight measured registrations. The previous 12 integration groups passed before the final foot-controller correction; the latest complete integrated suite is running. Final strict-package, CI and hosted-browser results for this implementation are pending. Evidence: `project-root/verification/mac-fluid-combat-20261005/combat-foot-controller-final-receipt.json` and `project-root/verification/mac-combat-overhaul-20261005/math-review-native-final/animation-math-receipt.json`.
+
+Owner visual acceptance requires:
+
+- Connected limbs and deliberate hip/shoulder weight shifts with consistent character proportions and scale.
+- Readable foot contact, weight transfer, takeoff and landing; grounded feet planted through recovery instead of sliding or floating.
+- Continuous windup/impact/recovery with visible contact aligned to the actual active attack phase, plus coherent guard, counter, throw and damage reactions.
+- Six Mac moves with distinct silhouettes, reach and commitment; different enemy tactics and body rhythms visible in ordinary play.
+- Green/purple alien blood and Mac's red blood localized to real damage; blocked, missed and invulnerable contacts produce none.
+- Finite readable effects that pause and reset correctly without changing combat damage or hiding enemy tells.
+
+Review at normal play speed across each enemy style and the boss phases. Owner review of the new rig art, animation and combat feel, physical-handset play and hardware FPS remain pending. The earlier `4cf1e1174905fafc1b6ecf3b606bc62a60abe2fb` automated/hosted proofs remain historical for the rejected-motion candidate and do not validate this implementation. No new production publication is claimed. Preserve the six-district chapter, eight stable intro IDs, two optional Kave choices, enclosed Kave v5 studio, Cache v6 and the original final car shot, current music and existing campaign/save/award boundaries. Mac hero v2 remains approved artwork; that approval does not accept gameplay motion. The private chapter grants no canonical Drums reward or campaign clear.
+
+## Historical checkpoint — October 5, 2026: full Mac city and two Kave conversations
+
+The private chapter now targets six city districts, 12 waves and 29 alien humanoid foes plus a distinct final boss, with seven dedicated enemy art/animation kinds and green/purple blood. The eight intro scene IDs remain stable. **Two optional choices remain:** Kave's main opening question and the in-person studio conversation earned after the final city encounter. Only the extra 9 Bit reply menu is removed; Continue keeps both opening core facts without inventing an answer.
+
+The owner rejected Kave v3's open wall/room scale. Active v5 is a fully enclosed studio candidate with solid walls, visible ceiling, a closed door, small glazed window and ordinary person/desk/mic scale. Rejected v3 and the v4 framing pass, original artist references and exact generation provenance remain preserved. Kave v5 and Cache v6 await owner art review; Mac v2 remains approved. The final Cache car shot, protected original, scene indices and existing campaign/save/input/frame/audio owners are retained.
+
+The pure story reader's focused checks pass for both Kave conversations, all 19 intro core lines, reveal/advance, reconvergence, skip/reset and no host or campaign side effects. Combat passes 19 focused groups, including an earned six-area / 12-wave / 30-defeat route and all three boss phases. The connected input/lifecycle route passes 11 groups, including joystick, keyboard/controller, pause, current-fight retry and no campaign writes. Browser gameplay and physical-handset acceptance remain separate checks; exact final package and hosted results belong in this revision's delivery receipts and draft PRs. This private preview grants no canonical Drums reward or campaign clear and is not published to production. See [the production guide](BROADCAST_SLUM_STORY_PRODUCTION.md), [story review](STORY_PRODUCTION_REVIEW.html) and [asset manifest](STORY_PRODUCTION_ASSETS.json). Earlier slice and artwork entries below are historical checkpoints.
+
+## Historical checkpoint — October 5, 2026: owner likeness and whole-pose corrections
+
+Cache v4 and v5 and Kave v1 are explicitly owner-rejected and preserved under review-mac-street-art/candidates. Independent visual audit supports Cache v6 direction/hands and Kave v3 hat-free face/beard, but new artwork and gameplay still await owner review. The prior 57f6698 local/full/browser/hosted passes describe the previous snapshot, not these uncommitted artwork bytes. This correction receives focused story/integration/bridge/syntax and exact file/policy checks; physical-device performance, new full browser playthrough and final soundtrack acceptance are not claimed.
+
+## Historical checkpoint — October 5, 2026: approved story and private Mac street slice
+
+The owner approved the eight-scene Level 2-to-3 script and Mac's recovered-model v2 hero. The owner requested clearer Kave photographs and replaced Cache's cockpit proposal with a confident walk toward the yellow car, keys in hand, immediately before the preserved final car shot. New reference photos come from Kave's artist-managed profile and his own official performance video; the sources and unmodified images are in the reference gallery.
+
+Cache's walking candidate replaces the bridge's penultimate ignition panel, preserving all eight indices, the legacy resume identity and the original final car image. The ignition cue moves to departure. The original cassette stays with Cache; the new view shows the same yellow vehicle and a plausible approach to its driver door. Mac's costume, face markings and build follow the approved hero and recovered references. Kave's review room matches the new street frontage; DJ stays remote in the new receiver scene. The older studio comparison is explicitly presented as an earlier feed so Mac does not teleport between locations.
+
+The private entry is `index.html?preview=mac-firstslice`: eight illustrated scenes and two direct choices, Mac's first two street fights, and a safe Kave conversation reopening the local feed. Mac walks in both axes, jumps, chains strikes, guards/counters and makes contextual nearby throws. Phone controls keep Jump, Strike and Guard in stable thumb positions; Throw appears when useful and Talk at the desk. Dialogue uses readable phone text with both answers visible. Keyboard, touch and controller use the existing input, frame, audio and pause owners. Preview state is temporary; it does not grant Drums, unlock the full chapter or write campaign progress. Existing Level 1/2 completion and saves remain on their original paths. The temporary Level 03 proof stems are prototype audio, not Mac's final song.
+
+New paintings and gameplay remain review candidates. The production release is still source PR188 / website PR484. Focused combat, story and real-module integration checks pass; full-suite, strict-build and browser evidence for the final snapshot is recorded in the external `verification/mac-street-slice-20261005` receipts as work completes. Physical handset feel and a full Level 3 clear are not covered by those checks. Historical draft and pending statements below are superseded for this private branch only.
+
+## October 5, 2026 — mobile tutorial instructions
+
+Implemented touch-specific tutorial and terminal wording. Existing tutorial-flow (keyboard/PlayStation/Xbox at 30/60/120 Hz) and 29 production touch contracts pass; independent review confirms actual button names and preserved physical-control wording. That initial checkpoint is superseded by the completed source/site checks and production verification recorded below. No physical-handset acceptance is claimed.
+
+Source [PR188](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/188) is merged as `187db68ed9d0b85a247b3ec823d905f0b56ea76d`, retaining tested source `12dc71b943362a24c33c52e90309c2274ca4b7a3`; both have tree `c1f76601e6a905a8be224b275eb34f3cd202746c`. Website [PR484](https://github.com/6-Bit-01/barcode-network-site/pull/484) merged as `7a89f88c3bc4d7a822ef6646f659936b6d22d404`, matching reviewed tree `aac2297e47521a2e38629705e9b68740e1990d2e`. All source/site exact-head required checks passed, and the wording fix is published at [System Override](https://www.barcode-network.com/system-override).
+
+Production passed all 26 critical HTTPS payload hashes and natural hidden copyright entry, audio/settings/difficulty, mobile Next reveal/advance with rendered Tap Next wording, no Jump-button leak, joystick plus Jump and pause/resume. Evidence: `project-root/verification/mobile-tutorial-prompts-20261005/hosted-production-12dc71b/hosted-entry-receipt.json`. This is bounded desktop phone emulation; no new performance or physical-handset acceptance is claimed. The story branch only inherits the wording fix: its eight-scene draft and corrected hero concepts remain unaccepted, scenes 3/5/6 and future runtime integration remain pending. No new story gameplay is installed.
+
+## October 5 — owner art correction and recovered references
+
+The owner rejected the first Cache hero for impossible car geometry and the first Mac hero for an inaccurate model. Those candidates are preserved as rejected history. Original Mac face/brown-body/red-body and Cache model source files were recovered from the owner's BARCODE character-reference folder and copied unchanged into review-level3-story/references. Revised hero concepts are under review; no acceptance or runtime installation is claimed. Kave's official public accounts and four inspected images are now collected in [KAVE_REFERENCE_RESEARCH.md](KAVE_REFERENCE_RESEARCH.md) and [KAVE_REFERENCE_REVIEW.html](KAVE_REFERENCE_REVIEW.html). His draft cameo uses a Kaveman Radio review desk and held feed. Scene 3/5/6 paintings and runtime integration still remain. Earlier 'models missing' and 'concepts pending review' checkpoint wording below is historical.
+
+## October 5, 2026 — Level 3 story production review pending
+
+The owner requires at least seven Level 2-to-3 scenes and distinct final Cache/Mac hero poses heading into action. The [story production guide](BROADCAST_SLUM_STORY_PRODUCTION.md) supplies a proposed eight-scene script, two reconverging choices, cameo/9 Bit roles and later payoffs; exact new writing and art remain proposals.
+
+| Story production evidence | Status at this checkpoint |
+| --- | --- |
+| Current cutscene/active campaign audit and reference inventory | Recorded in the guide and [asset manifest](STORY_PRODUCTION_ASSETS.json) |
+| Generated Cache/Mac hero PNG concepts | Available for owner art review; not approved or integrated into runtime |
+| Kave public references / final likeness and scenes 3/5/6 illustrations | Public sources and four images found; final illustrated model and scene paintings still needed |
+| [Visual review page](STORY_PRODUCTION_REVIEW.html) browser verification | Passed: eight scenes, four choice replies, both hero images; desktop 1440×1000 and mobile 390×844; no observed script errors/failed resources |
+| New dialogue choices, eight-scene runtime, migration, skip/replay and Level 3 gameplay | Unimplemented; no acceptance or completion claimed |
+
+The current four-scene Level 2 ending and eight-scene Cache bridge remain unchanged. Story artifacts are unmerged; no new Drums award, deployment is claimed.
+
+## October 5, 2026 — direct mobile release verified and published
+
+Source [PR186](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/186) merged as `d2e3776d6aebbf911b41b9e86b56b769e970e8d1`; site [PR483](https://github.com/6-Bit-01/barcode-network-site/pull/483) merged as `5856516233e5009fea15f60870c889fbdbed9a98` and deployed at [System Override](https://www.barcode-network.com/system-override). Source/site exact-head checks, strict built earned-Level-2 direct-action touch review, live entry/control/audio smoke and critical HTTPS hashes passed. The owner acknowledged this baseline and is preparing Level 2 playtests.
+
+Evidence is `project-root/verification/direct-mobile-actions-20261005/COMPLETE.md` and final receipts. The d2e3776d v5 release archive is validated; this story draft is not a new game release. A review source archive identifies its own exact branch revision in generated metadata. Physical-handset FPS remains unexercised and loading is unchanged. Earlier pending mobile/release entries below retain their historical checkpoint meaning.
+
+## October 5, 2026 — mobile acceptance pending
+
+Performance source PR183 is merged at `42b2a3157638a8742717095fbdea7055b6efeb71`; the finite physical GPU evidence below remains valid for that runtime. The initial whole-game touch implementation passes 20 focused contracts and independent input/lifecycle/ownership/syntax/89-script prototype checks. Actual bounded prototype flow passed title/settings, opening/difficulty, Level 1 multitouch and earned Level 2 gestures at 390×844, 844×390, 375×667 and 320×568. This is distinct from final release acceptance and the prototype's stale touch-only receipt hash.
+
+| Required mobile evidence | Current status |
+| --- | --- |
+| Virtual actions independent of held physical keys; simultaneous joystick/buttons and between-frame taps | Contracts and bounded Level 1/earned-road browser flow pass |
+| Opening, menus, difficulty/tutorial, hacking, Level 1, road/skills, bridge, ending and results through their real owners | Contracts pass; bounded title/opening/difficulty/Level 1/road browser flow passes; full-flow release review pending |
+| Safe-area portrait/landscape layout, at least 44 CSS-pixel targets, cancellation/lost-capture/blur/visibility/context release | Initial browser rectangles pass; settings readout/short-road layout correction and final recheck pending |
+| Shared frame/input/audio ownership; existing keyboard/gamepad, saves, GPU/native recovery and original asset integrity | Ownership/input and original asset checks pass; final browser regression pending |
+| Focused mobile tests, real browser touch flow, full regression and exact-head source CI | 20 contracts including real-menu readout/bounded browser flow/full source regression/syntax/C113 standalone pass; final strict-build visual recheck/CI pending |
+| Mobile source merge, final built package, site rechecks/deployment and live verification | Pending |
+
+Actual review found missing selected-settings feedback and cramped short-portrait road controls. Their corrections are implemented; control-polish and the added real-menu readout group pass within 20 contracts. Final strict-build browser visuals remain pending. Full source `npm test`, all-file syntax and immutable C113 standalone checks passed. The prototype receipt differs only for its touch-script correction; final corrected packaging remains required. GPU-only site PR481 passed earlier CI/preview checks and remains draft. Publication follows completed mobile release checks. Preserve existing assertions and numerical hardware gates.
+
+## October 4, 2026 — final physical pair passes local performance acceptance
+
+Code checkpoint `a7b2ba5ed3115bcd24903a7729b5060efacadd92` passed fresh run 23 and earned-boss run 24 with the compiler active for images and analytic gradients in both views, including after genuine graphics loss/full native fallback/restoration. All measured frames completed both GPU views and final presentation.
+
+| Run | Complete frames | CPU draw median/p95/max (ms) | Draws above 1000/30 ms | RAF median/p95/max (ms) | RAF intervals above 1000/30 ms |
+| --- | ---: | --- | --- | --- | --- |
+| Fresh 23 | 786 | 15.5 / 24.3 / 42.8 | 3 / 786 | 16.7 / 33.4 / 83.6 | 83 / 783 |
+| Boss 24 | 232 | 16.0 / 23.5 / 35.4 | 1 / 232 | 16.7 / 33.4 / 66.7 | 36 / 230 |
+
+The unchanged median gate passes; observed tails remain. RAF intervals do not establish physical-display FPS. Both runs retained 149 BC7 plus 22 original SVG sources, exact 260,390,544 mip bytes, terminated-worker ownership and zero driving copies/uploads/fallbacks. Keyboard/gear, audio, road P/Escape, Level 1 return/bridge P/P and all 415 input hashes passed. Fresh HUD/restoration was visually reviewed.
+
+Seventy GPU contract groups, focused path-cache checks, all syntax and generated-bundle checks pass locally. CI at `70378e8f531c405d200c766d12ea6447b45f5820` also completed full `npm test`, all-file syntax and standalone-build checks. Its software cloud GL warmed all 171 sources, then timed out during the natural intro before the HUD; downstream browser/export checks were unexercised, not passed.
+
+The final checker/docs-only head keeps the physically tested a7b2 runtime/assets unchanged and classifies the actual game context after real preparation. Software, unavailable and unidentified GL receive `performanceUnexercised`; gameplay, controls, audio, pause, graphics recovery and Level 1 return receive `notExercised`, separately from bootstrap/resource checks. Required native browser jobs and the complete hardware functional/1000/30-ms gates remain unchanged. Final-head CI, source/site packaging, visual release review and publication remain pending; no entire-race, universal 60-FPS or glitch-free claim is made.
+
+## October 4, 2026 — compressed GPU revision requires final acceptance
+
+The adopted revision prepares all 171 scenery sources before driving: 149 full-resolution compressed raster images and 22 small original browser-rendered vector images. It uses a local pinned decoder and one bounded worker. Original art bytes, native foreground, controls/music/saves and the single frame owner remain. The complete compressed build is not yet accepted or published; full-bank integrity, fresh play, earned boss, actual memory/cadence, graphics loss/restoration and exact-head source/site delivery remain required. The existing 33.333 ms hardware draw gate is unchanged; software GL remains performanceUnexercised.
+
+The preceding ed666 resource lifetime run 20 completed 415/415 GPU frames with zero copies/uploads and passed actual graphics loss/native fallback/restoration plus Level 1 reload. CPU draw median/p95/max was 30.9/44.1/57.5 ms and RAF intervals 33.4/50.2/133.5 ms; physical memory stayed tight at 624 MiB HUD/509 MiB restored. These results do not establish resolved lag. Completed-Level-1 bridge pause/resume uses its authored P/P contract, while Road's existing P/Escape behavior remains required. The earlier graphics-loss failure remains historical evidence, not a passing result.
+
+## October 4, 2026 — resource pipeline final browser checks pending
+
+Current ed666 GPU/resource implementation passes 51 GPU and 10 presentation-loader contracts. Original sprite verification covers 15 atlases, 60 exact pixel cases and 10 player-contact cases; suspension/reload restores original pixels. Production scene-owner/audio checks cover recreation, prepared road/title preservation, pending-job omission, cancellation and saves. These checks establish resource ownership, not reclaimed OS memory.
+
+Scene primary images fall from 256/1108.37 to 197/835.55 MiB raw equivalents (272.82 MiB difference); 22 conditional fallbacks total 132.12 MiB. Level 1 sprite retirement covers 269.81 MiB; its PA originals total 98.75 MiB with 22.69 MiB overlap, and other Level 1 image owners total about 106.58 MiB. GPU originals/budget remain unchanged.
+
+Prior 4eb5 run 19b passed 684 driving frames at 19/26/42.5 ms CPU median/p95/max and 41/41 fade frames with zero copies/uploads, plus controls/audio. Forced loss failed before native/restore evidence and the renderer vanished; high memory use is observed, termination cause unproved.
+
+The 87-script private build awaits fresh run 20, earned-boss and exact-head checks. Hardware's 33.333 ms gate remains unchanged; software GL is unexercised. Publication is authorized but pending. PR183 remains draft; live PR480/source d41be793 unchanged.
+
+## October 4, 2026 — accepted scenery preparation, release verification pending
+
+The minimal road cues, short gear-tap repair and mirror readback removal are already published through [site PR479](https://github.com/6-Bit-01/barcode-network-site/pull/479), merged and deployed at `c484c6e4f06078df756d712ef2e039b02fa19f74`. Its verified standalone bundle identifies source `9cdcaad82804472782a1f06b5cfa38fa88f6b45d`. The game uses its independent local adapter and BARCODE-hosted files at `/system-override`, with the tiny footer © shortcut and native document `/games/system-override/index.html`. Those release results belong to that published baseline.
+
+The owner authorizes continuing the remaining Level 2 scenery/lag repair through publication. The accepted follow-up is now implemented in the working tree: demand-only quarter-image preparation plus original-size native bitmap preparation for exactly `cacheRepairShop`, `cacheMarketRFrontGap` and `cacheStreetBicycleRack`, the three sources tied to recurring costly decodes by same-session image IDs. Accepted `presentation-assets.js` SHA-256 is `8bfbead333864dba5e1c83ed3c1c1c3f8c95d6f90a9af36007b5b01501946808`; this is a runtime hash, not a new source commit. Final-source checks, package generation, publication and deployment remain pending actual results.
+
+The accepted prospective bitmap check is SHA-256 `29db94a5fc8aa8270472eadfff5d979ffbeb9bd273df07c1b9129365775458f9`. Its private production-source VM run passed the nine preserved groups plus the new mapped-source group, while the unchanged lazy source failed the new three-source preparation assertion. The existing browser block remains byte-identical. Coverage includes pending/original fallback, exact crop/frame/anchor/flip/context mapping, exclusion/reuse, malformed close/reservation release and the unchanged shared cap. This historical private run is not a fresh full-suite or final-commit result; tracked full QA is in progress.
+
+Four hardware-rendered states matched full-frame RGBA exactly. The separate four-state software diagnostic passed the existing whole-scene mean RGB predicate below 1, with means 0.06983748, 0.23806584, 0.20520383 and 0.13236706 for initial HUD, earned phrase, curved third gear and played live boss. Alpha differences were zero; repeats, native scale, gameplay/audio state and context were preserved. The existing top-164-pixel HUD mean was 0, 0, 0.00217755 and 0, reported without an independent asserted HUD threshold. Extra strict-zero RGBA remained false. These bounded comparisons do not replace the complete existing moving-browser, copy/tint or final-source CI checks, and no threshold was changed.
+
+Four finite native hardware A-B-B-A windows reduced combined matched target decode cost from 495.024 to 60.438 ms, an 87.8% reduction across two windows per variant. The events still occur; decoding is not eliminated. Overall cadence is mixed: baseline CPU draw median/p95 was 8.8/44.6 and 9.4/45.6 ms, versus candidate 9.0/28.5 and 12.2/46.8 ms. The first candidate's tail improved and the second remained slower. This supports a bounded correction to the measured source-cache work, not uniformly smooth playback, sustained full-race acceptance or universal FPS.
+
+Native-only loading now avoids 161 unused quarter-size derivatives: 13,665,172 pixels or 52.128 MiB raw RGBA equivalent. That allocation inventory is not measured resident memory or a net memory-saving claim for the combined change. The three added full-size backings reserve 4,704,524 pixels in the existing native pool, bringing native/tint reservations to 33,290,908 pixels under the unchanged 33,554,432-pixel cap. Original images remain available for pending, unsupported, rejected, malformed or budget-limited preparation; the default whole-image factory, original dimensions and existing draw geometry remain unchanged.
+
+The earlier DeliveryVan/Bins/Bench bitmap attempt was rejected for no consistent measured gain. The distinct VideoFrame-to-bitmap bridge `fe917ea` is unadopted; it produced the same first-state software difference and was stopped before hardware/timing acceptance. The retained-backing variant `6ca4307` passed four software plus four hardware exact-pixel comparisons while continuing to draw original Images, but target decode totals stayed 483.6 versus 486.6 ms; it is rejected for lack of measured benefit. Neither alternative enters this accepted runtime.
+
+[Source PR183](https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/pull/183) remains draft. At the published source `9cdcaad`, its unchanged software-rendering 33.33 ms chase/live-boss gate failed (PR medians 90.3/92.7 ms; push medians 88.8/91.6 ms). Skipped downstream browser/export steps are not passes. Those are baseline results, not fresh final-follow-up checks. Exact final-source CI outcomes must be recorded separately; retain the draft if required source checks fail. The website's full check/build and exact-package delivery requirements remain separate.
+
+Before publication, record focused tracked bitmap checks, full source regression and all-file syntax, complete existing native/browser checks and both exact final source CI events. Build the standalone package from the clean committed revision, verify original assets and the exact manifest/runtime hashes, run the actual built-page controls/audio/native smoke, and require the website's full check/build plus Windows audio CI. Guard the website merge, verify deployment and live entry/payload bytes, and export a truthful exact-revision source pack. No earlier source or website SHA substitutes for these final results.
+
+Owner acceptance of the earlier minimal private preview belongs to that preview. Physical controller, listening, complete-race and sustained owner-device pacing remain separate evidence. No universal lag-free or all-glitches-cleared acceptance is claimed. Earlier sections below are historical where superseded.
+
+## October 4, 2026 — accepted private Level 2 preview, site publication authorized
+
+The published starting point was site PR478 / `272f3eec6a854aa97091c1b939be1fd71880c208`, with source `90a80762cf919b9f2efb70b95a0a04bfc189542c`, the `/system-override` route and tiny footer © shortcut. The game uses its independent local standalone adapter and BARCODE-hosted files. The owner accepted the subsequent native minimal private preview based on source `897480f`, reporting “So much better,” and explicitly instructed “Alright fix it and publish on site.” The scoped website publication is authorized; final publication/deployment remain pending verified results. The source PR remains draft while the required performance gate is unresolved. Earlier acceptance, mirror-transport and Makko-hosting status sections below are historical where superseded.
+
+The candidate on `agent/level2-minimal-road-cues` keeps one authored hardware pad and mapped glyph, actual active/caught docks, timing ring/counts/instruction and real outcome/adrenaline HUD. It removes duplicate energy paint, inactive docks, ground receipts and captured/queued phrase paint. Matched ground image submissions are 24→10 in Ready-ONE and 33→12 with a distinct caught lane plus the next ready cue; caps remain 2 pad / 10 target / 0 ground receipt images, with all 28 native source cells retained. Short Up/W/Down/S presses between shared frames use the existing input queue only during active road play; held steering, other modes and the existing P/Esc contract are preserved. Original art, native scenery, music, announced targets/judgments, controls/skills, economy, saves and shared owners are unchanged.
+
+The final local runtime fix passes `false` only to the mirror's `copyOpaqueCanvasPixels` caller, selecting its existing cropped Canvas self-copy without a pixel readback or temporary `VideoFrame`. The original curved clip, source-over/copy semantics, crop, single `blur(2.3px)` and unblurred face/HUD remain intact; sampled-world and unsupported-host paths are preserved. On the recorded AMD Radeon 660M / ANGLE D3D11 backend, the first native scene, real curved-road third-gear scene and actually played damaged live boss all matched the preceding transport exactly across full-frame RGBA, baseline repeats, labels, gameplay state and context attributes. The actual-call regression fails on the old capable-host readback and passes the candidate, including fade/nonidentity context restoration.
+
+Four finite real-RAF A-B-B-A windows showed lower CPU draw wall time and fewer long RAF intervals on that device, with naturally advancing geometry and no added measurement readbacks. This is bounded hardware evidence, not universal FPS, physical scanout or sustained boss timing proof. Earlier Linux/software native chase/boss results still fail the unchanged 33.33 ms gate; preview acceptance and hardware evidence do not clear it. Existing fidelity, input, native-quality and performance thresholds remain required. Final-head regression/syntax/browser/package/CI and site release evidence are recorded separately; see `LEVEL2_HUD_PERFORMANCE.md` for exact measurements and parent receipts.
+
+## October 3, 2026 — standalone BARCODE website migration
+
+The owner requested replacing Makko hosting with the existing BARCODE website. The standalone builder preserves canonical asset bytes, mirrors 21 original remote sprites/audio/title assets with SHA-256 receipts, and substitutes an independent manifest-backed sprite adapter for the vendor SDK. The adapter preserves authored animation timing, scaled anchors, flips, hitboxes and cloned playback state without a new RAF or timer. Generated runtime URLs resolve beneath `/games/system-override/`; the website entry is `/system-override`. Saves belong to the website origin and do not automatically transfer from Makko.
+
+Before migration, the owner-approved native-detail source at `41a2f0bf7afa0f81a5fb863cf8d4941f865763cf` was applied to the connected Makko editor after the 174-file recovery checkpoint. Both files were saved and re-read, the preview rebuilt, Continue entered the moving Cache Line scene and P paused it. Makko remains paused; no public Makko Update/Share was performed. This supersedes the earlier notes below stating that its saved source still remained PR181.
+
+Standalone adapter checks cover all 15 original clips, 60 source-crop/facing pixel comparisons, actual player contact anchors, playback timing, clone isolation, completion callbacks, Canvas state and failed-start retry. Generated-build checks cover runtime/inline syntax, sprite preloading, local presentation and music URLs, three ship animation types and fallback, and unchanged boot-monitor timer ownership. The original art is retained. Native frame pacing, complete chase/boss performance gates and owner-device acceptance remain unresolved; moving hosts does not itself prove a frame-rate improvement. The keyboard audit remains recorded separately and its seven issue groups have not yet been repaired.
+
+The build is reviewable locally. Publication, exact-head CI and live website acceptance are separate steps and must be recorded when completed. Earlier sections describe historical checkpoints and are superseded by this section where they conflict.
+
+
+
+## October 3, 2026 — final background review, unpublished
+
+The local review now also suppresses the sky beat pulse when Flash Off is selected and clips asphalt texture to the existing curved road boundary. The loaded-art probe removed 3,653 shoulder-spill pixels, preserved every interior pixel away from the antialiased edge, and retained identical texture coordinates, source order and Canvas/gameplay state. Flash On matches the preceding native candidate; Reduced Motion remains static. All 228 original asset hashes remain unchanged.
+
+The final source passed all-file syntax, the nine bitmap/native-quality groups, camera/frame ownership, ground beat feedback, adrenaline feedback, the seven-scene beat visual system and focused drive-feedback/control checks. All 24 fresh staged Chrome production draws retained native scale 1 without draw-time gameplay mutation. Complete-draw diagnostic medians were 180.3/193.6 ms including startup and forced raster flush; native frame pacing remains unresolved. A warmed mirror-copy A/B from the preceding exact commit showed no meaningful speed gain, so production transport is unchanged. The full formal chase/boss, 30 Hz, gain and regression gates are still unverified. Prior full-suite limitations below remain applicable; focused reruns are not a full npm-suite pass.
+
+Makko saved source and playable preview remain PR181; a 174-file recovery checkpoint named Before native detail preview - Oct 3 2026 was saved. The candidate is a local review only, with no push, PR, merge, public update or saved-source replacement. Keyboard audit found seven issue groups and passed nine focused checks; controls were not changed. Blocky detail, preference behavior and material-boundary fixes have bounded evidence; this is not an all-glitches-resolved or owner-device FPS claim.
+
+## October 3, 2026 — verified detail stability, unpublished review
+
+The final curved-glass candidate kept native scale 1 in all 24 staged Chrome moving frames, plus four native camera/gear poses and three advancing native frames. All 228 artwork hashes match PR181. Bounded bitmap/native-quality groups, all-file syntax, loaded-art still review, unchanged bundled combat integration and the remaining blood/crew checks passed. The global Node 24.18 full npm invocation ended with a native access violation; its bundled Node 24.19 integration retry and tail passed separately, so that original invocation is not a full-suite pass.
+
+Chrome complete-draw diagnostic medians were 175.8/204.1 ms, including raster flush and startup. This confirms detail stability, but does not pass the formal 30 Hz chase/boss gates or establish device FPS. Makko still runs PR181. This is an unpublished local review; no push, PR, merge or source replacement has occurred. Keyboard controls were audited separately and remain unchanged.
+
+## October 3, 2026 — native-quality candidate: validation pending
+
+The owner rejects PR #181's coarse adaptive scenery. The local, unmerged candidate must keep the entire background at native 1920×1080, with `renderBudget` diagnostic only and no silent low-detail path or new opt-in quality UI. Retain lossless preparations, native cels/windows, prepared tint, equivalent culling and the single original `blur(2.3px)` mirror pass. Check that the original curved mirror glass is preserved and native playing-frame opaque cropped mirror transport works independently of downsampled-world eligibility, with reflection source hint fixed at `1`.
+
+Required gates remain unchanged:
+
+- Full `npm test`, `npm run check:syntax:all` and loaded native-art review.
+- One production paint per shared RAF with raster completion and startup/reload frames included; independent chase, whole-boss and active undefeated playing-boss medians at or below 33.33 ms (30 Hz), with at least 80 live-boss samples.
+- The 25% aggregate complete-frame/raster improvement gate against PR180, no scene median regression above 10%, and all existing loaded-art RGB/alpha fidelity limits, strict native equality, source/cel/blur ordering, fallback, warm/paused reuse, caller-state and scaled-viewport checks.
+- Successful push and pull-request validation and Level 2 performance events on the exact final head before publication.
+
+Current main baseline is merged PR #181, `fce367dd5e5e3a0a1ed9792d61fca960852f36f4`. Earlier PR181 performance used downsampling and cannot establish native candidate speed. All candidate gates are pending. Publication state is defined by the generated receipt; local review only, no external push, PR or merge. Owner device FPS, controller, listening, comfort and a fresh race through opening, active rig combat, pause/reload and the earned ending remain separate acceptance evidence.
+
+A short visible Chrome diagnostic of an earlier native draft, measured before the final curved-glass correction, kept scale at `1`: Ready-ONE median 194.6 ms and Focused-Turn 212.3 ms over 24 frames including startup and raster completion. The prior coarse PR181 diagnostic measured 127.8/111.3 ms and reached scale `1/6` in four draws. This evidence covers two staged scenes and does not establish exact final-candidate timing, the whole-chase/boss gates or live device FPS. Formal native performance validation remains pending.
+
+## Historical PR #181 recovery notes — superseded by the owner correction
+
+The native opaque rearview now uses the same bounded sRGB pixel transport for its cropped source before applying the original single 2.3px blur. The shared helper bounds each source at 129,600 pixels, preserves source/destination coordinates and the caller's filter/clip/composition, and closes the temporary frame in the same draw. Fading/scaled/native/unsupported/transparent callers retain the original Canvas source. Original-mirror comparison flags disable the new transport; complete production RGB/alpha checks and a cropped-blur browser probe retain their existing limits. The background-only predecessor still exceeded the boss limit on one runner (34.8 ms), so the new mirror path must pass every final-head gate.
+
+The sampled-world expansion now reads only an opaque sRGB background of at most 480×270 pixels into a synchronous RGBA VideoFrame, draws it through the existing saved Canvas state and closes it immediately. This bounds the source transport while preserving the original destination, clip, transform and composition. No new Canvas, context, RAF, timer or media clock is created. Translucent, P3, larger, native and unsupported callers keep the original self-copy; failed APIs are not retried on every frame. Actual work stays inside the measured production draw. Original-source controls explicitly retain the old transport. Unit checks cover cleanup, bounds, source coordinates and fallback; browser probes require exact opaque/caller pixels and unchanged translucent fallback. The tinted-source predecessor d525a7a1 still failed boss medians at 34.6/35.5 ms, so it is not publication evidence. All existing gates remain unchanged.
+
+The repeated 315-degree brake-reflection hue operation is now prepared once from the loaded source bytes as an sRGB SVG matrix and a 194×290 original-texel bitmap window. Preparation runs through the shared image cache outside drawing, reserves its ready/pending pixels inside both existing native budgets and revokes its temporary URL on success or failure. Browser callers without shadows reuse the prepared tint; unsupported/native/shadow callers keep the original live filter. Original-source comparisons explicitly disable prepared tint and its clip. Seven preparation/budget groups cover source registration, draw/pause reuse, failures, URL cleanup, reservation release and exact pool exhaustion. The preceding 321a4d57 candidate passed both dedicated performance events but failed the broader validation combat medians at 34.6/35.3 ms; all final-head gates remain unchanged.
+
+The small functional preparation pool now reserves up to 1.5 Mi-pixels inside the unchanged 32 Mi-pixel native budget, with a 32 Ki-pixel eligibility threshold. Real source sizes showed the previous 512 Ki-pixel pool excluded the repeatedly drawn 116,000-pixel brake reflection after two pulse sheets filled it, while the 64,256-pixel exhaust fell just below its old threshold. The brake preparation retains its used 192×290 source rectangle plus two right-edge sampling texels (194×290), saving 59,740 unused pixels without resampling; outside-window callers retain the full original. Concurrent pending reservations, exact pool exhaustion, native source coordinates, failures and original fallback remain tested. This follows the 0b9cb882 candidate's failed live-boss medians of 33.7/35.1 ms; all 33.33 ms gates remain unchanged.
+
+## Historical October 3 — continued lag repair verification (PR #181)
+
+The exact tested revision is recorded in GitHub CI and the generated source-pack receipt. Before merge, require full `npm test`, `npm run check:syntax:all`, native loaded-art review and successful push and pull-request runs of both validation and Level 2 performance on the final head. Retain the actual merged tree in the exported manifest.
+
+The performance harness measures one production draw per shared RAF and forces raster completion. Startup/reload frames remain included. Chase, whole-boss and active undefeated playing-boss medians independently retain the 33.33 ms limit, with at least 80 live-boss samples. Extra diagnostic paints occur after those windows and preserve the actual captured lifecycle and background scale.
+
+Strict native pixel equality, retained source/cel/blur order and Path2D-unavailable fallback remain required. Only actual browser Canvas elements use the light-layer clip; non-DOM Canvas hosts keep their exact original blend path, including when an unrelated HTMLCanvasElement constructor is exposed. Loader checks cover bounded ready/pending memory, registration, failed/unsupported preparation, atomic cel/window failure, source rectangles, filtering and reuse. Chromium checks compare original-source RGB/alpha, full-quality scenes, one mirror blur, warm/paused reuse and scaled callers.
+
+Earlier failed attempts remain in branch history and CI. Head `f09f191d1068fd71b7b76d0f3d7d83e39b783057` passed both performance events: 447 frames each, chase medians 21.8/24.4 ms and live-boss medians 24.1/26.4 ms. Its full regression failed strict native equality. Diagnostic head `26fcade7b3f0cc5f45650d6bacfa9205e6971c13` isolated 45 changed components, maximum delta 2, zero alpha change; enlarging the margin from 2 to 64 device-pixel bounds left the same differences, while disabling light bounds restored exact equality. The production host guard resolves this compatibility issue without changing browser paintings or relaxing the native assertion. These earlier samples do not substitute for final-head checks.
+
+Canonical art/audio bytes, controls, music, simulation/timing, economy, saves and shared owners remain protected. Owner-device FPS, physical-controller, recorded-listening, motion comfort and fun acceptance remain unrecorded. Base/rollback is PR180 `0c821b2fb3b7b60b2b561d7c3a0040810c73181a`.
+
+## October 3 — Level 2 reflection repair verification (PR #180)
+
+The real Chromium test loads production artwork and renders Approach,
+Ready-ONE, earned Perfect/Good, Miss, Reduced Motion and a focused turn with
+the original per-object mirror/SVG path and the repaired reflection/SVG
+path. Moving-state timing includes a raster flush; aggregate complete-frame
+cost must fall by at least 20%, with no scene median regression above 10%.
+Loaded before/after captures must keep mean RGB difference below 1.
+Structural checks require exactly one reflection blur per repaired frame,
+one display context, unchanged gameplay, warm/paused reuse and preservation
+of scaled/translated caller viewport transforms.
+
+Loader checks cover asynchronous preparation, rejection and unsupported
+fallbacks, one preparation attempt per loaded SVG, source rectangles,
+filter/alpha/smoothing, original raster routing and preload/re-entry reuse.
+Non-DOM/native contexts retain the original mirror filter path. Native
+moving-frame diagnostics require 65% less hot SVG work, whole-frame medians
+within 5% of baseline and mean RGB difference below 0.5. Every scene ratio
+and loaded-art capture is retained. Full regression, all-file syntax and
+both exact final-head CI events remain required. The generated receipt
+records exact tested/merged revisions.
+
+After importing repaired main, drive through the ambush/handoff, turns,
+gear/Turbo changes, repeated Good/Perfect hits, damage, pause/re-entry and
+the boss exit. Check stalling/skipping on the actual device; repeat with
+Reduced Motion/Flashes Off. Cache's face, glass labels and marks should stay
+sharp while scenery retains the original blur. Automated diagnostics do not
+assert owner controller feel, listening, fun, comfort or device FPS.
+
+## October 2 — Cache camera and satisfying ground timing
+
+Drive Cache's stage through slow/fast gear changes, steering bends, Turbo,
+damage, opening handoff and the earned boss-to-horizon exit. Watch for abrupt
+camera resets, stale edge pixels, disappearing roadside pieces and frame
+spikes. Check the same transitions with Reduced Motion and Flashes Off.
+
+Read a ground cue's lane and actual mapped button before its approach. Follow
+the closing timing marker, then compare Good and Perfect impacts, real +15/+20
+charge, chain feedback and CHARGED/RUSH threshold payoff. Early/wrong inputs
+must not fake an earned hit; misses must read clearly without hiding traffic.
+Check keyboard, PlayStation/Xbox labels, pause and resumed checkpoints.
+Original judgments, song/addresses, skill access/economy and saved charge stay
+unchanged. Native production review and full regression/syntax/both exact-head
+CI results belong in the export receipt. Owner controller/audio/fun/comfort
+and device frame pacing remain unrecorded until played.
+
+## October 2 — Run polish, signal art and driving scenes review
+
+- Compare walking and running in both directions, including held/released Shift
+  or L2/LT, roofs, pause, jump and repeated transitions. Head/torso registration,
+  planted/airborne boots, phase continuity and the loop join should stay smooth.
+- Trigger Jammer discharge and boss SLAM at all difficulties. Painted warning
+  and active fields must remain distinct, keep the player visible and show the
+  exact original damage boundaries/timing. Collect/use a Signal Amp and verify
+  its physical art and unchanged charge sockets, quiet settings and pause.
+- Enter a fresh Cache Back race. Watch automatic forward motion and the
+  surrounding enemies with no gameplay HUD. A physical staged sideswipe sends
+  one foe offroad; HUD and steering then hand over smoothly without ghost skills
+  or skipped song/pad addresses. Check skip, held buttons, pause and resuming.
+- Earn the real boss/result conditions and watch Cache drive toward the horizon
+  with dialogue before the existing ending. Check outro pause, skip, held
+  confirmation and earned-save reload. No cinematic grants fabricated defeats.
+- Recheck historical v1–3 races, old/current saves, original audio, pedestrian
+  frozen cels, adrenaline, skill controls and the separate Level 3 prototype.
+
+See `RUN_POLISH_SIGNAL_CINEMATICS.md`. Full local regression, all-file syntax,
+native production captures and both exact-head hosted CI events remain required.
+Actual final results belong to the export receipt. Owner Makko, physical
+controller, listening, motion comfort and device pacing remain unrecorded.
+
+## October 2 — Run, required enemies and adrenaline review
+
+- Hold Shift or L2/LT while moving: compare 300-unit walking with grounded
+  450-unit running and twelve 50 ms canonical-style cels. Check both directions,
+  street/roof supports, release, focus loss, remaps, pause, entrance, Rhythm Mode,
+  hacking and the existing single jump.
+- Clear all four encounters normally. Required foes must be reachable on the
+  correct side of closed walls; no automatic defeat credit or skipped gate.
+  Recheck a previously stranded/resumed foe and the twenty-defeat requirement.
+- Compare crowded hacking and dense Level 2 scenes. Native checks retain exact
+  sampled road/mirror pixels while reducing echo/terrain submissions; verify
+  scenery, foreground exits, original blur and quiet settings on the actual
+  device. Scripted/native CPU diagnostics do not prove device FPS.
+- Earn Good/Perfect charge (+15/+20), miss once without loss, then observe
+  −12/−18/−24 for successive misses. Recover through an accurate press; test
+  accepted Turbo −10, Disrupt −14 and genuine wreck −12. Rejected inputs cannot
+  spend charge; pedestrian contacts remain penalty-free.
+- Compare smoothly stronger combat/recharge/ammo/guard/tracking as charge rises.
+  CHARGED/RUSH at 35/70 are intensity markers. All four skills retain their
+  ordinary access at zero charge. Check old/earned saves, pause, original song,
+  all difficulties/gears and anti-duplicate opportunity receipts.
+- Check readable meter/deltas, distinct mapped skill icons, cooldown/active/
+  queued/shot states, two ammo sockets, accepted pad locks and Pause help.
+  Listen for bounded existing gain/tier/loss cues. Struck pedestrians must hold
+  their original contact cel during landing and later mirror passage.
+
+See `RUN_ADRENALINE_PERFORMANCE.md`. Complete final-head regression, all-file
+syntax, production browser and both exact-head CI results remain required and
+belong to the generated export receipt. Owner Makko, physical-controller,
+listening, motion comfort, human balance/fun and device pacing acceptance
+remain unrecorded.
+
+## October 2 — Level 1 walk-in and complete animation pass
+
+Start fresh after the comic and watch 6 Bit walk from completely beyond the left
+screen edge to the existing street spawn. Pause and difficulty selection should
+freeze the walk; checkpoint resumes and tutorial deaths should use normal spawns.
+Inspect idle/performance/walk poses, enemy warnings and drone engines, the boss,
+all 48 Jammer cels, all six HUD conditions, each flying craft, terminals,
+platform/gate/lift status, pickups, collected receivers, Studio Cat and inspection
+props. Compare their distinct cadences and visible local motion without moving
+construction variants or collision supports. Check pause, Reduced Motion and
+Flashes Off. Native production rendering and source hashes are scripted evidence;
+owner Makko, controller, listening, comfort and device pacing remain unrecorded.
+Full regression, all-file syntax and both exact final-head CI events remain
+required; actual final results belong to the export receipt.
+
+## October 2 — custom blood and crew popups
+
+Verify visible red splatters on pedestrian hits and one physical grounded-rider contact, with stable stains under Reduced Motion/Flashes Off. Crew portraits and short readable insults should appear below the mirror, clear of pad/rig guidance, with separate holds for successive hits and frozen ages while paused. Preserve economy, old saves, exact controls and cutscene art. Focused/native/full regression and both exact final-head CI events remain required; final results belong to the export receipt. Owner Makko/controller/audio/comfort/balance/device pacing remains unrecorded.
 
 ## October 1 — street safety and pursuit control review
 

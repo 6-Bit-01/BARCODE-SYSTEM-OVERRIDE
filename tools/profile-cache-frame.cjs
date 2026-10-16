@@ -4,7 +4,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 const {execFileSync}=require('node:child_process');
 const {performance}=require('node:perf_hooks');
-const {createCanvas,loadImage}=require('@napi-rs/canvas');
+const {createCanvas,loadImage,Path2D}=require('@napi-rs/canvas');
 const {createRig}=require('./check-level-01-boss');
 const repo=path.resolve(__dirname,'..');
 process.chdir(repo);
@@ -31,9 +31,14 @@ async function main(){
   for(const file of ['src/core/gamepad-ui.js','src/engine/cache-road-proof-profile.js',
     'src/game/cache-road-landscape.js','src/game/cache-road-guidance.js',
     'src/game/cache-road-encounters.js','src/game/cache-road-reactions.js',
-    'src/game/cache-road-pursuit.js','src/game/cache-road-boss-art.js'])
+    'src/game/cache-road-pursuit.js','src/game/cache-road-boss-art.js',
+    'src/game/cache-road-combat.js','src/game/cache-road-combat-art.js',
+    'src/game/cache-road-crosswalks.js','src/game/cache-road-mirror.js',
+    'src/game/cache-road-crew-callouts.js'])
     if(hasSource(file))vm.runInContext(sourceFor(file),context,{filename:file});
   let source=sourceFor('src/game/cache-road-proof.js');
+  w.Path2D=Path2D;
+  if(process.env.PROFILE_DIRECT_CREST==='1')w.Path2D=undefined;
   const terrainStep=process.env.PROFILE_TERRAIN_STEP;
   if(terrainStep!==undefined) {
     const step=Number(terrainStep),period=Number(source.match(/const grainPeriod=(\d+)/)?.[1]);
@@ -92,8 +97,8 @@ async function main(){
   if(!Number.isFinite(speed)||speed<=0||speed>75)
     throw Error('PROFILE_SPEED must be positive and at most 75 world units/second');
   const scenario=process.env.PROFILE_SCENARIO||'road';
-  if(!['road','traffic','boss'].includes(scenario))
-    throw Error('PROFILE_SCENARIO must be road, traffic or boss');
+  if(!['road','traffic','boss','combat'].includes(scenario))
+    throw Error('PROFILE_SCENARIO must be road, traffic, boss or combat');
   if(scenario==='boss'&&!B.CacheRoadEncounters?.supportedVersion(3))
     throw Error('The selected revision has no version-3 boss showdown');
   let drawCalls=0,filteredDrawCalls=0,clips=0;
@@ -102,7 +107,7 @@ async function main(){
     return drawImage.apply(this,args);};
   ctx.clip=function(...args) {clips++;return clip.apply(this,args);};
   for(const progress of positions){
-    const musicBar=scenario==='boss'?76:scenario==='traffic'?64:Math.floor(progress/100);
+    const musicBar=scenario==='boss'?76:scenario==='traffic'||scenario==='combat'?64:Math.floor(progress/100);
     const state=Object.assign(w.profileNewState(),{progress,elapsedMs:1000,
       lane:0,lanePos:0,visualLane:0,speed,gear:1,timeMs:55000,
       musicBar,musicBeatFloat:scenario==='road'?progress/25:musicBar*4,
@@ -113,7 +118,7 @@ async function main(){
     if(scenario!=='road') {
       const C=B.CacheRoadEncounters,P=B.CacheRoadPursuit,beatSec=60/128;
       if(!C||!P)throw Error('The selected revision lacks encounter/pursuit production modules');
-      const version=C.supportedVersion(3)?3:2;
+      const version=scenario==='combat'?4:C.supportedVersion(3)?3:2;
       road.chapter={records:[],difficultyId:'overclocked',encounterVersion:version};
       state.encounters=C.create('overclocked',version);
       for(let bar=Math.max(4,musicBar-6);bar<=musicBar;bar++) {
@@ -129,7 +134,21 @@ async function main(){
       state.boostMs=500;state.braceMs=500;state.passFlashMs=500;
       state.passSide=1;state.pulseFlashMs=240;state.cutFlashMs=180;
       state.captures=[0,1,2,3].map(lane=>({lane,startBeat:musicBar*4-4,endBeat:musicBar*4+16}));
-      if(scenario==='boss') {
+      if(scenario==='combat') {
+        const combat=B.CacheRoadCombat;
+        if(!combat)throw Error('The selected revision lacks the production combat module');
+        state.combat=combat.create({difficultyId:'overclocked'});
+        // Advance the actual controller to a populated late-road scene. Its
+        // actor phases, physical slots and rig are never synthesized here.
+        for(let frame=0;frame<420;frame++)combat.step(state.combat,50,{
+          progress:progress-420*speed*.05+(frame+1)*speed*.05,
+          lanePos:1.5,speed,bar:musicBar,syncCount:4,invulnerableMs:1e6,
+          actors:C.hazards(state.encounters)});
+      fixture={bar:musicBar,chartVersion:version,
+          civilianActors:C.hazards(state.encounters).length,
+          combatActors:combat.pose(state.combat,{progress,lanePos:1.5,syncCount:4}).actors.length,
+          stagedPresentationFlags:true};
+      } else if(scenario==='boss') {
         state.lane=state.lanePos=state.visualLane=1;
         state.pursuit=P.create({version:3,barFloat:75.9});
         for(let i=0;i<6;i++)P.step(state.pursuit,{before:progress,progress,

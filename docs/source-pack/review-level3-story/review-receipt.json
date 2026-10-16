@@ -1,0 +1,112 @@
+{
+  "status": "passed",
+  "sceneCount": 8,
+  "choiceRepliesChecked": 4,
+  "heroConceptsDecoded": 2,
+  "desktopViewport": [
+    1440,
+    1000
+  ],
+  "mobileViewport": [
+    390,
+    844
+  ],
+  "scope": "Standalone documentation review pages only; no game runtime or physical-device acceptance",
+  "heroImages": [
+    {
+      "src": "review-level3-story/cache-hero-concept-v2.png",
+      "decoded": true,
+      "width": 1860,
+      "height": 845
+    },
+    {
+      "src": "review-level3-story/mac-hero-concept-v2.png",
+      "decoded": true,
+      "width": 1860,
+      "height": 845
+    }
+  ],
+  "desktopLayout": {
+    "viewport": 1440,
+    "document": 1440,
+    "overflow": false
+  },
+  "sceneTitles": [
+    "ORIGINAL DELIVERED",
+    "DELIVERED / UNVERIFIED",
+    "KAVE'S DEAD AIR",
+    "THE HOLD IS LOCAL",
+    "A NOTE IN THE MARGIN",
+    "KEEP THE RECORD STRAIGHT",
+    "STREET ACCESS",
+    "GET IT HEARD"
+  ],
+  "mobileLayout": {
+    "viewport": 390,
+    "document": 390,
+    "overflow": false
+  },
+  "mobileButtons": [
+    {
+      "label": "Who’s waiting?",
+      "width": 134.078125,
+      "height": 47.25
+    },
+    {
+      "label": "What got blocked?",
+      "width": 159.171875,
+      "height": 47.25
+    }
+  ],
+  "errors": [],
+  "failedResources": [],
+  "kaveReferenceGallery": {
+    "status": "passed",
+    "imageCount": 4,
+    "imagesDecoded": 4,
+    "images": [
+      {
+        "src": "https://yt3.googleusercontent.com/nfsHMVHMwBn4txAmc7G30qJYlN3xVEsvb-pQt1s7YdlB9nYZkmWMkxWJ5p03e9bD6o0TAqkB=s900-c-k-c0x00ffffff-no-rj",
+        "decoded": true,
+        "width": 900,
+        "height": 900,
+        "visible": true
+      },
+      {
+        "src": "https://i.ytimg.com/vi/ibt4QBgZyoU/hqdefault.jpg",
+        "decoded": true,
+        "width": 480,
+        "height": 360,
+        "visible": true
+      },
+      {
+        "src": "https://ugc.production.linktr.ee/5254bb56-cf08-47f3-bddd-cda7f0e94f84_1000004234.jpeg?io=true&size=avatar-v3_0",
+        "decoded": true,
+        "width": 400,
+        "height": 400,
+        "visible": true
+      },
+      {
+        "src": "https://i.ytimg.com/vi/NbZXzh3Ex4U/hqdefault.jpg",
+        "decoded": true,
+        "width": 480,
+        "height": 360,
+        "visible": true
+      }
+    ],
+    "desktopLayout": {
+      "viewport": 1440,
+      "document": 1440,
+      "overflow": false
+    },
+    "mobileLayout": {
+      "viewport": 390,
+      "document": 390,
+      "overflow": false
+    },
+    "errors": [],
+    "failedResources": [],
+    "scope": "Four verified public image URLs; browser load availability only, not identity or likeness approval"
+  },
+  "checkedAt": "2026-10-06T00:53:25.126Z"
+}

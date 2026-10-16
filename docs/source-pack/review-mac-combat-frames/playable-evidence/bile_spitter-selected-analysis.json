@@ -1,0 +1,312 @@
+{
+  "sourceImage": "verification\\mac-frame-animation-20261006\\enemy-generation\\bile_spitter\\candidate-padding-walk-v2.png",
+  "sourceSHA256": "394f393f9f790cfff985d578bd9c52f00864e7cf925eeb097fefcf1ec1f7aa8f",
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "frames": [
+    {
+      "id": "idle",
+      "source": {
+        "x": 0,
+        "y": 0,
+        "width": 366,
+        "height": 403
+      },
+      "feetPivot": {
+        "x": 189.5,
+        "y": 374
+      },
+      "visibleBounds": {
+        "x": 88,
+        "y": 96,
+        "width": 203,
+        "height": 278
+      },
+      "transparentMargins": {
+        "left": 88,
+        "top": 96,
+        "right": 75,
+        "bottom": 29
+      }
+    },
+    {
+      "id": "walk_contact_a",
+      "source": {
+        "x": 366,
+        "y": 0,
+        "width": 371,
+        "height": 403
+      },
+      "feetPivot": {
+        "x": 199.5,
+        "y": 372
+      },
+      "visibleBounds": {
+        "x": 76,
+        "y": 96,
+        "width": 225,
+        "height": 276
+      },
+      "transparentMargins": {
+        "left": 76,
+        "top": 96,
+        "right": 70,
+        "bottom": 31
+      }
+    },
+    {
+      "id": "walk_pass",
+      "source": {
+        "x": 737,
+        "y": 0,
+        "width": 338,
+        "height": 403
+      },
+      "feetPivot": {
+        "x": 111.0,
+        "y": 375
+      },
+      "visibleBounds": {
+        "x": 70,
+        "y": 96,
+        "width": 199,
+        "height": 279
+      },
+      "transparentMargins": {
+        "left": 70,
+        "top": 96,
+        "right": 69,
+        "bottom": 28
+      }
+    },
+    {
+      "id": "walk_contact_b",
+      "source": {
+        "x": 1075,
+        "y": 0,
+        "width": 373,
+        "height": 403
+      },
+      "feetPivot": {
+        "x": 194.0,
+        "y": 374
+      },
+      "visibleBounds": {
+        "x": 70,
+        "y": 105,
+        "width": 236,
+        "height": 269
+      },
+      "transparentMargins": {
+        "left": 70,
+        "top": 105,
+        "right": 67,
+        "bottom": 29
+      }
+    },
+    {
+      "id": "tell_a",
+      "source": {
+        "x": 0,
+        "y": 403,
+        "width": 371,
+        "height": 329
+      },
+      "feetPivot": {
+        "x": 196.5,
+        "y": 308
+      },
+      "visibleBounds": {
+        "x": 74,
+        "y": 29,
+        "width": 247,
+        "height": 279
+      },
+      "transparentMargins": {
+        "left": 74,
+        "top": 29,
+        "right": 50,
+        "bottom": 21
+      }
+    },
+    {
+      "id": "impact_a",
+      "source": {
+        "x": 371,
+        "y": 403,
+        "width": 360,
+        "height": 329
+      },
+      "feetPivot": {
+        "x": 180.5,
+        "y": 308
+      },
+      "visibleBounds": {
+        "x": 50,
+        "y": 70,
+        "width": 260,
+        "height": 238
+      },
+      "transparentMargins": {
+        "left": 50,
+        "top": 70,
+        "right": 50,
+        "bottom": 21
+      }
+    },
+    {
+      "id": "recover",
+      "source": {
+        "x": 731,
+        "y": 403,
+        "width": 327,
+        "height": 329
+      },
+      "feetPivot": {
+        "x": 164.0,
+        "y": 310
+      },
+      "visibleBounds": {
+        "x": 51,
+        "y": 54,
+        "width": 231,
+        "height": 256
+      },
+      "transparentMargins": {
+        "left": 51,
+        "top": 54,
+        "right": 45,
+        "bottom": 19
+      }
+    },
+    {
+      "id": "tell_b",
+      "source": {
+        "x": 1058,
+        "y": 403,
+        "width": 390,
+        "height": 329
+      },
+      "feetPivot": {
+        "x": 197.0,
+        "y": 310
+      },
+      "visibleBounds": {
+        "x": 46,
+        "y": 59,
+        "width": 293,
+        "height": 251
+      },
+      "transparentMargins": {
+        "left": 46,
+        "top": 59,
+        "right": 51,
+        "bottom": 19
+      }
+    },
+    {
+      "id": "impact_b",
+      "source": {
+        "x": 0,
+        "y": 732,
+        "width": 402,
+        "height": 354
+      },
+      "feetPivot": {
+        "x": 201.0,
+        "y": 294
+      },
+      "visibleBounds": {
+        "x": 65,
+        "y": 75,
+        "width": 270,
+        "height": 219
+      },
+      "transparentMargins": {
+        "left": 65,
+        "top": 75,
+        "right": 67,
+        "bottom": 60
+      }
+    },
+    {
+      "id": "hurt",
+      "source": {
+        "x": 402,
+        "y": 732,
+        "width": 332,
+        "height": 354
+      },
+      "feetPivot": {
+        "x": 195.5,
+        "y": 290
+      },
+      "visibleBounds": {
+        "x": 68,
+        "y": 20,
+        "width": 239,
+        "height": 270
+      },
+      "transparentMargins": {
+        "left": 68,
+        "top": 20,
+        "right": 25,
+        "bottom": 64
+      }
+    },
+    {
+      "id": "fall",
+      "source": {
+        "x": 734,
+        "y": 732,
+        "width": 330,
+        "height": 354
+      },
+      "feetPivot": {
+        "x": 152.5,
+        "y": 271
+      },
+      "visibleBounds": {
+        "x": 26,
+        "y": 56,
+        "width": 286,
+        "height": 215
+      },
+      "transparentMargins": {
+        "left": 26,
+        "top": 56,
+        "right": 18,
+        "bottom": 83
+      }
+    },
+    {
+      "id": "down",
+      "source": {
+        "x": 1064,
+        "y": 732,
+        "width": 384,
+        "height": 354
+      },
+      "feetPivot": {
+        "x": 172.0,
+        "y": 289
+      },
+      "visibleBounds": {
+        "x": 18,
+        "y": 169,
+        "width": 329,
+        "height": 120
+      },
+      "transparentMargins": {
+        "left": 18,
+        "top": 169,
+        "right": 37,
+        "bottom": 65
+      }
+    }
+  ],
+  "analysis": "Alpha >8, measured nonuniform row/figure separation and lowest18-row opaque-strip midpoint; no pixels changed",
+  "edgeContacts": []
+}

@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "records": [
+    {
+      "schemaVersion": 1,
+      "id": "scene03-kave-dead-air-v4",
+      "status": "superseded-framing-refinement-preserved",
+      "tool": "image_gen.imagegen",
+      "toolArguments": {
+        "prompt": "Use case: identity-preserve.\nAsset type: revised detailed comic game cutscene, wide landscape 1860x845.\nPrimary request: Replace the rejected open-street booth environment in image 1 with a credible FULLY ENCLOSED INDOOR BROADCAST STUDIO. Correct human, desk, microphone, equipment and room scale. Preserve KaveMan Brown's recognizable facial identity, cropped fade, no-hat appearance, broad rounded full beard, casual black short-sleeved top with hood DOWN, small ear stud and geometric triangular pendant. This is an interior-location and proportion correction, not a new person.\nInput images: Image 1 is the prior illustrated Kave identity, inked style and equipment reference. Its open storefront wall and giant person/building proportions are REJECTED; do not preserve those architectural/scale errors. Image 2 is the artist's sharp real first-party selfie: facial proportions, eyes, brows, nose, broad shaped lower beard and triangular pendant only; NEVER reproduce its baseball cap. Image 3 is his actual own Instagram no-hat two-panel post: both panels are Kave, especially the RIGHT panel's broader rounded beard, uncovered cropped hairline and ordinary adult build. Image 4 is his real frontal TikTok frame: facial identity/expression only, no hood up. Image 5 is the sharper secondary car portrait of the same real artist: supporting face/ear-stud proportions, not a new angle or costume reference.\nScene architecture: Camera is INSIDE a normal modest single-room broadcast/review studio, looking across the desk toward Kave. The room is approximately 4 by 4 meters with a normal intact ceiling about 2.6 meters high. Solid continuous interior walls meet the ceiling and floor; one closed full-height 2-meter door with handle and plausible hinges visibly establishes scale, plus a SMALL closed glazed window with a real frame, sill and pane reflections looking toward the wet neighborhood outside. The window occupies only a small part of the background, not the whole wall. No missing facade, no street-facing opening, no giant serving hatch, no outdoor desk, no dollhouse cutaway and no stage-like open wall. Camera sees actual indoor room boundaries. Show a modest portion of intact ceiling and normal floor; do not imply a room constructed around a giant man.\nSubject/ergonomics: Kave is seated comfortably on a normal adjustable studio chair, ordinary stocky adult human proportions. His height relative to the full-size door, desk, chair and room must be believable. Desk surface is near seated elbow height, approximately 0.75 meters high and 1.7 meters wide, with normal forearm reach to a keyboard/control pad. Two ordinary 24-inch desktop monitors, small nearfield speakers, a normal 15-20cm microphone on a plausible attached boom, headphones, submission cassette trays and a small mixer are physically supported on the desk. The microphone should be appropriately scaled beside his mouth, not enormous. Hands with five fingers connect naturally to forearms; one hand lightly gestures, the other rests naturally on the mixer or tabletop. No floating equipment or outsized furniture. His familiar full broad rounded lower beard must stay textured and recognizable, never a pointed goatee.\nComposition/framing: Wide interior establishing medium shot from ordinary seated/standing eye height, about three meters from the subject. Kave is center-left behind the desk, enough torso/arm/desk and background architecture visible to read realistic scale. The closed full-height door is visible behind/to one side; the small glazed neighborhood window is behind the other side. Equipment uses normal perspective, aligned vanishing lines and plausible contact shadows. Leave a quiet upper/right wall area for authored dialogue overlays without sacrificing the intact-room composition.\nStyle/light: Match image 1's detailed sharp BARCODE painted comic inks, warm practical amber studio lights and restrained cyan/purple monitor/neighborhood accents. Indoor surfaces stay dry. The outside wet neon neighborhood appears only THROUGH the small closed glass window. Keep the real facial geometry with nuanced skin, forehead, eyes, beard and cropped hair; avoid a generic invented face. Waveforms may appear on monitors with cyan local-monitoring and amber outbound-track colors but no baked words, labels, dialogue, signatures or watermarks.\nConstraints: No hat of any kind, no cowboy clothes, hood down, short cropped fade visible, broad rounded beard, black casual short-sleeved top, triangular pendant and small ear stud. No other people. No open wall or street booth. No enormous head/person/microphone relative to furniture or building. No fantasy giant proportions, mini doorway, shallow facade pretending to be a room, distorted hands, unsupported objects or camera fisheye. Keep prior art versions and source photos conceptually separate; this is a new corrected candidate awaiting owner review.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/scene03-kave-dead-air-v3.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-kave-likeness/references/kave-linktree-selfie-990.jpg",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-kave-likeness/references/kave-instagram-nohat-two-panel-361.jpg",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-kave-likeness/references/kave-7688807440946580749-decoded.png",
+          "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-kave-likeness/references/kave-soundcloud-face-1080.jpg"
+        ],
+        "transparent_background": false
+      },
+      "toolOutputHint": "Generated images are saved to C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-8835-7200-8970-75f79ec67e48 as C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-8835-7200-8970-75f79ec67e48\\exec-ebc811f6-955e-4d95-be9e-a9c0bb3535cb.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-8835-7200-8970-75f79ec67e48/exec-ebc811f6-955e-4d95-be9e-a9c0bb3535cb.png",
+      "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v4.png",
+      "sha256": "d8c6939879bb27209f95138b87fce50692ef7bc17fab961cf89b68a608c60355",
+      "bytes": 2254841,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG"
+      },
+      "references": [
+        {
+          "index": 1,
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/scene03-kave-dead-air-v3.png",
+          "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v3.png",
+          "sha256": "babff824674c90b76fb08a0bfe3cfb5720bc314d1dd391fbc4e5ba84dea7b738",
+          "bytes": 2516405,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG"
+          },
+          "previousRuntimePath": "assets/mac-street-review/scene03-kave-dead-air-v3.png"
+        },
+        {
+          "index": 2,
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-kave-likeness/references/kave-linktree-selfie-990.jpg",
+          "path": "docs/source-pack/review-kave-likeness/references/kave-linktree-selfie-990.jpg",
+          "sha256": "5cda4f4c2836e07b3bd233d3cfd3c2017970a05e1c4f2ae5accce46bd49f6c83",
+          "bytes": 116947,
+          "dimensions": {
+            "width": 990,
+            "height": 990,
+            "format": "JPEG"
+          }
+        },
+        {
+          "index": 3,
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-kave-likeness/references/kave-instagram-nohat-two-panel-361.jpg",
+          "path": "docs/source-pack/review-kave-likeness/references/kave-instagram-nohat-two-panel-361.jpg",
+          "sha256": "5d0ad098947abe3411fd6aab1d790b4e09b1410ee8deface7cf3551dd66f3144",
+          "bytes": 23270,
+          "dimensions": {
+            "width": 361,
+            "height": 640,
+            "format": "JPEG"
+          }
+        },
+        {
+          "index": 4,
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-kave-likeness/references/kave-7688807440946580749-decoded.png",
+          "path": "docs/source-pack/review-kave-likeness/references/kave-7688807440946580749-decoded.png",
+          "sha256": "bf7e02847a256057ffaa64969b9f9db537d0cccc06dc9cd1e849184c6cb9994b",
+          "bytes": 197033,
+          "dimensions": {
+            "width": 405,
+            "height": 720,
+            "format": "PNG"
+          }
+        },
+        {
+          "index": 5,
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-kave-likeness/references/kave-soundcloud-face-1080.jpg",
+          "path": "docs/source-pack/review-kave-likeness/references/kave-soundcloud-face-1080.jpg",
+          "sha256": "aa177988d38db7dbd4cca7fbf998d8c8a1a1568525d4759152c15caf42bf15c3",
+          "bytes": 156083,
+          "dimensions": {
+            "width": 1080,
+            "height": 1080,
+            "format": "JPEG"
+          }
+        }
+      ],
+      "ownerAccepted": false,
+      "acceptedForCampaign": false,
+      "pixelDerivation": "Original built-in generated PNG copied unchanged; no crop, resize, re-encoding or pixel edits.",
+      "ownerCorrection": "Replace rejected open-wall storefront and oversized equipment/person staging with a believable fully enclosed broadcast studio.",
+      "visualInspection": {
+        "method": "Direct original-resolution inspection of actual generated output",
+        "solidWalls": true,
+        "closedFullHeightDoor": true,
+        "smallClosedGlazedWindow": true,
+        "normalHumanDeskMicrophoneScale": true,
+        "noHat": true,
+        "croppedFade": true,
+        "fullRoundedBeard": true,
+        "hoodDown": true,
+        "intactCeilingVisible": false,
+        "framingNotes": "v5 visibly shows ceiling/wall joins and ordinary door/desk scale; v4 retained as first enclosed-room candidate whose ceiling was outside the crop.",
+        "limitations": "Visual production inspection is not owner likeness acceptance or runtime/device validation."
+      }
+    },
+    {
+      "schemaVersion": 1,
+      "id": "scene03-kave-dead-air-v5",
+      "status": "candidate-owner-likeness-and-studio-review-pending",
+      "tool": "image_gen.imagegen",
+      "toolArguments": {
+        "prompt": "Use case: identity-preserve.\nAsset type: final framing refinement of the enclosed Kave broadcast studio game-panel candidate, wide 1860x845.\nEdit IMAGE 1. Preserve its actual Kave face exactly: cropped fade, no hat, full broad rounded black beard, brows/eyes/nose/mouth/skin, small ear stud, black short-sleeved hood-down top, triangular pendant, chair, ordinary desk/mic/monitor scale, gesture and natural hands. Preserve the enclosed room's continuous solid walls, full-height CLOSED door, closed framed glazed small window and indoor dry floor. It is already an enclosed interior; do not reopen the facade.\nMake one composition/architecture correction: pull the camera back slightly and frame slightly higher so a CONTINUOUS CLEAR STRIP OF THE INTACT CEILING is visibly included across the entire top 12-15 percent of the picture. The ceiling physically joins both solid walls at clean perspective corners; show a modest recessed ceiling light and no exposed sky or structural break. A complete ordinary studio room, not a facade/open booth/cutaway. Human and desk become slightly smaller in the wider interior view while remaining readable. Show the complete closed normal door from top header to threshold as a reliable scale cue. The window remains small, closed glass with a real frame/sill/reflections; rainy neighborhood only outside that glass.\nRemove the invented gold-record award plaques and the small humanoid/gorilla figurine above the shelves. Replace those exact wall spaces with plain acoustic panels/neutral studio storage, without invented honors or new characters. Maintain the existing practical amber indoor light and restrained cyan/purple monitor/window light, detailed inked BARCODE comic texture and believable adult/building/equipment proportions.\nAvoid any other identity/costume changes, narrowing the rounded beard to a point, cap/hat, hood up, additional people, large window opening, street-facing serving hatch, absent wall/ceiling, giant human/mic/desk, dollhouse camera, fisheye, floating gear, duplicated hands, text, labels, signatures or watermark. Upper/right interior wall provides quiet authored-dialogue space. This is an unapproved candidate, not a likeness acceptance.",
+        "referenced_image_paths": [
+          "C:/Users/jondh/.codex/generated_images/01a10de1-8835-7200-8970-75f79ec67e48/exec-ebc811f6-955e-4d95-be9e-a9c0bb3535cb.png"
+        ],
+        "transparent_background": false
+      },
+      "toolOutputHint": "Generated images are saved to C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-8835-7200-8970-75f79ec67e48 as C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-8835-7200-8970-75f79ec67e48\\exec-0b67f319-dbb3-4505-8e88-ae933661321b.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link.",
+      "originalGeneratedPath": "C:/Users/jondh/.codex/generated_images/01a10de1-8835-7200-8970-75f79ec67e48/exec-0b67f319-dbb3-4505-8e88-ae933661321b.png",
+      "path": "assets/mac-street-review/scene03-kave-dead-air-v5.png",
+      "sha256": "df4423bee517088f6f8f17f9bebf4db812d970aaff99e89c8c1799a97b5633f7",
+      "bytes": 2246609,
+      "dimensions": {
+        "width": 1860,
+        "height": 845,
+        "format": "PNG"
+      },
+      "references": [
+        {
+          "index": 1,
+          "originalPathAtGeneration": "C:/Users/jondh/.codex/generated_images/01a10de1-8835-7200-8970-75f79ec67e48/exec-ebc811f6-955e-4d95-be9e-a9c0bb3535cb.png",
+          "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v4.png",
+          "sha256": "d8c6939879bb27209f95138b87fce50692ef7bc17fab961cf89b68a608c60355",
+          "bytes": 2254841,
+          "dimensions": {
+            "width": 1860,
+            "height": 845,
+            "format": "PNG"
+          }
+        }
+      ],
+      "ownerAccepted": false,
+      "acceptedForCampaign": false,
+      "pixelDerivation": "Original built-in generated PNG copied unchanged; no crop, resize, re-encoding or pixel edits.",
+      "ownerCorrection": "Replace rejected open-wall storefront and oversized equipment/person staging with a believable fully enclosed broadcast studio.",
+      "visualInspection": {
+        "method": "Direct original-resolution inspection of actual generated output",
+        "solidWalls": true,
+        "closedFullHeightDoor": true,
+        "smallClosedGlazedWindow": true,
+        "normalHumanDeskMicrophoneScale": true,
+        "noHat": true,
+        "croppedFade": true,
+        "fullRoundedBeard": true,
+        "hoodDown": true,
+        "intactCeilingVisible": true,
+        "framingNotes": "v5 visibly shows ceiling/wall joins and ordinary door/desk scale; v4 retained as first enclosed-room candidate whose ceiling was outside the crop.",
+        "limitations": "Visual production inspection is not owner likeness acceptance or runtime/device validation."
+      }
+    }
+  ],
+  "selectedCandidateId": "scene03-kave-dead-air-v5",
+  "ownerAccepted": false,
+  "preservesPreviousRecords": [
+    "generation-provenance.json",
+    "owner-corrections-provenance.json"
+  ],
+  "historicalStatus": [
+    {
+      "id": "scene03-kave-dead-air-v3",
+      "status": "owner-rejected-open-wall-room-and-scale",
+      "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v3.png",
+      "previousRuntimePath": "assets/mac-street-review/scene03-kave-dead-air-v3.png"
+    },
+    {
+      "id": "scene03-kave-dead-air-v1",
+      "status": "owner-rejected-cowboy-likeness",
+      "path": "docs/source-pack/review-mac-street-art/candidates/scene03-kave-dead-air-v1.png"
+    }
+  ]
+}

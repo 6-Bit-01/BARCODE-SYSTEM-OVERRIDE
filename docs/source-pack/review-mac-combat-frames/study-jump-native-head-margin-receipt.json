@@ -1,0 +1,91 @@
+{
+  "status": "PASS",
+  "sourceSHA256": "ffb03183717c172c788848a446f7bfa0b1ee79b1c4ea0fbe47f41e1a7afea9ed",
+  "standingHeight": 458,
+  "flightMs": 746.6666666666667,
+  "physicsApex": 104.53333333333333,
+  "assumptions": "Root planned flight phases, 760 contact floor, native body scale260/458, no horizontal travel. Conservative actual physics apex rather than linear chord approximation. Native pixels read only.",
+  "checks": [
+    {
+      "frame": "load",
+      "nativeVisibleBoundsMatch": true,
+      "maxPhysicsLift": 0,
+      "baselineLift": 0,
+      "topMarginAt2x": 391.004,
+      "leftAt2x": 788.559,
+      "rightAt2x": 1129.17,
+      "insideStage": true
+    },
+    {
+      "frame": "takeoff",
+      "nativeVisibleBoundsMatch": true,
+      "maxPhysicsLift": 48.5,
+      "baselineLift": 0.0,
+      "topMarginAt2x": 143.0,
+      "leftAt2x": 773.799,
+      "rightAt2x": 1112.14,
+      "insideStage": true
+    },
+    {
+      "frame": "chamber",
+      "nativeVisibleBoundsMatch": true,
+      "maxPhysicsLift": 86.9,
+      "baselineLift": 13.624,
+      "topMarginAt2x": 88.907,
+      "leftAt2x": 807.86,
+      "rightAt2x": 1105.328,
+      "insideStage": true
+    },
+    {
+      "frame": "kick_extend",
+      "nativeVisibleBoundsMatch": true,
+      "maxPhysicsLift": 102.4,
+      "baselineLift": 58.472,
+      "topMarginAt2x": 45.418,
+      "leftAt2x": 840.786,
+      "rightAt2x": 1336.943,
+      "insideStage": true
+    },
+    {
+      "frame": "kick_contact",
+      "nativeVisibleBoundsMatch": true,
+      "maxPhysicsLift": 104.533,
+      "baselineLift": 49.956,
+      "topMarginAt2x": 83.16,
+      "leftAt2x": 804.454,
+      "rightAt2x": 1347.162,
+      "insideStage": true
+    },
+    {
+      "frame": "kick_retract",
+      "nativeVisibleBoundsMatch": true,
+      "maxPhysicsLift": 102.9,
+      "baselineLift": 22.14,
+      "topMarginAt2x": 68.261,
+      "leftAt2x": 835.109,
+      "rightAt2x": 1124.629,
+      "insideStage": true
+    },
+    {
+      "frame": "descent",
+      "nativeVisibleBoundsMatch": true,
+      "maxPhysicsLift": 88.4,
+      "baselineLift": 7.948,
+      "topMarginAt2x": 97.261,
+      "leftAt2x": 797.642,
+      "rightAt2x": 1137.118,
+      "insideStage": true
+    },
+    {
+      "frame": "landing",
+      "nativeVisibleBoundsMatch": true,
+      "maxPhysicsLift": 0,
+      "baselineLift": 0,
+      "topMarginAt2x": 380.786,
+      "leftAt2x": 797.642,
+      "rightAt2x": 1111.004,
+      "insideStage": true
+    }
+  ],
+  "publication": "Not deployed"
+}

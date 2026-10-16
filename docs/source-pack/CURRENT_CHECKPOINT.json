@@ -1,32 +1,29 @@
 {
-  "schemaVersion": 1,
-  "recordedAtUtc": "2026-10-02T10:32:00Z",
+  "schemaVersion": 2,
+  "recordedAtUtc": "2026-10-15T23:49:00Z",
   "mergedCheckpoint": {
     "branch": "main",
-    "pullRequest": 172,
-    "revision": "351f9885397ca8aaf8ec2600c3b530ec144f1b28",
-    "summary": "Crosswalks, grounded rider splats, sustained mirror moods and controlled pursuit spacing; cutscene artwork unchanged"
+    "pullRequest": 192,
+    "revision": "59427681c18f289e539f18f2c1ea89d61f88d1e1",
+    "summary": "Current main through saved Flash accents preference repair; retains later GPU rendering, mobile controls, standalone runtime and Mac chapter work"
   },
   "activeWork": {
     "status": "review",
-    "task": "Continuation/source-pack checkpoint consistency",
+    "task": "Reconcile checkpoint synchronization and source-pack export integrity with current main",
     "branch": "agent/checkpoint-consistency",
-    "baseRevision": "351f9885397ca8aaf8ec2600c3b530ec144f1b28",
-    "scope": "One checkpoint record, synchronized current headers and drift validation; preserve history and the existing exact-revision source-pack automation; no gameplay or roadmap changes"
+    "baseRevision": "59427681c18f289e539f18f2c1ea89d61f88d1e1",
+    "scope": "Preserve all current gameplay, assets, review evidence, owner constraints and existing validation gates; add synchronized dated headers and committed-tree export preflight only"
   },
   "automatedValidation": {
-    "revision": "d29da48e5e1a397fb7adf273316df843f5ce6c99",
-    "status": "passed",
-    "scope": "PR #172 final head: full regression, all-file syntax and hosted Chromium checks on both push and pull_request events; this is prior gameplay evidence, not validation of the current documentation review",
-    "evidence": [
-      "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36966098995",
-      "https://github.com/6-Bit-01/BARCODE-SYSTEM-OVERRIDE/actions/runs/36966100957"
-    ]
+    "revision": "59427681c18f289e539f18f2c1ea89d61f88d1e1",
+    "status": "not-recorded",
+    "scope": "No new workflow evidence is recorded here for this reconciliation; exact tested review revisions and results belong to the PR and export receipts",
+    "evidence": []
   },
   "humanAcceptance": {
     "status": "not-recorded",
-    "scope": "Owner Makko, physical controller, listening/audio, motion comfort, human balance/fun and device frame pacing for the merged checkpoint",
-    "evidence": "No new owner acceptance recorded; scripted/native/CI results remain separate"
+    "scope": "No new owner device, controller, listening, motion comfort, balance or frame-pacing acceptance is established by this maintenance review",
+    "evidence": "Preserve all scoped owner acceptance and limitations in the dated records below; automated checks do not add human acceptance"
   },
-  "nextStep": "Review the checkpoint-consistency draft and its exact-head checks; no merge or deployment is authorized for this maintenance task. Recheck remote work before any continuation"
+  "nextStep": "Finish and review PR #173 exact-head checks and preservation evidence under the owner's October 15 merge-or-close request; the coordinating parent handles merge or closure decisions. Recheck remote state before continuation; this repair performs no deployment"
 }

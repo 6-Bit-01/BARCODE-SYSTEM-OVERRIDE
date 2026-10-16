@@ -1,0 +1,29 @@
+{
+  "actorsRegistered": 8,
+  "pendingActors": [],
+  "files": [
+    "assets/mac-combat-frames/bile_spitter-frames-v1.json",
+    "assets/mac-combat-frames/bile_spitter-frames-v2.png",
+    "assets/mac-combat-frames/chitin_scuttler-frames-v1.json",
+    "assets/mac-combat-frames/chitin_scuttler-frames-v1.png",
+    "assets/mac-combat-frames/mac-advanced-v1.png",
+    "assets/mac-combat-frames/mac-basic-v2.png",
+    "assets/mac-combat-frames/mac-combat-frames-v1.json",
+    "assets/mac-combat-frames/mac-frames-v1.json",
+    "assets/mac-combat-frames/mac-jump-kick-v1.png",
+    "assets/mac-combat-frames/mac-walk-contacts-v1.png",
+    "assets/mac-combat-frames/mac-walk-v1.png",
+    "assets/mac-combat-frames/null_regent-frames-v1.json",
+    "assets/mac-combat-frames/null_regent-frames-v2.png",
+    "assets/mac-combat-frames/prism_guard-frames-v1.json",
+    "assets/mac-combat-frames/prism_guard-frames-v1.png",
+    "assets/mac-combat-frames/psion_lancer-frames-v1.json",
+    "assets/mac-combat-frames/psion_lancer-frames-v1.png",
+    "assets/mac-combat-frames/rift_stalker-frames-v1.json",
+    "assets/mac-combat-frames/rift_stalker-frames-v1.png",
+    "assets/mac-combat-frames/shock_mantid-frames-v1.json",
+    "assets/mac-combat-frames/shock_mantid-frames-v1.png"
+  ],
+  "macCels": 42,
+  "nativePixelsChanged": false
+}

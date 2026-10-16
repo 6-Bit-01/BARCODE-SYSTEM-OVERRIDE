@@ -223,7 +223,7 @@ pass('boss cinematic Rhythm Mode ownership');
     assert(Math.abs(hitbox.y + hitbox.height - establishedCombatHulls[state].bottom) < 0.000001, `${state} uses the same foot-relative damage boundary`);
   }
 
-  const drawContext = { save(){}, restore(){} };
+  const drawContext = { save(){}, restore(){}, transform(){} };
   for (const state of states) {
     player.state = state;
     player.animationRef = { currentFrame: 0 };
@@ -280,13 +280,15 @@ pass('boss cinematic Rhythm Mode ownership');
   };
   player.updateState();
   assert(player.state === 'idle' && !rhythm.active, 'boss cinematic selects a neutral pose after progression ends Rhythm Mode');
+  const neutralPosition = { x:player.position.x, y:player.position.y };
   player.updateSpriteAnimation(16);
-  assert(spriteCalls.played.at(-1) === '6_bit_idle_idle' && spriteCalls.updated === 0, 'cinematic replaces the attack frame with a frozen neutral frame without requiring optional sprite pause APIs');
+  assert(spriteCalls.played.at(-1) === '6_bit_idle_idle' && spriteCalls.updated === 1, 'cinematic replaces the attack frame with a live neutral idle through the shared animation clock');
+  assert(player.position.x === neutralPosition.x && player.position.y === neutralPosition.y && !rhythm.active, 'living cinematic idle cannot move the actor or reactivate Rhythm Mode');
   cinematicActive = false;
   player.updateState();
   player.updateSpriteAnimation(16);
   assert(player.state === 'idle' && !rhythm.active, 'presentation handoff cannot reactivate Rhythm Mode');
-  assert(spriteCalls.played.at(-1) === '6_bit_idle_idle' && spriteCalls.updated === 1, 'cinematic release resumes locomotion-owned animation through the normal update path');
+  assert(spriteCalls.played.at(-1) === '6_bit_idle_idle' && spriteCalls.updated === 2, 'cinematic release preserves the locomotion-owned animation through the normal update path');
 }
 pass('frame-aware player foot anchoring and cinematic rhythm handoff');
 
@@ -483,7 +485,7 @@ pass('beat-gated PlayerCombat damage');
   const s = sandbox(); s.window.Particle = class Particle {}; s.window.particleSystem = { particles:[], enemySpawnEffect(){}, impact(){ this.impacted = (this.impacted || 0) + 1; }, stompEffect(...args){ this.stomps = [...(this.stomps || []), args]; } };
   load(s, 'src/game/player.js'); const player = new s.window.Player(200, 500);
   assert(typeof player.createEntranceExplosion === 'function', 'Player.createEntranceExplosion exists');
-  player.isEntering = true; player.entranceStartTime = Date.now() - player.entranceDuration - 1; player.updateEntranceAnimation(16); assert(!player.isEntering, 'Entrance completion does not throw');
+  player.startEntranceAnimation(); player.updateEntranceAnimation(player.entranceDuration); assert(!player.isEntering && player.position.x === 200, 'Shared-delta walk-in completes at the ordinary spawn');
   load(s, 'src/game/enemies.js');
 
   const entering = new s.window.Enemy(0, 650, 'virus');

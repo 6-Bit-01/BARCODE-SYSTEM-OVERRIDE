@@ -1,0 +1,95 @@
+{
+  "sourceImage": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\docs\\source-pack\\review-mac-combat-frames\\art\\mac-walk-contacts-v1.png",
+  "sourceSHA256": "046be2474814495be239db517c3cdd82ed3a643c82f441a90b2a37613b86b6f6",
+  "dimensions": {
+    "width": 1774,
+    "height": 887
+  },
+  "frames": [
+    {
+      "id": "walk_contact_left",
+      "source": {
+        "x": 0,
+        "y": 0,
+        "width": 897,
+        "height": 887
+      },
+      "feetPivot": {
+        "x": 470.0,
+        "y": 842
+      },
+      "visibleBounds": {
+        "x": 129,
+        "y": 17,
+        "width": 713,
+        "height": 825
+      },
+      "transparentMargins": {
+        "left": 129,
+        "top": 17,
+        "right": 55,
+        "bottom": 45
+      },
+      "standingVisibleHeight": 825
+    },
+    {
+      "id": "walk_contact_right",
+      "source": {
+        "x": 897,
+        "y": 0,
+        "width": 877,
+        "height": 887
+      },
+      "feetPivot": {
+        "x": 373.0,
+        "y": 851
+      },
+      "visibleBounds": {
+        "x": 55,
+        "y": 17,
+        "width": 727,
+        "height": 834
+      },
+      "transparentMargins": {
+        "left": 55,
+        "top": 17,
+        "right": 95,
+        "bottom": 36
+      },
+      "standingVisibleHeight": 825
+    }
+  ],
+  "analysis": "Read-only PIL alpha >8 measurement; nonuniform figure separation. feetPivot.x manually calibrated to waist/pelvis projection (sheet x 470,1270), feetPivot.y measured lowest opaque shoe row. Uniform standingVisibleHeight uses the first contact visible height, 825. Native PNG bytes preserved.",
+  "edgeContacts": [],
+  "standingVisibleHeight": 825,
+  "pivotCalibration": {
+    "method": "manual visual pelvis projection",
+    "absoluteSheetX": [
+      470,
+      1270
+    ],
+    "localSourceX": [
+      470,
+      373
+    ],
+    "automaticLowestShoeMidpointReplaced": [
+      482,
+      401
+    ],
+    "lowestShoeY": [
+      842,
+      851
+    ],
+    "standingHeightReference": "walk_contact_left",
+    "standingVisibleHeight": 825
+  },
+  "visualVerdict": {
+    "genuineOppositeLegContacts": true,
+    "nearLeftArmReverses": true,
+    "bothFacingRight": true,
+    "fullFiguresUncut": true,
+    "styleIdentityPreserved": true,
+    "tenPercentEmptyGutters": false,
+    "notes": "Contact A near/foreground left leg extends right and tattooed arm swings back; Contact B near/foreground left leg extends left and tattooed arm swings forward. Native outer margins are narrower than requested 10 percent."
+  }
+}

@@ -4,7 +4,8 @@ window.FILE_MANIFEST = window.FILE_MANIFEST || [];
 window.FILE_MANIFEST.push({ name: 'src/core/gamepad-ui.js', exports: ['BARCODE.GamepadUI', 'BARCODE.ControllerSettings'], dependencies: [] });
 (function() {
   const B = window.BARCODE = window.BARCODE || {};
-  const levelDefaults = { jump: 0, primary: 0, interact: 3, rhythm_mode: 4, inspect: 5 };
+  const priorLevelDefaults = { jump: 0, primary: 0, interact: 3, rhythm_mode: 4, inspect: 5 };
+  const levelDefaults = { ...priorLevelDefaults, run: 6 };
   const roadDefaults = { road_attack: 5, road_turbo: 4, road_defend: 7, road_disrupt: 6 };
   const defaults = { ...levelDefaults, ...roadDefaults };
   const allowed = [0, 2, 3, 4, 5, 6, 7, 10, 11];
@@ -23,11 +24,16 @@ window.FILE_MANIFEST.push({ name: 'src/core/gamepad-ui.js', exports: ['BARCODE.G
         if (Number.isFinite(data.deadzone)) this.deadzone = Math.max(0.1, Math.min(0.5, data.deadzone));
         if (['auto', 'playstation', 'xbox'].includes(data.labels)) this.labels = data.labels;
         if (typeof data.vibration === 'boolean') this.vibration = data.vibration;
-        if (validBindings(data.bindings, Object.keys(levelDefaults))) {
-          for (const key of Object.keys(levelDefaults)) this.bindings[key] = data.bindings[key];
+        if (validBindings(data.bindings, Object.keys(priorLevelDefaults))) {
+          for (const key of Object.keys(priorLevelDefaults)) this.bindings[key] = data.bindings[key];
           // Migrate the previous default face buttons without resetting unrelated
           // preferences or deliberately customized gameplay bindings.
           if (!(data.layoutVersion >= 2) && this.bindings.jump === 0 && this.bindings.primary === 2) this.bindings.primary = 0;
+          // Adding Run cannot reset an existing custom layout. Respect a saved
+          // free Run button, otherwise choose an unused Level 1 control; road
+          // skills retain their independently saved shoulder/trigger context.
+          this.bindings.run = [data.bindings.run, 6, 7, 10, 11, ...allowed].find(button =>
+            allowed.includes(button) && Object.keys(priorLevelDefaults).every(action => this.bindings[action] !== button));
         }
         // Road and Level 1 mappings are exclusive contexts. Missing/invalid new
         // road preferences keep their own defaults, never reset a valid Level 1
@@ -43,6 +49,7 @@ window.FILE_MANIFEST.push({ name: 'src/core/gamepad-ui.js', exports: ['BARCODE.G
         window.localStorage.setItem(storageKey, JSON.stringify({ layoutVersion: 3, bindings: this.bindings, deadzone: this.deadzone, labels: this.labels, vibration: this.vibration })); this.saved = true;
       } catch (_) { this.saved = false; }
       B.GamepadUI?.reset(); window.inputManager?.actionInput?.reset();
+      window.player?.setRunHeld?.(false);
     },
     bind(action, button) {
       if (!(action in defaults) || !buttonsFor(action).includes(button)) return false;

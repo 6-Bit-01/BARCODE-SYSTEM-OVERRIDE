@@ -12,6 +12,8 @@ window.FILE_MANIFEST.push({
 // on every frame. Player.position.y is the historical physics anchor, always
 // 72px above the visible foot-contact line. Keep that world-space contract
 // separate from Makko's source-frame anchor compensation below.
+// Run uses its registered source ground row on every cel; authored flight
+// frames lift the visible boots slightly above it without moving collision feet.
 const PLAYER_VISUAL_FOOT_OFFSET_Y = 72;
 // The real sidewalk-to-awning rise is taller than the legacy physics-space
 // gap. Scale every vertical jump term together so the route gains height while
@@ -30,7 +32,25 @@ const PLAYER_STOMP_REBOUND = 560;
 // Opaque cap crown, measured per existing jump frame (alpha > 180), inset
 // three source pixels. Hands and empty sprite padding cannot cause a bump.
 const PLAYER_JUMP_CROWN = Object.freeze([[127,85],[112,79],[102,67],[100,51],[98,54],[111,64],[114,84],[108,90],[109,106],[98,109],[104,105],[102,87],[102,66],[98,60],[95,51],[104,45],[104,51],[114,60],[102,75],[108,79],[112,81],[115,75],[113,72],[106,63],[100,51],[106,48],[104,51]]);
-const PLAYER_ANIMATION_PRESENTATION = Object.freeze({"idle":{"animation":"6_bit_idle_idle","scale":0.6666666666666666,"anchorX":160,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"walk":{"animation":"6_bit_walk_walk","scale":0.7171717171717171,"anchorX":144,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"jump":{"animation":"6_bit_jump_jump","scale":0.7967479674796748,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"rhythm":{"animation":"6_bit_r__h_mode_rhmode","scale":0.7843137254901961,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]}});
+const PLAYER_ANIMATION_PRESENTATION = Object.freeze({"idle":{"animation":"6_bit_idle_idle","scale":0.6666666666666666,"anchorX":160,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"walk":{"animation":"6_bit_walk_walk","scale":0.7171717171717171,"anchorX":144,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"jump":{"animation":"6_bit_jump_jump","scale":0.7967479674796748,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"rhythm":{"animation":"6_bit_r__h_mode_rhmode","scale":0.7843137254901961,"anchorX":96,"anchorY":308,"footRows":[308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308,308]},"run":{"animation":"6_bit_run_run","scale":0.6045042570722329,"anchorX":256,"anchorY":512,"footRows":[514.0,512.0,508.0,513.0,505.2212630622444,510.0,511.0,504.0,506.0,504.1462971376647,499.96274420717856]}});
+const PLAYER_RUN_FRAME_DURATIONS_MS = Object.freeze([60,60,60,60,60,50,50,50,50,50,50]);
+// Generated from assets/level1-run-v2/calibration.json. Each immutable pose
+// shares the native anchor/ground rows; draw reads the actual cel only.
+const PLAYER_RUN_POSE_PRESENTATIONS = Object.freeze([
+  [0.5799736495388669, 324.7, 37.41731444354491],
+  [0.5867768595041322, 312.4, 34.71732450463007],
+  [0.5850611376927166, 310.0, 34.116959128379534],
+  [0.5833554200901139, 322.0, 36.88022164459586],
+  [0.6081790549875655, 326.3, 38.5816335804672],
+  [0.602683461117196, 315.4, 35.79939759036142],
+  [0.6175645342312008, 311.4, 35.164868632780255],
+  [0.6063360881542699, 328.1, 38.966371336586],
+  [0.6100332594235033, 321.3, 37.41370729035876],
+  [0.6137757947573897, 312.0, 35.22821635678238],
+  [0.6045042570722329, 299.9, 32.09473330840526],
+].map(([scale, headColumn, headOffsetXWorld]) => Object.freeze({
+  ...PLAYER_ANIMATION_PRESENTATION.run, scale, headColumn, headOffsetXWorld
+})));
 
 window.Player = class Player {
   static get VISUAL_FOOT_OFFSET_Y() { return PLAYER_VISUAL_FOOT_OFFSET_Y; }
@@ -39,16 +59,19 @@ window.Player = class Player {
   constructor(x, y) {
     this.position = new window.Vector2D(x, y);
     
-    // Entrance effect system
+    // Fresh Level 1 entrance is requested by the lifecycle after the comic.
+    // Construction and checkpoint restoration never start theatrical motion.
     this.isEntering = false;
-    this.entranceStartTime = 0;
-    this.entranceDuration = 1500; // 1.5 seconds for entrance animation
+    this.entranceElapsedMs = 0;
+    this.entranceDuration = 0;
     this.entranceStartX = x;
-    this.entranceTargetX = 960; // Target position in middle
+    this.entranceTargetX = x;
     this.velocity = new window.Vector2D(0, 0);
     this.width = 86;  // Based on sprite dimensions
     this.height = 96; // Based on sprite dimensions
     this.speed = 300; // pixels per second
+    this.runSpeed = 450;
+    this.runHeld = false;
     this.airSpeed = PLAYER_DIRECTIONAL_AIR_SPEED;
     this.jumpPower = PLAYER_JUMP_POWER;
     this.jumpTime = 0;
@@ -74,11 +97,6 @@ window.Player = class Player {
     
     // Initialize sprite character
     this.initSprite();
-    
-    // Trigger entrance animation if starting from left side
-    if (x < 400) {
-      this.startEntranceAnimation();
-    }
     
     this.invulnerable = false;
     
@@ -110,6 +128,7 @@ window.Player = class Player {
 
   update(deltaTime, allowMovement = true) {
     try {
+      if (window.isPaused || window.gameState?.paused || window.BARCODE?.LevelDifficulty?.open) return;
       
       // Store movement permission flag
       this.allowMovement = allowMovement;
@@ -118,6 +137,16 @@ window.Player = class Player {
       const previousFootY = this.position.y;
       const previousX = this.position.x;
       this.contactSweep = { previousX, previousFootY: previousFootY + PLAYER_VISUAL_FOOT_OFFSET_Y };
+      // The authored walk owns position until it reaches the normal spawn.
+      // Ordinary physics/world clamping would pull an offscreen actor into view.
+      if (this.isEntering) {
+        this.updateEntranceAnimation(deltaTime);
+        this.animationTime += Math.max(0, Number.isFinite(deltaTime) ? deltaTime : 0);
+        this.updateSpriteAnimation(deltaTime);
+        this.contactSweep.currentX = this.position.x;
+        this.contactSweep.currentFootY = this.position.y + PLAYER_VISUAL_FOOT_OFFSET_Y;
+        return;
+      }
       const groundedAtStart = this.grounded;
       const descentAtStart = this.velocity.y;
       this.ceilingMotion = { head: this.getCeilingProbe(), rising: descentAtStart < 0, allowed: allowMovement && !this.isEntering };
@@ -127,9 +156,6 @@ window.Player = class Player {
       if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; }
       // Forced motion may unground a performance; never suspend gravity.
       if (!this.grounded && window.rhythmSystem?.isActive?.()) window.rhythmSystem.hideRhythmMode();
-      
-      // Update entrance animation
-      this.updateEntranceAnimation(deltaTime);
       
       if (this.jumpBufferTimerMs > 0) this.jumpBufferTimerMs = Math.max(0, this.jumpBufferTimerMs - deltaTime);
       if (this.grounded) this.coyoteTimerMs = PLAYER_COYOTE_MS;
@@ -296,7 +322,7 @@ window.Player = class Player {
     } else if (this.isRhythmPlanted() || this.primaryAttackAnimationMs > 0) {
       this.state = 'rhythm';
     } else if (Math.abs(this.velocity.x) > 5) {
-      this.state = 'walk';
+      this.state = this.isRunActive() && Math.abs(this.velocity.x) > this.speed + 1 ? 'run' : 'walk';
     } else {
       this.state = 'idle';
     }
@@ -319,6 +345,7 @@ window.Player = class Player {
   }
 
   getAnimationPresentation(state = this.state) {
+    if (state === 'run') return PLAYER_RUN_POSE_PRESENTATIONS[Math.max(0, Math.trunc(this.animationRef?.currentFrame || 0)) % PLAYER_RUN_POSE_PRESENTATIONS.length];
     if(state==='hack')return PLAYER_ANIMATION_PRESENTATION.idle;
     return PLAYER_ANIMATION_PRESENTATION[state === 'idle' && this.grounded && this.landingPoseActive ? 'jump' : state] || PLAYER_ANIMATION_PRESENTATION.idle;
   }
@@ -396,7 +423,9 @@ window.Player = class Player {
     const drawY = targetFootY + render.anchorOffsetY - footRow * render.frameScale;
     // The same legacy mismatch affects X and is mirrored when flipH is active.
     // Keep the source anchor column on position.x in either facing direction.
-    const drawX = this.position.x + render.flipSignX * (
+    const drawX = Number.isFinite(presentation.headColumn)
+      ? this.position.x + render.flipSignX * (presentation.headOffsetXWorld + render.anchorOffsetX - presentation.headColumn * render.frameScale)
+      : this.position.x + render.flipSignX * (
       render.anchorOffsetX - render.sourceAnchorX * render.frameScale
     );
 
@@ -485,6 +514,24 @@ window.Player = class Player {
 
   // One frame-owned transition path. Repeated requests for the same clip
   // preserve its progress; new jumps explicitly restart the jump clip.
+  getAnimationPlaybackRate(state = this.state) {
+    if (state === 'run') return Math.max(0.3, Math.min(2, Math.abs(this.velocity.x) / this.runSpeed));
+    if (state === 'walk') {
+      // The accepted sixteen-pose stride is one second at normal walking
+      // speed. Entrance travel and ordinary locomotion share that cadence;
+      // changes in velocity adjust progress without restarting the clip.
+      return Math.max(0.3, Math.min(2, Math.abs(this.velocity.x) / this.speed));
+    }
+    if (state === 'rhythm') {
+      // About sixteen cels form each headbang in the complete native take.
+      // Fit that gesture into two quarter beats of the existing song clock.
+      const beatMs = window.rhythmSystem?.beatInterval;
+      return Number.isFinite(beatMs) && beatMs > 0
+        ? Math.max(0.75, Math.min(2, 16 * 83 / (beatMs * 2))) : 1.6;
+    }
+    return state === 'idle' ? 0.85 : 1;
+  }
+
   updateSpriteAnimation(deltaTime) {
     const landingMs = this.landingPoseMs || 0;
     const landing = !this.cinematicPoseActive && this.state === 'idle' && this.grounded && landingMs > 0;
@@ -515,9 +562,12 @@ window.Player = class Player {
       }
       if (landing && !held) frame = Math.min(26, 17 + Math.floor((90 - landingMs) / 9));
       this.playAnimation(landing ? 'jump' : this.state, frame);
-      if (!this.cinematicPoseActive && !held && frame === null) {
-        if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.sprite, deltaTime);
-        else this.sprite.update(deltaTime);
+      if (!held && frame === null) {
+        // Cinematics freeze his position, not his living neutral stance.
+        // Jump/hack/landing poses remain selected by their physical phases.
+        const playbackDelta = deltaTime * this.getAnimationPlaybackRate();
+        if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.sprite, playbackDelta);
+        else this.sprite.update(playbackDelta);
       }
     } catch (error) {
       console.error('Error updating sprite animation:', error?.message || error);
@@ -532,8 +582,32 @@ window.Player = class Player {
     const sameFrame = frame === null || this.animationRef?.currentFrame === frame;
     if (sameClip && sameFrame && this.animationRef && !this.animationRef.isInterrupted && !freshJump) return;
     try {
+      let startFrame = frame === null ? 0 : Math.max(0, frame);
+      let phaseRemainderMs = 0;
+      // A speed change keeps the foot-cycle phase instead of snapping back to
+      // contact. Walking repeats its sixteen-pose gait four times; the run is
+      // one complete cycle. Jump/landing/entrance keep their authored starts.
+      if (frame === null && this.animationRef && !this.animationRef.isInterrupted) {
+        const fromWalk = this.currentAnimation === PLAYER_ANIMATION_PRESENTATION.walk.animation && animationName === 'run';
+        const fromRun = this.currentAnimation === PLAYER_ANIMATION_PRESENTATION.run.animation && animationName === 'walk' && !this.isEntering;
+        if (fromWalk || fromRun) {
+          const sourceCount = fromWalk ? 16 : PLAYER_RUN_FRAME_DURATIONS_MS.length;
+          const previousFrame = Math.max(0, Math.trunc(this.animationRef.currentFrame || 0)) % sourceCount;
+          let sourceMs = Math.max(0, this.sprite.currentSprite?.timeAccumulator || 0);
+          for (let i = 0; i < previousFrame; i++) sourceMs += fromWalk ? 62.5 : PLAYER_RUN_FRAME_DURATIONS_MS[i];
+          let targetMs = (sourceMs % (fromWalk ? 1000 : 600)) / (fromWalk ? 1000 : 600) * (fromWalk ? 600 : 1000);
+          startFrame = 0;
+          const targetCount = fromWalk ? PLAYER_RUN_FRAME_DURATIONS_MS.length : 16;
+          while (startFrame < targetCount - 1 && targetMs >= (fromWalk ? PLAYER_RUN_FRAME_DURATIONS_MS[startFrame] : 62.5) - 1e-7) {
+            targetMs -= fromWalk ? PLAYER_RUN_FRAME_DURATIONS_MS[startFrame] : 62.5;
+            startFrame++;
+          }
+          phaseRemainderMs = Math.max(0, targetMs);
+        }
+      }
       this.sprite.stop();
-      this.animationRef = this.sprite.play(fullName, true, frame === null ? 0 : Math.max(0, frame));
+      this.animationRef = this.sprite.play(fullName, true, startFrame);
+      if (phaseRemainderMs > 0) window.BARCODE?.SpritePlayback?.update(this.sprite, phaseRemainderMs);
       this.currentAnimation = fullName;
       if (animationName === 'jump') this.jumpAnimationStarted = true;
     } catch (error) {
@@ -545,11 +619,21 @@ window.Player = class Player {
     return this.grounded && !!window.rhythmSystem?.isActive?.();
   }
 
+  setRunHeld(held) { this.runHeld = !!held; }
+
+  isRunActive() {
+    return this.runHeld && this.grounded && this.allowMovement && !this.isEntering && !this.controlsDisabled &&
+      !window.isPaused && !window.gameState?.paused && !window.BARCODE?.LevelDifficulty?.open &&
+      !this.isRhythmPlanted() && !window.hackingSystem?.isActive?.() && !window.sector1Progression?.isGameplaySuppressed?.();
+  }
+
+  getGroundMoveSpeed() { return this.isRunActive() ? this.runSpeed : this.speed; }
+
   moveLeft() {
     if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; return; }
     if (this.isEntering || !this.allowMovement) { return; }
     this.facing = -1;
-    if (this.grounded) this.velocity.x = -this.speed;
+    if (this.grounded) this.velocity.x = -this.getGroundMoveSpeed();
     else this.airInput = -1;
 
   }
@@ -558,7 +642,7 @@ window.Player = class Player {
     if (this.isRhythmPlanted()) { this.velocity.x = 0; this.airInput = 0; return; }
     if (this.isEntering || !this.allowMovement) { return; }
     this.facing = 1;
-    if (this.grounded) this.velocity.x = this.speed;
+    if (this.grounded) this.velocity.x = this.getGroundMoveSpeed();
     else this.airInput = 1;
 
   }
@@ -755,7 +839,7 @@ window.Player = class Player {
   }
 
   isDamageInvulnerable(now = Date.now()) {
-    return !!(this.invulnerableUntil && now < this.invulnerableUntil);
+    return this.isEntering || !!(this.invulnerableUntil && now < this.invulnerableUntil);
   }
   
   takeDamageWithKnockback(amount, knockbackX, knockbackY, enemyPosition = null) {
@@ -1165,6 +1249,7 @@ window.Player = class Player {
     
     // Check for damage invulnerability (fast flashing)
     if (this.invulnerableUntil && currentTime < this.invulnerableUntil) {
+      if (window.BARCODE?.Preferences?.values?.flashes === false) return 1.0;
       return 0.5 + Math.sin(Date.now() * 0.02) * 0.4; // Fast flash
     }
     
@@ -1428,7 +1513,6 @@ window.Player = class Player {
   }
 
   drawContactShadow(ctx) {
-    if (this.isEntering) return;
     const shadow = this.getContactShadow();
     ctx.save();
     ctx.fillStyle = `rgba(0, 4, 14, ${shadow.alpha})`;
@@ -1443,8 +1527,8 @@ window.Player = class Player {
     // Handle directional flipping for animations
     let shouldFlip = false;
     
-    if (this.state === 'walk') {
-      // The complete model walk is authored facing right
+    if (this.state === 'walk' || this.state === 'run') {
+      // The complete model walk and dedicated run are authored facing right.
       shouldFlip = this.facing === -1;
     } else if (this.state === 'idle' || this.state === 'jump' || this.state === 'hack') {
       // Idle and jump should face the direction of movement
@@ -1472,6 +1556,17 @@ window.Player = class Player {
       const fx=window.BARCODE?.combatFX,age=window.hackingSystem?.sessionElapsedMs||0;
       const lean=this.facing*(.025*Math.sin(Math.min(1,age/420)*Math.PI/2)+(fx?.hackDeflectMs||0)/420*.12);
       ctx.transform(1,0,lean,1,-lean*visualAnchor.targetFootY,0);
+    }
+    if (this.state === 'idle' && !this.landingPoseActive &&
+        !window.BARCODE?.Preferences?.values.reducedMotion) {
+      // The real idle cels have a quiet mic/hand gesture. A measured whole-cel
+      // breath makes that stance readable at native size. Scale/shear around
+      // the registered feet, never translate the body or split its artwork.
+      const breath = Math.sin(this.animationTime / 2300 * Math.PI * 2);
+      const stretch = 1 + breath * 0.022;
+      const lean = this.facing * Math.sin(this.animationTime / 3400 * Math.PI * 2) * 0.018;
+      ctx.transform(1, 0, lean, stretch, -lean * visualAnchor.targetFootY,
+        visualAnchor.targetFootY * (1 - stretch));
     }
     this.sprite.draw(ctx, drawX, drawY, {
       scale: visualAnchor.scale,
@@ -1652,49 +1747,74 @@ window.Player = class Player {
     ctx.restore();
   }
   
-  // Start entrance animation from left side
-  startEntranceAnimation() {
-    console.log('🚀 Starting entrance animation from left side');
+  // Place the complete canonical walk frame beyond the actual left viewport.
+  // Its feet and gait are the same ones used by ordinary street movement.
+  startEntranceAnimation({ targetX = 200 } = {}) {
+    const zoom = Math.max(0.1, Number(window.renderer?.zoomLevel) || 1);
+    const center = Math.max(960, Math.min(3136,
+      window.renderer?.getFollowCameraX?.(targetX) ?? targetX));
+    const walk = PLAYER_ANIMATION_PRESENTATION.walk;
+    const rightExtent = (288 - walk.anchorX) * this.getMakkoRenderMetrics(walk).frameScale;
+    this.entranceStartX = center - 960 / zoom - rightExtent - 16 / zoom;
+    this.entranceTargetX = Math.max(this.width / 2, Math.min(4096 - this.width / 2, targetX));
+    this.entranceElapsedMs = 0;
+    this.entranceDuration = (this.entranceTargetX - this.entranceStartX) / this.speed * 1000;
+    this.position.x = this.entranceStartX;
+    this.position.y = window.Player.GROUND_Y;
+    this.velocity.x = this.speed;
+    this.velocity.y = 0;
+    this.grounded = true;
+    this.facing = 1;
+    this.state = 'walk';
     this.isEntering = true;
-    this.entranceStartTime = Date.now();
-    this.position.x = this.entranceStartX; // Start from left side
-    this.facing = 1; // Face right during entrance
-    
-    // Create initial yellow particle blast
-    this.createEntranceBlast();
+    this.runHeld = false;
+    this.controlsDisabled = true;
+    // A fresh run cannot inherit a hit blink, held impact or portrait reaction
+    // from the actor that was just replaced. Checkpoint restores bypass this.
+    this.invulnerable = false;
+    this.invulnerableUntil = this.controlsDisabledUntil = this._enemyInvulnerableUntilMs = 0;
+    this.hudReaction = null;
+    this.impactHoldMs = this.afterimageMs = this.primaryAttackAnimationMs = 0;
+    this.cinematicPoseActive = false;
+    this.supportedSurfaceId = null;
+    this.jumpBufferTimerMs = this.jumpHeldMs = this.landingPoseMs = 0;
+    this.jumpReleaseQueued = false;
+    this.playAnimation('walk');
+    return true;
   }
-  
-  // Update entrance animation
+
+  cancelEntranceAnimation() {
+    if (this.isEntering) {
+      this.velocity.x = this.velocity.y = 0;
+      this.state = 'idle';
+      this.controlsDisabled = false;
+    }
+    this.isEntering = false;
+    this.entranceElapsedMs = 0;
+  }
+
+  // Shared simulation delta makes difficulty reading and pause inert.
   updateEntranceAnimation(deltaTime) {
-    if (!this.isEntering) return;
-    
-    const currentTime = Date.now();
-    const elapsed = currentTime - this.entranceStartTime;
-    const progress = Math.min(elapsed / this.entranceDuration, 1);
-    
-    // Smooth ease-out animation
-    const easeProgress = 1 - Math.pow(1 - progress, 3);
-    
-    // Move player from left to center
-    this.position.x = this.entranceStartX + (this.entranceTargetX - this.entranceStartX) * easeProgress;
-    
-    // Create yellow particle trail during entrance
-    if (Math.random() < 0.8) { // 80% chance per frame
-      this.createEntranceParticle();
-    }
-    
-    // Create periodic particle bursts
-    if (elapsed % 200 < deltaTime) { // Every 200ms
-      this.createEntranceBurst();
-    }
-    
-    // End entrance animation
-    if (progress >= 1) {
+    if (!this.isEntering || window.isPaused || window.gameState?.paused || window.BARCODE?.LevelDifficulty?.open) return;
+    this.entranceElapsedMs = Math.min(this.entranceDuration,
+      this.entranceElapsedMs + Math.max(0, Number.isFinite(deltaTime) ? deltaTime : 0));
+    this.position.x = Math.min(this.entranceTargetX,
+      this.entranceStartX + this.speed * this.entranceElapsedMs / 1000);
+    this.position.y = window.Player.GROUND_Y;
+    this.velocity.x = this.speed;
+    this.velocity.y = 0;
+    this.grounded = true;
+    this.facing = 1;
+    this.state = 'walk';
+    if (this.entranceDuration - this.entranceElapsedMs < 0.000001) {
+      this.entranceElapsedMs = this.entranceDuration;
+      this.position.x = this.entranceTargetX;
+      this.velocity.x = 0;
       this.isEntering = false;
-      console.log('✅ Entrance animation completed');
-      
-      // Create final explosion effect
-      this.createEntranceExplosion();
+      this.controlsDisabled = false;
+      this.allowMovement = true;
+      this.coyoteTimerMs = PLAYER_COYOTE_MS;
+      this.state = 'idle';
     }
   }
   
@@ -1805,9 +1925,8 @@ window.Player = class Player {
 // Create player instance - wait for dependencies to be ready
 function createPlayer() {
   if (window.Vector2D && window.clamp && window.distance) {
-    // Start player from left side for entrance animation
-    window.player = new window.Player(200, 850);
-    console.log('✓ Player created with MakkoEngine support - starting entrance from left');
+    window.player = new window.Player(200, window.Player.GROUND_Y);
+    console.log('✓ Player created with MakkoEngine support');
   } else {
     console.warn('Player dependencies not ready, retrying...');
     setTimeout(createPlayer, 100);

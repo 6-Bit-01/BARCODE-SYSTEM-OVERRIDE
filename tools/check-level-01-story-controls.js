@@ -373,7 +373,9 @@ async function main() {
     const ctx=new Proxy({},{get:(t,k)=>t[k]||(()=>{}),set:(t,k,v)=>(t[k]=v,true)});
     const before=JSON.stringify(jammer.getStatus());
     for(let i=0;i<48;i++){jammer.update(83);jammer.draw(ctx);}
-    assert.equal(new Set(requests.map(r=>JSON.stringify(r))).size,1,'jammer body stays fixed across complete old loop');
+    assert.equal(new Set(requests.map(({frame,...registration})=>JSON.stringify(registration))).size,1,'the atlas fallback keeps the same bolted body registration while native loading is delayed');
+    assert(requests.every(r=>r.key==='steadyJammer'),'the delayed native sprite uses only its own prepared atlas');
+    assert(new Set(requests.map(r=>r.frame)).size>20,'the atlas fallback visibly advances the slower authored clip');
     assert.equal(jammer.getStatus().health,16);assert.equal(jammer.getStatus().position.y,JSON.parse(before).position.y);
   }
   console.log('Stage B: direct tutorial handoff, controller ownership, both real hack puzzles, pause/archive/calibration, saved offsets, follow camera, crowd commitments and boss counter/retry passed.');

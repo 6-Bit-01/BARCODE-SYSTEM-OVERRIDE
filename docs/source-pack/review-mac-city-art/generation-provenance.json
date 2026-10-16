@@ -1,0 +1,534 @@
+{
+  "schemaVersion": 1,
+  "ownerAccepted": false,
+  "records": [
+    {
+      "id": "chitin_scuttler-v1",
+      "asset": "assets/mac-city-review/chitin_scuttler-v1.png",
+      "prompt": "Use case: stylized-concept.\nAsset type: native transparent PNG production sprite sheet for a painted 2.5D street brawler.\nInput images: image 1 is STYLE ONLY from approved Mac sprite, not a character/model to copy. Image 2 is city palette and line-weight style only.\nPrimary request: Create ONE new fictional humanoid alien called chitin_scuttler, NOT a robot and NOT Mac. Compact athletic insect humanoid with dark jade-green chitin skin, short broad head, two lime insect eyes, small ivory cheek pincers, ochre cloth utility vest, segmented knuckles, two arms and two legs, three-toed organic boots/feet. Distinct compact low silhouette, organic anatomy, expressive threat. Green blood type, but draw NO blood or pools.\nComposition: seven clearly separated FULL BODY right-facing poses at exactly the same body scale and model identity, two rows: upper four and lower three aligned under the first three upper poses; generous empty transparent gutters between every pose, no overlaps, no labels, no border. Upper row left-to-right: idle wary boxer stance; walk A forward near foot and opposite arm; walk B opposite stride; obvious short-jab tell with near fist drawn behind shoulder and weight back. Lower row left-to-right: committed compact rightward jab with believable connected arm; recovering fist pulled back; taking a hit with recoil yet both feet visible. Live poses share level foot contact baseline within each row, no floating. All seven bodies fully visible with margins, no poses cut off. Native large sheet, each standing body at least 450px high.\nStyle: match approved crisp hand-painted comic sprite, controlled black ink edges, textured cel painting, full detail, bold readable silhouette, subtle amber/cyan rim lighting. Keep organic jade chitin/ivory/ochre colors consistent across all poses.\nConstraints: genuinely transparent alpha background; no ground, no cast shadow detached from body, no scenery, no text, no grid lines, no duplicate Mac/6 Bit/Level1 robot, no mechanical body, no glowy armor. Correct coherent limbs and same face, costume, proportions and body scale in all poses.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-93b10f9e-154e-4561-bb6e-35fa4b36e182.png",
+      "referenceImages": [
+        {
+          "path": "assets/mac-street-review/mac-poses-v3.png",
+          "role": "painting style only, not copied model",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+        },
+        {
+          "path": "assets/mac-street-review/street-panorama-v1.png",
+          "role": "palette style only",
+          "sha256": "c7766ad68ac4b82db7808370a84d47725d538216523cacb80a27c56193363d69"
+        }
+      ],
+      "output": {
+        "width": 1536,
+        "height": 1024,
+        "mode": "RGBA",
+        "sha256": "3659348f202e51fea25127d36c667e2142197653dc37a7d1f75bec65c6c18302",
+        "bytes": 2362365
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "service-alley-v1",
+      "asset": "assets/mac-city-review/service-alley-v1.png",
+      "prompt": "Use case: illustration-story.\nAsset type: native wide horizontal city-zone backdrop for 1920x1080 2.5D street-brawler gameplay.\nInput image: the approved street panorama is STYLE and architectural/palette reference only. Create a NEW distinct SERVICE ALLEY.\nPrimary request: a quiet rain-wet service alley in the same futuristic brick-and-steel city at night: utility pipes, cable bundles, air-conditioner units, loading shutters, amber utility lamps, restrained cyan indicator glows and magenta city lights beyond. Strong industrial alley identity, believable city architecture, fully painted detailed environment.\nComposition: a wide straight side-on elevation with small natural depth, landscape approximately 3:1 panorama. Architecture and interesting fixtures fill upper 70%; the bottom 30% is a wide continuous unobstructed wet pavement ground plane from left edge to right edge for the player and enemies to move up/down and left/right. Ground plane visible and traversable, no perspective road disappearing into center, no blocking prop in walking lanes. Shared amber/cyan/magenta light palette. Straight lateral travel with three connected architectural sections readable while scrolling; left and right edge buildings continue naturally.\nStyle: same detailed painted comic linework and richly textured surfaces as reference; NOT low poly, NOT blurred, NOT a 3D render. Sharp full detail at native size, dark values that let character silhouettes read, intentional local light reflections.\nConstraints: no people, enemies, painted actors, parked vehicles in floor area, HUD, buttons, lettering, logos, dialogue, watermark, sky dominating composition, or set dressing obstructing the fighting floor. Do not reproduce the existing studio window or existing street literally. Keep clean readable ground geometry for 1920x1080 runtime; no tiled checker/grid.",
+      "tool": "built-in image_gen",
+      "transparentBackground": false,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-0940b9d7-4f0a-43b5-a044-bd221fb5acbe.png",
+      "referenceImages": [
+        {
+          "path": "assets/mac-street-review/street-panorama-v1.png",
+          "role": "architectural/palette style only",
+          "sha256": "c7766ad68ac4b82db7808370a84d47725d538216523cacb80a27c56193363d69"
+        }
+      ],
+      "output": {
+        "width": 2167,
+        "height": 725,
+        "mode": "RGB",
+        "sha256": "3d63e39ae939edd9e2452a18eec6afe9b9f17a23141d080e2209a2ee811a8ca5",
+        "bytes": 3079343
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "psion_lancer-v1",
+      "asset": "docs/source-pack/review-mac-city-art/candidates/psion_lancer-v1-overlapping-candidate.png",
+      "prompt": "Use case: stylized-concept.\nAsset type: large native transparent PNG production animation sheet for an illustrated 2.5D street brawler.\nInput image: approved Mac is painting/ink STYLE ONLY, never copy its human model, clothes or face.\nPrimary request: Create one NEW fictional organic humanoid alien psion_lancer. Lanky athletic teal-skinned alien biped, tall swept-back indigo head fin with three narrow pale eyes, long elegant legs, ivory organic blade grown from the leading forearm, asymmetrical dark plum cloth shoulder sash and thin bronze waist straps. No mechanical armor; distinctly tall slender spear-runner silhouette. Purple blood type, no painted blood.\nComposition: exactly SEVEN fully contained right-facing full-body poses of the SAME alien, SAME face/costume/proportions and one fixed body scale. Two clean rows: FOUR figures above, THREE figures below aligned beneath the first three. Empty genuinely transparent gutters separating all seven poses, no overlap even at the longest attack extension. Native large detailed sheet; live body height at least450pixels. Upper row left-to-right: idle ready stance; walk A forward near leg/opposite near arm; walk B opposite stride; attack tell: lead spear-arm drawn beside the hip, other arm counterbalances, rear heel braced, clear straight locked-lunge intention. Lower row left-to-right: strike: long committed rightward straight lunge with the organic spear-arm extended horizontally, planted forward foot and believable full-body weight; obvious recovery withdrawing the attack and regaining stance; taking a hit leaning back with both complete feet visible. All figures full body and clear foot contact with same grounded baseline per row, not floating. NO eighth pose.\nStyle: same crisp hand-painted comic sprite, controlled black ink edges, textured cel painting and readable bold silhouettes as reference, subtle amber and cyan rim lighting. Consistent organic anatomy, connected limbs, full detail, no blurry or low-poly effect.\nConstraints: transparent alpha outside each character including between poses. NO ground/background/rectangle/gradient, NO cast shadows or painted blood/pools, NO projectiles detached from body, NO lettering/labels/grid/HUD, NO Mac costume, NO old Level1 robot or reused model. Keep exact alien identity consistent through all seven poses. Two legs and two arms unless explicitly defined otherwise.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-9066e294-9eff-42c7-be0a-1863dfae5f57.png",
+      "referenceImages": [
+        {
+          "path": "assets/mac-street-review/mac-poses-v3.png",
+          "role": "painting style only, not copied model",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+        }
+      ],
+      "status": "rejected-layout-overlap",
+      "reason": "Lower row recovery and hit rectangular alpha bounds overlap; replaced by v2 layout edit.",
+      "output": {
+        "width": 1536,
+        "height": 1024,
+        "mode": "RGBA",
+        "sha256": "4fd420aee43ce713c77cd1121b0cb77746dd8a90c728b1a59fb1ee4fad42d601",
+        "bytes": 2324919
+      },
+      "selectedForPrivateRuntimeReview": false,
+      "ownerAccepted": false
+    },
+    {
+      "id": "night-market-v1",
+      "asset": "assets/mac-city-review/night-market-v1.png",
+      "prompt": "Use case: illustration-story.\nAsset type: sharp large native lateral-scrolling city backdrop, requested approximately3400\u00d71080 landscape, three-to-one panorama, for1920\u00d71080 gameplay.\nInput image: approved street is consistent city painting style/palette only. NEW setting NIGHT MARKET: closed compact food stalls and awnings along the back of the street, warm amber hanging lanterns, worn brick facades, glass-front produce displays and steam vents in the background, subtle magenta/cyan canopy lighting. Quiet after-hours market with rich color, folded stools and baskets kept behind the pavement edge; no readable signs or sellers\nComposition: straight side-on city scene with only gentle natural depth, three connected architectural sections across panorama. Native canvas imagined as3400worldpixels wide\u00d71080high. Ground walking plane begins at y780 and extends uninterrupted to bottom, all left-to-right. The usable lane strip at y780\u2013970 must be flat and clear; buildings/fixtures live behind it. Human architectural SCALE: a normal doorway is approximately325pixels tall in this1080-high world, so normal door height is about30% of total canvas height, never enormous. Rails around110worldpixels tall. PlayerMac is260worldpixels tall; DO NOT paint any player/people, use that only as scale guide. Upper72% architecture, bottom28% clear foreground ground. Lateral travel, no road vanishing to center, foreground floors have no obstacles or large props. Six zones share dark brick/steel city, amber utility lamps and restrained cyan/magenta practical light; vary the architecture to make this zone unmistakable.\nStyle: same richly textured painted comic ink and full detail as reference, careful perspective and material surfaces. No low poly, no soft focus or 3D game screenshot. Sharp at native size, simple large read of architecture and detailed surfaces, dark values so foreground character silhouettes read.\nConstraints: no people/NPCs/enemies/painted actors, no HUD/button/dialogue/lettering/logos/watermark, no parked vehicles or crates/rails blocking the foreground combat lane, no huge stage-like doors, no studio room backdrop. Preserve architectural scale and continuous walking surface.",
+      "tool": "built-in image_gen",
+      "transparentBackground": false,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-370098ba-df8f-45e3-937c-64a633ad3613.png",
+      "referenceImages": [
+        {
+          "path": "assets/mac-street-review/street-panorama-v1.png",
+          "role": "painting style only, not copied model",
+          "sha256": "c7766ad68ac4b82db7808370a84d47725d538216523cacb80a27c56193363d69"
+        }
+      ],
+      "output": {
+        "width": 2161,
+        "height": 728,
+        "mode": "RGB",
+        "sha256": "5a68f16010443d966a7e6bbe2defb524c587b9406fcf144d187a71b1fb40b973",
+        "bytes": 3148804
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "transit-concourse-v1",
+      "asset": "assets/mac-city-review/transit-concourse-v1.png",
+      "prompt": "Use case: illustration-story.\nAsset type: sharp large native lateral-scrolling city backdrop, requested approximately3400\u00d71080 landscape, three-to-one panorama, for1920\u00d71080 gameplay.\nInput image: approved street is consistent city painting style/palette only. NEW setting TRANSIT CONCOURSE: enclosed urban transit concourse with a low ribbed vaulted roof, cyan glass ticket-window panels, amber maintenance lamps, rail-service architecture visible through back openings, tiled back wall, compact normal human-scale service doors and overhead structural beams. Empty broad tiled foreground platform; no trains or columns occupying the traversable lane\nComposition: straight side-on city scene with only gentle natural depth, three connected architectural sections across panorama. Native canvas imagined as3400worldpixels wide\u00d71080high. Ground walking plane begins at y780 and extends uninterrupted to bottom, all left-to-right. The usable lane strip at y780\u2013970 must be flat and clear; buildings/fixtures live behind it. Human architectural SCALE: a normal doorway is approximately325pixels tall in this1080-high world, so normal door height is about30% of total canvas height, never enormous. Rails around110worldpixels tall. PlayerMac is260worldpixels tall; DO NOT paint any player/people, use that only as scale guide. Upper72% architecture, bottom28% clear foreground ground. Lateral travel, no road vanishing to center, foreground floors have no obstacles or large props. Six zones share dark brick/steel city, amber utility lamps and restrained cyan/magenta practical light; vary the architecture to make this zone unmistakable.\nStyle: same richly textured painted comic ink and full detail as reference, careful perspective and material surfaces. No low poly, no soft focus or 3D game screenshot. Sharp at native size, simple large read of architecture and detailed surfaces, dark values so foreground character silhouettes read.\nConstraints: no people/NPCs/enemies/painted actors, no HUD/button/dialogue/lettering/logos/watermark, no parked vehicles or crates/rails blocking the foreground combat lane, no huge stage-like doors, no studio room backdrop. Preserve architectural scale and continuous walking surface.",
+      "tool": "built-in image_gen",
+      "transparentBackground": false,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-0c47bc9c-767e-48e7-89b8-6d9c3922e6ff.png",
+      "referenceImages": [
+        {
+          "path": "assets/mac-street-review/street-panorama-v1.png",
+          "role": "painting style only, not copied model",
+          "sha256": "c7766ad68ac4b82db7808370a84d47725d538216523cacb80a27c56193363d69"
+        }
+      ],
+      "output": {
+        "width": 2172,
+        "height": 724,
+        "mode": "RGB",
+        "sha256": "6d80bd690e2c662559133de2c3fdf0ef47dffc63a7a3a194a5380d18f5a8c32a",
+        "bytes": 3023723
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "psion_lancer-v2",
+      "asset": "assets/mac-city-review/psion_lancer-v2.png",
+      "prompt": "Use case: identity-preserve.\nAsset type: corrected native transparent seven-pose sprite sheet, wide landscape approximately2048 by1024.\nEdit target: attached psion_lancer-v1 sheet. Keep EXACT lanky teal alien model, three pale eyes, swept indigo fin, ivory organic leading forearm blade, plum sash/bronze straps, same comic painting detail and seven actions.\nPrimary correction ONLY: rearrange all SEVEN complete figures into a WIDER landscape two-row sheet with FOUR upper and THREE lower, reduce ALL figures together to one uniform standing height around390pixels. Leave at least80pixels of true transparent gap between each complete rectangular silhouette including the very wide lower-left lunge. Upper idle, walkA, opposite-stride walkB, braced tell; lower long rightward lunge, recovery, hit recoil. WalkB must have near leg back and far leg forward, opposite WalkA. All figures face right, both rows foot-baseline aligned, with clear generous margins on every side. Recovery and hit must have entirely disjoint rectangular crop bounds, no touching/overlap; lower lunge must not collide with recovery.\nInvariant: exact same alien identity, outfit, proportions, blade, ink style, no new armor/character. Seven poses only, full feet. Genuine transparent alpha everywhere outside characters, no gradient/rectangle/ground/shadows/text/grid/detached objects. Do not just crop the old sheet.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-556a9041-6beb-43a1-99f0-be63c2e37d10.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-city-review/psion_lancer-v1.png",
+          "role": "edit-target",
+          "archivedCurrentPath": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\docs\\source-pack\\review-mac-city-art\\candidates\\psion_lancer-v1-overlapping-candidate.png",
+          "sha256": "4fd420aee43ce713c77cd1121b0cb77746dd8a90c728b1a59fb1ee4fad42d601"
+        }
+      ],
+      "output": {
+        "width": 1774,
+        "height": 887,
+        "mode": "RGBA",
+        "sha256": "be1939968ea1e6cb5dde4b249d0b5e9ef3ed0b3e2550734fde0cf2827029b4fe",
+        "bytes": 1345389
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "bile_spitter-v1",
+      "asset": "assets/mac-city-review/bile_spitter-v1.png",
+      "prompt": "Use case: stylized-concept.\nAsset type: large native transparent PNG sprite animation sheet for illustrated 2.5D street brawler, requested wide 2048 by 1024 landscape.\nInput image: approved Mac painting/ink STYLE ONLY; never copy its human face, clothing or model.\nPrimary request: one NEW fictional organic humanoid alien bile_spitter. Broad blue amphibian humanoid with large lime throat sac, blunt rounded head, narrow gold eyes, webbed claw hands and broad webbed feet, dark olive sleeveless streetworker tunic, rope belt with compact pouches. Distinct heavy round throat silhouette, organic wet skin, two arms/two legs. Green blood, no painted blood.\nComposition: EXACTLY SEVEN full body right-facing poses of SAME alien with exact same model, clothing, proportions and fixed body scale. Clean TWO ROWS, FOUR upper and THREE lower. All seven entire silhouettes must fit in disjoint rectangular regions with at least70pixels of fully transparent gutters even between longest attacks. Body height around400pixels, same scale for all poses; generous outer margins. Upper row left-to-right: idle ready stance; walk A near leg forward/far leg back; walk B near leg back/far leg forward (visibly opposite stride); attack tell throat sac inflated, head retracted slightly and forearms braced, visibly preparing to spit. Lower row left-to-right: strike neck/head thrust forward with open mouth, throat compressed, arms braced, feet planted; no detached projectile; recover withdrawing that attack and returning to stance; hit recoil backwards with both entire feet and all limbs visible. Same grounded foot baseline per row. No eighth pose. Sheet is wider than tall so no lower-row collision or cropped limbs.\nStyle: crisp hand-painted comic/black ink with textured cel color and strong organic silhouettes, restrained amber/cyan rim light, sharp native detail, believable jointed anatomy. Each pose reads as action, not merely copied idle.\nConstraints: genuine alpha transparency outside and between all poses; no background, gradient, ground, cast shadows, detached effects/projectiles, painted blood pools, text/grid/labels/HUD/logos. Connected limbs only. No robots, Level1 enemies, Mac clothing or human likeness. Full feet and extremities, same body scale.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-118ac2ff-fe32-4336-b9ca-fdbefe8c098e.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/mac-poses-v3.png",
+          "role": "style-only",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+        }
+      ],
+      "output": {
+        "width": 1774,
+        "height": 887,
+        "mode": "RGBA",
+        "sha256": "7f82901872f4593ed2c428d83fbedda9ea919a568c2977bec39f5d6e2c8d3a21",
+        "bytes": 1635688
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "prism_guard-v1",
+      "asset": "assets/mac-city-review/prism_guard-v1.png",
+      "prompt": "Use case: stylized-concept.\nAsset type: large native transparent PNG sprite animation sheet for illustrated 2.5D street brawler, requested wide 2048 by 1024 landscape.\nInput image: approved Mac painting/ink STYLE ONLY; never copy its human face, clothing or model.\nPrimary request: one NEW fictional organic humanoid alien prism_guard. Tall muscular violet alien humanoid, dark aubergine organic plate skin, faceted lavender crystalline organic shield grown over left forearm, angular bald crown and pale cyan eyes, muted bronze waist tabs and dark cloth hip wrap. Two arms and legs, not robot, shield clearly attached to arm. Purple blood, no painted blood.\nComposition: EXACTLY SEVEN full body right-facing poses of SAME alien with exact same model, clothing, proportions and fixed body scale. Clean TWO ROWS, FOUR upper and THREE lower. All seven entire silhouettes must fit in disjoint rectangular regions with at least70pixels of fully transparent gutters even between longest attacks. Body height around400pixels, same scale for all poses; generous outer margins. Upper row left-to-right: idle ready stance; walk A near leg forward/far leg back; walk B near leg back/far leg forward (visibly opposite stride); attack tell crouched weight loading, attached shield raised across front and other fist pulled back for committed blow. Lower row left-to-right: strike rightward shield-and-fist body thrust, shield remains attached to forearm, complete feet solidly grounded; recover withdrawing that attack and returning to stance; hit recoil backwards with both entire feet and all limbs visible. Same grounded foot baseline per row. No eighth pose. Sheet is wider than tall so no lower-row collision or cropped limbs.\nStyle: crisp hand-painted comic/black ink with textured cel color and strong organic silhouettes, restrained amber/cyan rim light, sharp native detail, believable jointed anatomy. Each pose reads as action, not merely copied idle.\nConstraints: genuine alpha transparency outside and between all poses; no background, gradient, ground, cast shadows, detached effects/projectiles, painted blood pools, text/grid/labels/HUD/logos. Connected limbs only. No robots, Level1 enemies, Mac clothing or human likeness. Full feet and extremities, same body scale.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-a1c14c59-4854-465a-a0d1-e9ae10e6b4d5.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/mac-poses-v3.png",
+          "role": "style-only",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+        }
+      ],
+      "output": {
+        "width": 1774,
+        "height": 887,
+        "mode": "RGBA",
+        "sha256": "db0bfacbd45f5507d6191d4f2b5ce4d15f1e559b83d320b7fa85314b1a951998",
+        "bytes": 1347696
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "relay-canal-v1",
+      "asset": "assets/mac-city-review/relay-canal-v1.png",
+      "prompt": "Use case: illustration-story.\nAsset type: sharp native lateral city backdrop, requested3400 by1080 three-to-one panorama for1920\u00d71080 gameplay.\nInput image: approved street city painting/palette reference only.\nNEW setting RELAY CANAL: broad stone canal promenade in front of a narrow urban canal, canal water and low rear railing strictly BEHIND walking plane, weathered low bridge in distance, brick pump station with normal small service doors, relay pipes on back facades, amber wall lamps, cyan/magenta city reflections. Foreground is a broad uninterrupted paved promenade, never a water gap.\nComposition: straight lateral side-on perspective, three connected architectural sections. World3400\u00d71080; upper72% city architecture, lower28% clear ground. Lane y780\u2013970 is flat and unobstructed across full width. Door height about325worldpixels (~30% canvas), rail110, Mac260 only scale reference DO NOT paint people. No enormous doors/buildings or centered vanishing road. Fixtures/rail/canal strictly behind lane.\nStyle: richly detailed painted comic ink, textured brick/steel/stone/water, crisp native surfaces, same amber/cyan/magenta practical city lighting, dark value backdrops that foreground actors read over.\nConstraints: no painted actors/people/enemies, HUD/text/logos, water/rails/crates/cars/props blocking foreground combat strip, no stage/studio, no soft-focus or low-poly. Preserve human architectural scale and continuous walkable foreground.",
+      "tool": "built-in image_gen",
+      "transparentBackground": false,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-0949fa08-0078-4c09-a4d1-623bf236ac14.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/street-panorama-v1.png",
+          "role": "style-only",
+          "sha256": "c7766ad68ac4b82db7808370a84d47725d538216523cacb80a27c56193363d69"
+        }
+      ],
+      "output": {
+        "width": 2160,
+        "height": 728,
+        "mode": "RGB",
+        "sha256": "5da159283c776ba382c877d86af4be4af958de34fa1c93376dc0841cf0028e3b",
+        "bytes": 3262648
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "rift_stalker-v1",
+      "asset": "assets/mac-city-review/rift_stalker-v1.png",
+      "prompt": "Use case: stylized-concept.\nAsset type: large native transparent PNG sprite animation sheet for illustrated 2.5D street brawler, requested wide 2048 by 1024 landscape.\nInput image: approved Mac painting/ink STYLE ONLY; never copy its human face, clothing or model.\nPrimary request: one NEW fictional organic humanoid alien rift_stalker. Lean cream/charcoal moth-faced alien humanoid, ivory oval face with dark almond eyes, short swept antennae, charcoal textured thorax/limbs and cream ragged cloth-like folded moth mantle behind shoulders, long articulated black claws, dark gray waist straps. Two arms and two legs, no detached wings. Clear light-faced/black-bodied stealth silhouette. Purple blood, no painted blood.\nComposition: EXACTLY SEVEN full body right-facing poses of SAME alien with exact same model, clothing, proportions and fixed body scale. Clean TWO ROWS, FOUR upper and THREE lower. All seven entire silhouettes must fit in disjoint rectangular regions with at least70pixels of fully transparent gutters even between longest attacks. Body height around400pixels, same scale for all poses; generous outer margins. Upper row left-to-right: idle ready stance; walk A near leg forward/far leg back; walk B near leg back/far leg forward (visibly opposite stride); attack tell coiled low stance with near claw tucked beside shoulder and torso twisting, feet braced for a sideways dash. Lower row left-to-right: strike long rightward crossing claw slash with weight stretched diagonally and rear foot trailing, claws visibly attached to hand; recover withdrawing that attack and returning to stance; hit recoil backwards with both entire feet and all limbs visible. Same grounded foot baseline per row. No eighth pose. Sheet is wider than tall so no lower-row collision or cropped limbs.\nStyle: crisp hand-painted comic/black ink with textured cel color and strong organic silhouettes, restrained amber/cyan rim light, sharp native detail, believable jointed anatomy. Each pose reads as action, not merely copied idle.\nConstraints: genuine alpha transparency outside and between all poses; no background, gradient, ground, cast shadows, detached effects/projectiles, painted blood pools, text/grid/labels/HUD/logos. Connected limbs only. No robots, Level1 enemies, Mac clothing or human likeness. Full feet and extremities, same body scale.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-e70310a9-97bc-4255-84c5-df7ac039fad5.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/mac-poses-v3.png",
+          "role": "style-only",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+        }
+      ],
+      "output": {
+        "width": 1774,
+        "height": 887,
+        "mode": "RGBA",
+        "sha256": "8293c3f59c8b271b5b9be3b2b7c0873b7f92fff660e4b70755e0266a06d165d8",
+        "bytes": 1375022
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "shock_mantid-v1",
+      "asset": "docs/source-pack/review-mac-city-art/candidates/shock_mantid-v1-clipped-candidate.png",
+      "prompt": "Use case: stylized-concept.\nAsset type: large native transparent PNG sprite animation sheet for illustrated 2.5D street brawler, requested wide 2048 by 1024 landscape.\nInput image: approved Mac painting/ink STYLE ONLY; never copy its human face, clothing or model.\nPrimary request: one NEW fictional organic humanoid alien shock_mantid. Tall orange/rust insect humanoid with pale bone-orange layered natural carapace, angular mantis face with black green eyes, broad serrated forearm plates attached to two arms, thick digitigrade two legs with split claws, small dark leather waist belt. Heavy angular orange warrior silhouette distinct from small green scuttler; not robot. Green blood, no painted blood.\nComposition: EXACTLY SEVEN full body right-facing poses of SAME alien with exact same model, clothing, proportions and fixed body scale. Clean TWO ROWS, FOUR upper and THREE lower. All seven entire silhouettes must fit in disjoint rectangular regions with at least70pixels of fully transparent gutters even between longest attacks. Body height around400pixels, same scale for all poses; generous outer margins. Upper row left-to-right: idle ready stance; walk A near leg forward/far leg back; walk B near leg back/far leg forward (visibly opposite stride); attack tell both forearms lifted high and knees bent, weight loading for a ground slam. Lower row left-to-right: strike both heavy serrated forearms driven downward into a low grounded strike, complete feet planted, no detached wave/effect; recover withdrawing that attack and returning to stance; hit recoil backwards with both entire feet and all limbs visible. Same grounded foot baseline per row. No eighth pose. Sheet is wider than tall so no lower-row collision or cropped limbs.\nStyle: crisp hand-painted comic/black ink with textured cel color and strong organic silhouettes, restrained amber/cyan rim light, sharp native detail, believable jointed anatomy. Each pose reads as action, not merely copied idle.\nConstraints: genuine alpha transparency outside and between all poses; no background, gradient, ground, cast shadows, detached effects/projectiles, painted blood pools, text/grid/labels/HUD/logos. Connected limbs only. No robots, Level1 enemies, Mac clothing or human likeness. Full feet and extremities, same body scale.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-8b41257e-c61b-4f33-aa4d-be024e8c0e7f.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/mac-poses-v3.png",
+          "role": "style-only",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+        }
+      ],
+      "status": "rejected-clipped-upper-tell",
+      "reason": "Raised tell limb touches/clips canvas top; preserve candidate and regenerate with more transparent margin.",
+      "output": {
+        "width": 1774,
+        "height": 887,
+        "mode": "RGBA",
+        "sha256": "1303a6d01e3bce7e62fc631ec81d2eae8fa851df4c0d072c92ca9e249f719824",
+        "bytes": 1414310
+      },
+      "selectedForPrivateRuntimeReview": false,
+      "ownerAccepted": false
+    },
+    {
+      "id": "null_regent-v1",
+      "asset": "docs/source-pack/review-mac-city-art/candidates/null_regent-v1-clipped-candidate.png",
+      "prompt": "Use case: stylized-concept.\nAsset type: large native transparent PNG sprite animation sheet for illustrated 2.5D street brawler, requested wide 2048 by 1024 landscape.\nInput image: approved Mac painting/ink STYLE ONLY; never copy its human face, clothing or model.\nPrimary request: one NEW fictional organic humanoid alien null_regent. Large imposing four-armed organic purple alien boss, very broad deep-violet body, angular pale-lavender face with four amber eyes, hornlike backward bony crest, TWO strong main arms and TWO smaller secondary arms attached below shoulders, dark plum armored organic chest, bronze registry-like ceremonial waist ornaments without lettering. Massive heavyweight silhouette, both full legs with wide claw feet, four arms consistently present in every pose. Not a robot or human. Purple blood, no painted blood.\nComposition: EXACTLY SEVEN full body right-facing poses of SAME alien with exact same model, clothing, proportions and fixed body scale. Clean TWO ROWS, FOUR upper and THREE lower. All seven entire silhouettes must fit in disjoint rectangular regions with at least70pixels of fully transparent gutters even between longest attacks. Body height around400pixels, same scale for all poses; generous outer margins. Upper row left-to-right: idle ready stance; walk A near leg forward/far leg back; walk B near leg back/far leg forward (visibly opposite stride); attack tell upper main arm cocked behind shoulder for cleave, secondary arms brace across chest, knees loaded. Lower row left-to-right: strike heavy committed rightward sweeping cleave with leading huge arm extended, other THREE arms all still attached and visible counterbalancing; recover withdrawing that attack and returning to stance; hit recoil backwards with both entire feet and all limbs visible. Same grounded foot baseline per row. No eighth pose. Sheet is wider than tall so no lower-row collision or cropped limbs.\nStyle: crisp hand-painted comic/black ink with textured cel color and strong organic silhouettes, restrained amber/cyan rim light, sharp native detail, believable jointed anatomy. Each pose reads as action, not merely copied idle.\nConstraints: genuine alpha transparency outside and between all poses; no background, gradient, ground, cast shadows, detached effects/projectiles, painted blood pools, text/grid/labels/HUD/logos. Connected limbs only. No robots, Level1 enemies, Mac clothing or human likeness. Full feet and extremities, same body scale.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-dd262b67-6e81-4ebf-a5ea-347ee2589737.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/mac-poses-v3.png",
+          "role": "style-only",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+        }
+      ],
+      "status": "rejected-clipped-upper-tell",
+      "reason": "Raised tell limb touches/clips canvas top; preserve candidate and regenerate with more transparent margin.",
+      "output": {
+        "width": 1774,
+        "height": 887,
+        "mode": "RGBA",
+        "sha256": "6b70d88e0bab902639d520e17320d1b613e8e2b316c71d7c84c371bec44f7b0d",
+        "bytes": 1960519
+      },
+      "selectedForPrivateRuntimeReview": false,
+      "ownerAccepted": false
+    },
+    {
+      "id": "rooftop-relay-v1",
+      "asset": "assets/mac-city-review/rooftop-relay-v1.png",
+      "prompt": "Use case: illustration-story.\nAsset type: sharp native lateral city backdrop, requested3400 by1080 three-to-one panorama for1920\u00d71080 gameplay.\nInput image: approved street city painting/palette reference only.\nNEW setting ROOFTOP RELAY: broad flat rooftop combat terrace at night. A low back parapet and rear safety rail sit BEHIND walking floor; antenna masts, compact relay boxes and weathered vent housings occupy the back architecture only. Low brick rooftop access room with normal human-sized service door, amber utility lamps and tiny cyan relay indicators. Layered cyan/magenta city skyline and purple blue cloudy sky. Uninterrupted foreground rooftop paving, no holes or rooftop equipment occupying lane\nComposition: straight lateral side-on perspective, three connected architectural sections. World3400\u00d71080; upper72% city architecture, lower28% clear ground. Lane y780\u2013970 is flat and unobstructed across full width. Door height about325worldpixels (~30% canvas), rail110, Mac260 only scale reference DO NOT paint people. No enormous doors/buildings or centered vanishing road. Fixtures/rail/canal strictly behind lane.\nStyle: richly detailed painted comic ink, textured brick/steel/stone/water, crisp native surfaces, same amber/cyan/magenta practical city lighting, dark value backdrops that foreground actors read over.\nConstraints: no painted actors/people/enemies, HUD/text/logos, water/rails/crates/cars/props blocking foreground combat strip, no stage/studio, no soft-focus or low-poly. Preserve human architectural scale and continuous walkable foreground.",
+      "tool": "built-in image_gen",
+      "transparentBackground": false,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-e86e46b4-5400-45d8-a0ca-a65898341fd2.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/street-panorama-v1.png",
+          "role": "style-only",
+          "sha256": "c7766ad68ac4b82db7808370a84d47725d538216523cacb80a27c56193363d69"
+        }
+      ],
+      "output": {
+        "width": 2162,
+        "height": 727,
+        "mode": "RGB",
+        "sha256": "51a2b1647a66c9fefaee1003a2bbb69b0a9f73f5eddd204b324796f03a0b612d",
+        "bytes": 3011910
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "broadcast-plaza-v1",
+      "asset": "assets/mac-city-review/broadcast-plaza-v1.png",
+      "prompt": "Use case: illustration-story.\nAsset type: sharp native lateral city backdrop, requested3400 by1080 three-to-one panorama for1920\u00d71080 gameplay.\nInput image: approved street city painting/palette reference only.\nNEW setting BROADCAST PLAZA: broad flat urban plaza in front of grand broadcast headquarters. Art-deco dark brick and steel facade with layered cyan glass panels, strong vertical transmission mast structures behind roofline and restrained magenta city skyline. Amber practical entry lighting and several NORMAL HUMAN SIZED doorways about30%canvasheight at facade base; monumental architecture must not enlarge door proportions. Decorative columns are behind foreground. Empty wet stone plaza foreground spans left to right, no stage, crowds, cars or freestanding fixtures blocking lane\nComposition: straight lateral side-on perspective, three connected architectural sections. World3400\u00d71080; upper72% city architecture, lower28% clear ground. Lane y780\u2013970 is flat and unobstructed across full width. Door height about325worldpixels (~30% canvas), rail110, Mac260 only scale reference DO NOT paint people. No enormous doors/buildings or centered vanishing road. Fixtures/rail/canal strictly behind lane.\nStyle: richly detailed painted comic ink, textured brick/steel/stone/water, crisp native surfaces, same amber/cyan/magenta practical city lighting, dark value backdrops that foreground actors read over.\nConstraints: no painted actors/people/enemies, HUD/text/logos, water/rails/crates/cars/props blocking foreground combat strip, no stage/studio, no soft-focus or low-poly. Preserve human architectural scale and continuous walkable foreground.",
+      "tool": "built-in image_gen",
+      "transparentBackground": false,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-b496f2b1-e162-482e-a9a1-e3e46323ffe5.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/street-panorama-v1.png",
+          "role": "style-only",
+          "sha256": "c7766ad68ac4b82db7808370a84d47725d538216523cacb80a27c56193363d69"
+        }
+      ],
+      "output": {
+        "width": 2167,
+        "height": 726,
+        "mode": "RGB",
+        "sha256": "643f5909763bc23cb710335789813d13138610d47520272958205a5b1bc35d15",
+        "bytes": 3031490
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "shock_mantid-v2",
+      "asset": "assets/mac-city-review/shock_mantid-v2.png",
+      "prompt": "Use case: identity-preserve.\nAsset type: corrected native large transparent sprite atlas for2.5D brawler, wide landscape approximately2048\u00d71152.\nEdit target: supplied shock_mantid seven-pose sheet.\nChange ONLY canvas layout and complete-limb containment. Preserve exact orange bone-armored mantis humanoid, serrated forearms, two arms/two legs, dark belt and green eyes, comic painting/ink, costume, colors, body proportions, seven actions. Reduce ALL seven characters equally to a common standing body height around360pixels. Give EVERY figure at least50pixels outer and interrow margin above its highest raised hand/antenna. Reconstruct complete cropped top hand/forearm within the canvas. Exactly2rows FOUR upper THREE lower; upper idle/walkA/walkB/tell, lower strike/recover/hit. Entire seven silhouettes in nonoverlapping rectangular areas with70pixels clear transparent horizontal gutters, including all fourarms on boss and all raised limbs on mantid. Upper tell must have its entire raised hands/blades comfortably BELOW canvas top; no edge touch. Keep right facing and foot-baseline aligned per row, BOTH feet fullyvisible, common scale. WalkB opposite leg/arm stride toWalkA.\nNo other changes to identity, no new accessory or detached effects/blood. True transparent alpha outside/between figures, no background/ground/shadow/grid/text/HUD. Exactly seven poses.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-555c25d6-0c8d-442d-8d55-a42a9a058da9.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-mac-city-art/candidates/shock_mantid-v1-clipped-candidate.png",
+          "role": "edit-target",
+          "sha256": "1303a6d01e3bce7e62fc631ec81d2eae8fa851df4c0d072c92ca9e249f719824"
+        }
+      ],
+      "output": {
+        "width": 1672,
+        "height": 941,
+        "mode": "RGBA",
+        "sha256": "5720d575f5f93a7294d81fe290042877f6a6e5855773d715028a50b71a779f0d",
+        "bytes": 1318461
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "null_regent-v2",
+      "asset": "assets/mac-city-review/null_regent-v2.png",
+      "prompt": "Use case: identity-preserve.\nAsset type: corrected native large transparent sprite atlas for2.5D brawler, wide landscape approximately2048\u00d71152.\nEdit target: supplied null_regent seven-pose sheet.\nChange ONLY canvas layout and complete-limb containment. Preserve exact massive violet FOUR-ARMED boss with four amber eyes, pale pointed face/crest, bronze ornament and plum body; all FOUR arms attached and visible in eachpose, comic painting/ink, costume, colors, body proportions, seven actions. Reduce ALL seven characters equally to a common standing body height around360pixels. Give EVERY figure at least50pixels outer and interrow margin above its highest raised hand/antenna. Reconstruct complete cropped top hand/forearm within the canvas. Exactly2rows FOUR upper THREE lower; upper idle/walkA/walkB/tell, lower strike/recover/hit. Entire seven silhouettes in nonoverlapping rectangular areas with70pixels clear transparent horizontal gutters, including all fourarms on boss and all raised limbs on mantid. Upper tell must have its entire raised hands/blades comfortably BELOW canvas top; no edge touch. Keep right facing and foot-baseline aligned per row, BOTH feet fullyvisible, common scale. WalkB opposite leg/arm stride toWalkA.\nNo other changes to identity, no new accessory or detached effects/blood. True transparent alpha outside/between figures, no background/ground/shadow/grid/text/HUD. Exactly seven poses.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-9d4cc577-9c87-4b7e-8135-68153936e51e.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/docs/source-pack/review-mac-city-art/candidates/null_regent-v1-clipped-candidate.png",
+          "role": "edit-target",
+          "sha256": "6b70d88e0bab902639d520e17320d1b613e8e2b316c71d7c84c371bec44f7b0d"
+        }
+      ],
+      "output": {
+        "width": 1672,
+        "height": 941,
+        "mode": "RGBA",
+        "sha256": "c6cbc83c6be0c75669283c237fc5caea23c3064f125e51e044eb297f5cd1c717",
+        "bytes": 1674237
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    },
+    {
+      "id": "mac-attacks-v1",
+      "asset": "docs/source-pack/review-mac-city-art/candidates/mac-attacks-v1-overlap-artifact-candidate.png",
+      "prompt": "Use case: identity-preserve.\nAsset type: supplemental native transparent Mac MODEM seven-action sprite atlas, wide landscape approximately2048\u00d71152 for comic2.5D brawler.\nInput image: approved Mac v3 sheet is exact character identity/costume/paint/footwear/tattoo authority. Preserve exact face, ginger beard and long tied braided hair, white facepaint with red/black markings, black MODEM cap, burgundy sleeveless vest over black shirt, tattooed arms, black trousers, red sneakers. Same strong ink and textured cel painting. No new costume/glow/weapon.\nPrimary request: EXACTLY SEVEN new right-facing full-body grounded combat poses of this SAME Mac. Uniform body scale across all, standing bodyheightaround360pixels, each entire figure including cap/braids/fists/feet inside disjoint rectangular area with70pixels transparent gutters and50pixels outer margin. TWO ROWS FOUR upper THREE lower.\nUpper row left to right: WINDUP both fists up, torso coiled for punch; JAB a committed forward lead-hand straight punch with rear fist at cheek; CROSS a distinct rear-hand punch with hip/shoulder rotated and forward heel planted; FINISHER a broad strong forward hook with torso twisting and opposite arm guarding, all limbs attached.\nLower row left to right: THROW WINDUP crouched grounded grip-preparation with both hands forward as if about to seize an opponent but NO other person; THROW RELEASE a strong forward shoulder-and-arm push/heave, feet braced, open connected hands, NO opponent/prop; HURT leaning backwards from a torso hit, hands recoiling, both entire red shoes still visible. Clearly different seven poses, each same exact model/costume/body scale. Foot baseline aligned per row.\nConstraints: genuinely transparent alpha outside/between poses, no ground/shadows/gradient/rectangle, no painted effects/blood/projectiles/enemy/text/grid/HUD. Keep lettering MODEM on cap from model reference only; do not invent other text. No cropping or overlap; full cap and both sneakers in every pose.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-e1b12e21-cc99-4709-82c0-0dbbb498d1d6.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/mac-poses-v3.png",
+          "role": "exact-character-model",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+        }
+      ],
+      "status": "rejected-crop-overlap-and-opaque-face-artifact",
+      "reason": "Upper attack crops overlap; cross face has opaque white rectangular artifact.",
+      "output": {
+        "width": 1536,
+        "height": 1024,
+        "mode": "RGBA",
+        "sha256": "1929f2c21193045f1a332aedfa36529e20d02eb17d0f22b52ae3c3556b34be1f",
+        "bytes": 2010805
+      },
+      "selectedForPrivateRuntimeReview": false,
+      "ownerAccepted": false
+    },
+    {
+      "id": "mac-attacks-v2",
+      "asset": "docs/source-pack/review-mac-city-art/candidates/mac-attacks-v2-face-artifact-candidate.png",
+      "prompt": "Use case: identity-preserve.\nAsset type: corrected large native transparent Mac action atlas, VERY WIDE 3-to-1 landscape canvas approximately2400\u00d7800.\nInput1 edit target Mac attacks v1. Input2 approved Mac v3 model authority.\nChange only layout, complete containment, and remove white opaque artifact behind CROSS face. Preserve EXACT Mac identity, white/red/black facepaint, ginger beard, tied long braids, black MODEM cap, burgundy vest/black shirt, tattooed arms, black trousers/red sneakers, same ink painting.\nExactly7full-body right-facing grounded actions, uniform standingbodyheightabout270pixels acrossALLposes. Two rows FOURtop THREEbottom, every pose in an entirely separate rectangular area with80pixels transparent horizontal gap beyond braids/fists and40pixels outermargin. Upperwindup/jab/cross/finisher; lowerthrowwindup/throwrelease/hurt. Use verywidecanvas so extendedfists/braids do NOT overlap adjacentpose rectangularbounds. All seven full feet/cap/fists, common body scale; footbaseline aligned eachrow. Opponent absent, limbs connected, no extrafigures.\nThe upper CROSS (thirdpose) must have no white patch/rectangle, smoke, glow, effect or anything behind the face; that outside-head region must be true empty alpha. Make ALLoutside/interposeareas completely transparent, no gradient/colorfill/ground/shadows, no separateeffects/blood/text/grid/labels/HUD. Keep existing capcostumeletteringonly. This is a spacing/artifact correction, no costume/model changes.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-0017a9a8-a01a-4c0a-ac45-49ea9062fe73.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-city-review/mac-attacks-v1.png",
+          "role": "exact-character-model",
+          "archivedCurrentPath": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\docs\\source-pack\\review-mac-city-art\\candidates\\mac-attacks-v1-overlap-artifact-candidate.png",
+          "sha256": "1929f2c21193045f1a332aedfa36529e20d02eb17d0f22b52ae3c3556b34be1f"
+        },
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/mac-poses-v3.png",
+          "role": "exact-character-model",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+        }
+      ],
+      "status": "rejected-persistent-opaque-face-artifact",
+      "output": {
+        "width": 2172,
+        "height": 724,
+        "mode": "RGBA",
+        "sha256": "b6001e0e11e6bc938fcbda314718d871eb4b41f4586070bcc2dec13a50964c4b",
+        "bytes": 897647
+      },
+      "selectedForPrivateRuntimeReview": false,
+      "ownerAccepted": false
+    },
+    {
+      "id": "mac-attacks-v3",
+      "asset": "docs/source-pack/review-mac-city-art/candidates/mac-attacks-v3-row-overlap-candidate.png",
+      "prompt": "Use case: identity-preserve.\nAsset type: native transparent full-body seven-action sprite atlas on a VERY WIDE3:1landscape canvas about2400\u00d7800, gameproductionasset.\nReference is approved original Mac poses v3 EXACT character/model and ink/painting authority.\nCreate seven new full-body right-facing grounded actions with exact same ginger beard/long tiedbraids, white/red/black facepaint, black MODEMcap, burgundy sleevelessvest/blackshirt/tattoos/blacktrousers/redshoes. Two rows FOURtop THREEbottom, fixed standingbodyheight270pixels acrossallposes, generous80pixel rectangulargutters beyond all braids/fists,40pixel outermargins. Full cap/fists/shoes within eachfigure. SAMEmodel/proportions/color/style.\nUpper1windup: fistsguardingcheek, torso coiled.\nUpper2jab: leadhandstraightforwardpunch, rearhandguard.\nUpper3cross: rearhandstraightpunch, shoulderandhiprotated, FACE COMPLETELY CLEAR with a natural visible outline and ONLY emptyalpha infrontofit, no mouth accessory/object/effect. Fist extends right clear of face.\nUpper4finisher: broad forwardhook bodytwist.\nLower1throwwindup crouchbothhandsreadyforgrip(noenemy).\nLower2throwrelease bothhandsforwardheave feetbraced(noenemy).\nLower3hurt backwardsrecoilbothfeetvisible.\nFull seven poses, attachedlimbs, genuinelytransparentalpha outside/betweenfigures including IN FRONT OF FACE. No background/gradient/ground/shadows/smoke/breath/whitegraybox/effects/projectiles/blood/text/grid/labels/HUD. No othercharacter or prop. Same groundedbaselines perrow. Do not include any eighthfigure. Sharp illustrated comic no lowpoly.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-c9cebcbc-54bc-4948-9796-37e5a2f0e6a3.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-street-review/mac-poses-v3.png",
+          "role": "exact-character-model",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+        }
+      ],
+      "status": "rejected-overlapping-row-alpha",
+      "reason": "Lower hurt cap begins above upper shoe baseline, so row crop rectangles overlap.",
+      "output": {
+        "width": 2172,
+        "height": 724,
+        "mode": "RGBA",
+        "sha256": "2e6674d34ec529f52cc5632c8dd9d3c053f33357e31f35d0b305325764c31ba9",
+        "bytes": 844819
+      },
+      "selectedForPrivateRuntimeReview": false,
+      "ownerAccepted": false
+    },
+    {
+      "id": "mac-attacks-v4",
+      "asset": "assets/mac-city-review/mac-attacks-v4.png",
+      "prompt": "Use case: identity-preserve.\nEdit target: attached clean seven-pose Mac atlas. Keep EXACT all seven models/faces, costume, painting and action poses unchanged. Keep the faces free of objects/artifacts.\nONLY fix registration layout: make all seven figures EQUALLY SMALLER, standing height230pixels, on verywide3:1native landscape approximately2400\u00d7800. All opaque parts of upper FOUR figures must lie within TOP40%canvas. All opaque parts of lower THREE figures must lie within BOTTOM40%canvas. The ENTIRE MIDDLE20%canvas must be an uninterrupted completely transparent horizontal stripe fromlefttoright with ZERO painted pixels. In particular move lower-right HURTpose DOWN so its tilted cap/head cannot touch upperrow shoeheight. Whole figure must stayinsidebottomrow area, reduceallseven equally ifneeded.\nPreserve horizontal80pixel transparent gutters and complete caps/braids/fists/bothshoes; fourtop windup,jab,cross,finisher and threebottom throwwindup,throwrelease,hurt. Fixed uniformbody scale, same groundedbaseline perrow.\nGenuine alpha transparency outside/interfigures/middleband. No ground/shadow/gradient/rectangles/text/HUD/effects/smoke/whitegraypatch behindfaces. No redesign, no eighthfigure, no addedcharacters or props. Entire middle band MUST be EMPTY transparent, so complete upper and lower sourcecrop rectangles will not overlap.",
+      "tool": "built-in image_gen",
+      "transparentBackground": true,
+      "generatedSource": "C:\\Users\\jondh\\.codex\\generated_images\\01a10de1-6583-7fa3-9bcd-d59d6627d875\\exec-1597d61e-191b-4e67-9aa5-f442d0502a83.png",
+      "referenceImages": [
+        {
+          "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-city-review/mac-attacks-v3.png",
+          "role": "edit-target",
+          "archivedCurrentPath": "C:\\Users\\jondh\\.codex\\.chatgpt-projects\\g-p-6a52f588fb708191961f8109dc24fc41\\level2-minimal-source-20261003\\docs\\source-pack\\review-mac-city-art\\candidates\\mac-attacks-v3-row-overlap-candidate.png",
+          "sha256": "2e6674d34ec529f52cc5632c8dd9d3c053f33357e31f35d0b305325764c31ba9"
+        }
+      ],
+      "output": {
+        "width": 2172,
+        "height": 724,
+        "mode": "RGBA",
+        "sha256": "71ab4cdaf80beaabbf226de624bec2ee62aa5ed8fc3ef0a0aca54a08ba28d07a",
+        "bytes": 534778
+      },
+      "selectedForPrivateRuntimeReview": true,
+      "ownerAccepted": false,
+      "status": "selected-after-native-visual-and-registration-review"
+    }
+  ],
+  "selectedRuntimeManifest": "assets/mac-city-review/mac-city-art-v1.json",
+  "inspection": {
+    "imagesGenerated": 20,
+    "selectedImages": 14,
+    "runtimeAssets": 23,
+    "rejectedCandidates": 6,
+    "pixelEditing": false,
+    "registration": "Read-only native alpha inspection; 4px island merge only for tiny silhouette edge flecks, 16px for mouth drip in Spitter strike. No equal-cell crop assumptions.",
+    "acceptance": "Technical private-review selection only; owner acceptance pending."
+  }
+}

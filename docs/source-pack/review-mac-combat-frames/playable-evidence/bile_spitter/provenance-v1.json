@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "kind": "bile_spitter",
+  "tool": "built-in image_gen",
+  "generatedAtUtc": "2026-10-06T15:19:01.4813830Z",
+  "originalGenerationPath": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-3fdffa72-e24b-47be-a9aa-b3ec437bf114.png",
+  "selectedPath": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-combat-frames/bile_spitter-frames-v1.png",
+  "sha256": "95b73696e4e972415ed9fd39a40eeea7c297c9b4500c0d52d48f14459fe63d18",
+  "bytes": 1847321,
+  "nativeDimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "bitDepth": 8,
+  "pngColorType": 6,
+  "transparentBackgroundRequested": true,
+  "referenceImages": [
+    {
+      "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-combat-frames/mac-basic-v2.png",
+      "sha256": "3924a5621c417da3328fcd9979acc37be6be0802d8ec0808194fa188aaa47046"
+    },
+    {
+      "path": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/level2-minimal-source-20261003/assets/mac-city-review/bile_spitter-v1.png",
+      "sha256": "7f82901872f4593ed2c428d83fbedda9ea919a568c2977bec39f5d6e2c8d3a21"
+    }
+  ],
+  "promptPath": "C:/Users/jondh/.codex/.chatgpt-projects/g-p-6a52f588fb708191961f8109dc24fc41/verification/mac-frame-animation-20261006/enemy-generation/bile_spitter/prompt-v1.txt",
+  "prompt": "Use case: illustration-story.\nAsset type: native transparent complete-body animation sprite sheet for an illustrated classic arcade beat-em-up.\nInput images: Image1 is the art-style reference ONLY (Mac complete drawn cels); Image2 is this alien's original identity, anatomy, costume and palette authority. Do not draw Mac.\nPrimary request: Draw EXACTLY TWELVE fully connected complete characters of the SAME alien, in EXACT 4 columns and 3 rows, read left to right top to bottom. No separated pieces or articulated parts. Each cell has one whole body, including complete head, hands and both feet; no overlap with neighboring cells.\nStyle: Match Image1 hand-inked illustrated arcade sprites: bold clean outline, bold readable silhouette, coherent hand-drawn anatomy, flat/cel shadows and restrained highlights. NO pixel-art conversion, 3D rendering, photorealism, ball joints, circles or seams at joints. Limbs are naturally drawn continuous anatomy.\nLayout: landscape 4:3 sheet; invisible equal-sized cells; truly transparent alpha background. At least10% of each cell is transparent margin around every pose. Keep all poses at the SAME actual body/head scale, SAME limb lengths and SAME costume. Wider lunges/falls must fit by composition, NEVER shrink that body relative to standing frames. Side three-quarter view facing RIGHT throughout. Planted poses rest on the same per-row foot baseline. No shadows, ground planes, scenery, labels, grid lines, cell borders, watermark, painted checkerboard, blood or action effects.\nExact pose order:\nrow1 cell1 idle alert stance; cell2 walk_contact_a with one front foot planted and rear foot beginning push-off; cell3 walk_pass with moving knee lifted naturally and supporting leg under hips; cell4 walk_contact_b with opposite stride/arm swing.\nrow2 cell5 tell_a; cell6 impact_a; cell7 recover after that attack, weight settling and arms returning; cell8 tell_b.\nrow3 cell9 impact_b; cell10 hurt with whole-body impact recoil/back arch and arms reacting; cell11 FALL, truly losing balance with body strongly diagonal/horizontal and both feet off their standing baseline; cell12 DOWN, the entire character fully lying on its SIDE on an implied floor, head toward RIGHT, face seen in right-facing profile, torso/legs horizontal. Down is NOT a standing, kneeling, sitting or crouching pose.\nPose intent: Strong whole-body gesture and torso/hip rotation, anticipation and follow-through. No interchangeable straight punches for other alien species.\nSubject identity: Stocky cobalt-blue amphibian humanoid with speckled skin, amber eyes, large lime-green inflatable throat sac, broad belly/chest, olive tattered work vest and cloth skirt, brown leather belt pouch, webbed hands and broad webbed feet. Keep the ORIGINAL stocky silhouette, large head/throat sac and squat proportions. GREEN blood is a gameplay property only; draw no blood.\nAttack-specific cells: Cell5 tell_a: throat sac visibly swollen, head tipped back, shoulders and palms tense. Cell6 impact_a: body sharply thrusts forward with open mouth and compressed throat sac, spitting action but NO projectile drawn. Cell8 tell_b: even larger inflated throat sac, wide crouch, arms spread back and chest recoils. Cell9 impact_b: low broad spread-belch with open mouth, both webbed hands spread to sides, wide forward torso force but NO drawn bile/projectiles.",
+  "status": "generated; native visual inspection pending; owner acceptance pending",
+  "noPixelEditing": true
+}

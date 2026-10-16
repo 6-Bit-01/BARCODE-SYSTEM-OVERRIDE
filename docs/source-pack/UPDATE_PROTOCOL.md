@@ -33,8 +33,8 @@ Only record human acceptance from actual owner evidence and identify its scope.
 Run `npm run checkpoint:sync` to regenerate the bounded current blocks at the top
 of `CONTINUE_HERE.md`, `CURRENT_STATE.md`, both READMEs, `AGENTS.md`,
 `PROJECT_INSTRUCTIONS.md` and `ACCEPTANCE.md`. Text outside those blocks stays intact.
-Old dated instructions and pending/candidate claims remain historical, not a queue
-of work to repeat. Do not prepend new active instructions ahead of the generated
+Dated instructions retain their scoped constraints and evidence; compare them with
+the newest owner request before resuming work. They are not an automatic task queue. Do not prepend new active instructions ahead of the generated
 block or edit generated fields by hand. Add detailed dated history below it.
 
 `npm run check:checkpoint` rejects missing/malformed blocks and record/header
@@ -55,6 +55,9 @@ receipts, CI artifacts and the canonical downloadable archive identity are retai
 Keep each schema version's header-rendering contract stable. If that format changes,
 bump the schema and retain its older renderer, or rebuild an old revision using its
 own checked-out tools; do not silently reinterpret historical generated headers.
+Schema 2 keeps dated owner constraints applicable; schema 1 rendering is retained
+for exact historical exports. Sync accepts LF and CRLF document headers and preserves
+each document's line endings and all bytes outside the marked block.
 This workflow performs no automatic Git commits, merges, deployment or archive
 publication; those actions remain subject to the current task's authorization.
 

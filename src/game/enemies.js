@@ -886,6 +886,15 @@ window.Enemy = class Enemy {
   }
 
   // --- ANIMATION CONTROLLER ---
+  getAnimationPlaybackRate() {
+    if (this.type === 'virus') return 1.4; // Active signal/skin loop, not a walk.
+    if (this.type === 'corrupted') {
+      return this.currentAnimation === 'corrupted_walk_walk'
+        ? Math.max(0.5, Math.min(2.2, Math.abs(this.velocity.x) / 155)) : 1.1;
+    }
+    return this.currentAnimation === 'firewall_idle_idle' ? 0.9 : 1;
+  }
+
   updateSpritePlayback(deltaTime) {
     if (this.type === 'firewall' && this.currentAnimation === 'firewall_walk_walk') {
       // A single complete sixteen-pose stride avoids the old mixed-cycle seam.
@@ -896,8 +905,9 @@ window.Enemy = class Enemy {
         this.animationRef = this.sprite.play(this.currentAnimation, true, frame);
       return;
     }
-    if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.sprite, deltaTime);
-    else this.sprite.update(deltaTime);
+    const playbackDelta = deltaTime * this.getAnimationPlaybackRate();
+    if (window.BARCODE?.SpritePlayback) window.BARCODE.SpritePlayback.update(this.sprite, playbackDelta);
+    else this.sprite.update(playbackDelta);
   }
 
   forceCorrectAnimationState() {
@@ -961,8 +971,9 @@ window.Enemy = class Enemy {
 
     // FIX: Removed setTimeout delay that was causing race conditions
     const loop = !fullName.includes('attack');
-    const speed = fullName.includes('attack') ? 1.2 : (name === 'idle' ? 1.25 : 1.0);
-    this.animationRef = this.sprite.play(fullName, loop, 0, { speed });
+    // All rate policy is applied to the shared delta above. Do not compound
+    // a hidden SDK multiplier or restart a walking take when speed changes.
+    this.animationRef = this.sprite.play(fullName, loop);
     this.currentAnimation = fullName;
   }
 
@@ -979,7 +990,11 @@ window.Enemy = class Enemy {
       frame = this.combatPattern === 'attack'
         ? Math.min(31, 5 + Math.floor(this.combatPatternMs / 800 * 26))
         : Math.min(58, 32 + Math.floor(this.combatPatternMs / 4100 * 26));
-    } else if (this.type === 'corrupted' && this.combatPattern === 'brace') frame = 0;
+    } else if (this.type === 'corrupted' && this.combatPattern === 'brace') {
+      // Preserve the warned 650ms commitment, but use the native tongue and
+      // arm movement instead of pinning the creature to one static drawing.
+      frame = Math.min(23, Math.floor(this.combatPatternMs / 650 * 24));
+    }
     if (frame === null) return false;
     // AnimationReference.currentFrame is a getter in Makko. Use the public
     // start-frame argument, and leave this committed pose on the AI clock.
@@ -1007,6 +1022,15 @@ window.Enemy = class Enemy {
     const pose = this.getSpritePresentation();
     ctx.save();
     window.sector1Progression?.clipRoofFeet?.(ctx, this);
+    if (this.type === 'virus' && !window.BARCODE?.Preferences?.values.reducedMotion) {
+      // Its native signal cells pulse, but the sphere barely changes outline
+      // at gameplay size. Give the complete cel a slow grounded squash;
+      // anchored feet and the stable combat body remain untouched.
+      const pulse = Math.sin(this.animationTime / 1100 * Math.PI * 2 + this.phaseOffset);
+      const stretch = 1 + pulse * 0.05;
+      const footY = this.position.y + 72;
+      ctx.transform(1, 0, 0, stretch, 0, footY * (1 - stretch));
+    }
     this.sprite.draw(ctx, pose.x, pose.y, { scale: pose.scale, flipH: pose.flipH });
     ctx.restore();
   }
@@ -1377,7 +1401,20 @@ window.RooftopDrone = class RooftopDrone extends window.Enemy {
     ctx.save();
     if(this.escort)ctx.filter=this._bossSupport?'hue-rotate(135deg) saturate(1.7) brightness(1.15)':'hue-rotate(275deg) saturate(1.5)';
     const size=this.escort?125:156;
-    window.BARCODE?.PresentationAssets?.draw('rooftopDrone',ctx,{x:this.position.x,y:this.position.y+15,width:size,height:size,frame,flip:this.facing<0});
+    const art=window.BARCODE?.PresentationAssets;
+    art?.draw('rooftopDrone',ctx,{x:this.position.x,y:this.position.y+15,width:size,height:size,frame,flip:this.facing<0});
+    if(frame>=4 && !window.BARCODE?.Preferences?.values.reducedMotion){
+      // Keep the authored warning/fire/hit body while its two real engine
+      // plumes continue their four-cel loop. Clip only the jet pixels from
+      // that same atlas; the gun, lens and combat pose keep their phase.
+      ctx.save();ctx.beginPath();
+      for(const side of [-1,1])ctx.rect(this.position.x+side*size*.235-size*.075,
+        this.position.y+15+size*.19,size*.15,size*.28);
+      ctx.clip();
+      art?.draw('rooftopDrone',ctx,{x:this.position.x,y:this.position.y+15,width:size,height:size,
+        frame:Math.floor(this.animationTime/90)%4,flip:this.facing<0});
+      ctx.restore();
+    }
     ctx.restore();
     if(this.escort){
       ctx.fillStyle=this._bossSupport?'#ff90db':'#9effb1';ctx.font='bold 13px Oxanium, monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';
@@ -1473,8 +1510,10 @@ window.EnemyManager = class EnemyManager {
       }
     });
 
+    window.sector1Progression?.constrainEncounterEnemies?.();
     this.checkEnemyCollisions();
     this.checkCollisions(player);
+    window.sector1Progression?.constrainEncounterEnemies?.();
 
     // Clean up dead enemies; the manager is the authoritative defeat owner.
     const newlyDefeated = this.enemies.filter(e => !e.active && e.health <= 0 && !e._defeatRecorded);
@@ -1499,6 +1538,9 @@ window.EnemyManager = class EnemyManager {
 
     // Update crowd mechanics
     this.updateCrowdMechanics(hostileDeltaTime, player);
+    // Authored encounter gates constrain every required actor after movement,
+    // contact separation and crowd steering have all finished for this frame.
+    window.sector1Progression?.constrainEncounterEnemies?.();
   }
 
   checkEnemyCollisions() {
@@ -1852,7 +1894,7 @@ window.EnemyManager = class EnemyManager {
   clearHackTrails() { this.hackTrails.clear(); }
   hasHackTrails() {
     const prefs = window.BARCODE?.Preferences?.values;
-    return !!window.BARCODE?.TacticalFocusClock?.isActive?.() && !prefs?.reducedMotion && !prefs?.reducedFlashes;
+    return !!window.BARCODE?.TacticalFocusClock?.isActive?.() && !prefs?.reducedMotion && !prefs?.reducedFlashes && prefs?.flashes !== false;
   }
   updateHackTrails(deltaTime) {
     if (!this.hasHackTrails()) { this.clearHackTrails(); return; }
@@ -1875,7 +1917,11 @@ window.EnemyManager = class EnemyManager {
     const samples = this.hackTrails.get(enemy)?.samples;
     if (!samples?.length || !this.hasHackTrails()) return;
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    for (const sample of samples) {
+    // The three ribbons retain the full movement history. One recent body
+    // echo is enough to show dilation without compositing five filtered,
+    // scaled canonical cels for each enemy in a crowded hack scene.
+    for (let i = samples.length - 1; i >= 0; i--) {
+      const sample = samples[i];
       if (Math.hypot(enemy.position.x - sample.x, enemy.position.y - sample.y) < 3) continue;
       ctx.save(); ctx.globalAlpha *= 0.22 * (1 - sample.ageMs / 700);
       ctx.translate(sample.x - enemy.position.x, sample.y - enemy.position.y);
@@ -1884,6 +1930,7 @@ window.EnemyManager = class EnemyManager {
         { x: enemy.position.x, y: enemy.position.y + 15, width: 156, height: 156, frame: 0, flip: enemy.facing < 0 });
       else if (enemy.spriteReady && enemy.sprite) enemy.drawSprite(ctx);
       ctx.restore();
+      break;
     }
     for (const [index, offset] of [-30, 0, 28].entries()) {
       ctx.globalAlpha = 0.3; ctx.strokeStyle = index === 1 ? '#bb99ff' : '#8bfff1'; ctx.lineWidth = index === 1 ? 2 : 1;

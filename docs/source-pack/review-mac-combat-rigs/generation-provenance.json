@@ -1,0 +1,396 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Articulated native body layers for smooth continuous joint-keyframed game animation",
+  "tool": "built-in image_gen.imagegen",
+  "receiptPreparedAtUTC": "2026-10-06T06:42:26.186498+00:00",
+  "ownerAcceptance": "pending",
+  "technicalSelection": "eight selected native actor outputs; parent native assembled continuous-motion review passed; owner acceptance pending",
+  "partCounts": {
+    "ordinary": 15,
+    "fourArmedBoss": 21
+  },
+  "measurementConvention": "Independent alpha>8 source crops; exact native covered joint centers; no per-part scaling; transformed unit pixel-square corners define neutral assembled extent",
+  "approvedMacIdentityReference": {
+    "path": "assets/mac-street-review/mac-poses-v3.png",
+    "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80"
+  },
+  "scope": "New cutout artwork only; original Mac/city models and prior archives preserved; generated original native bytes never edited",
+  "records": [
+    {
+      "version": "mac-modem-v1",
+      "kind": "mac",
+      "operation": "generation-from-approved-model",
+      "status": "preserved-candidate; rejected-wardrobe-lettering",
+      "selected": false,
+      "prompt": "Use case: identity-preserve.\nAsset type: a native transparent 2D articulated game-character body-part atlas, square canvas approximately2048\u00d72048; original game art layers for smooth joint-keyframed motion.\nReference: approved Mac MODEM v3 illustration is EXACT identity/costume/art-style authority.\nPreserve his white/red/black face paint, black MODEM cap, ginger beard, tied long reddish braids, red-brown burgundy sleeveless vest over black shirt, tattooed bare arms, black trousers and red sneakers. Same crisp comic ink/textured cel painting. Face looks right, all body parts in compatible right-facing three-quarter view.\nPrimary request: EXACTLY15 SEPARATE illustrated connected-anatomy GAME ART LAYERS in a clear4\u00d74 arrangement. No full figure. Uniform shared body scale, so assembled head/torso/limbs reproduce the reference proportions; do not enlarge small fists/shoes to fill cells. Every individual part lies entirely inside its own spacious rectangle, at least60pixels true-alpha gap between complete silhouettes. Large outermargin.\nROW1 left-to-right: 1HEAD+NECK including approved cap, face, beard and all tied braids attached to head; 2TORSO with vest/shirt, shoulder sockets and neck opening but NO arms/head/pelvis; 3PELVIS black trouser waist/hips, rounded covered hip sockets but NO thighs; 4REARUPPERARM shoulder-to-elbow, tattooed bare skin.\nROW2: 5REARFOREARM elbow-to-wrist tattooed bare skin; 6REARFIST closed hand+short wrist; 7FRONTUPPERARM shoulder-to-elbow tattooed bare skin; 8FRONTFOREARM elbow-to-wrist tattooed bare skin.\nROW3: 9FRONTFIST closed hand+short wrist; 10REARTHIGH hip-to-knee black trousers; 11REARSHIN knee-to-ankle black trousers; 12REARSHOE complete red sneaker with short ankle cuff, toe points right.\nROW4: 13FRONTTHIGH hip-to-knee black trousers; 14FRONTSHIN knee-to-ankle black trousers; 15FRONTSHOE complete red sneaker with short ankle cuff toe points right; cell16 completely empty.\nNeutral arms/thighs/shins point verticallyDOWN, not angled/bent. Each limb segment has smoothly painted rounded overlap joint caps at BOTH ends with matching skin or black cloth, no black hole/cut seam. Closed fists have rounded wrist overlap; sneakers rounded ankle overlap. Torso/pelvis provide hidden-overlap shoulder/hip surfaces. These are NON-GORY animation artwork layers, clean complete cosmetic pieces, no blood or exposed bones. No anatomy labels.\nImportant: anatomical sizes remain consistent across separate pieces; e.g fists much smaller than forearms, head+neck smaller than torso+pelvis combined. Rear/front limb pairs compatible lengths and model.\nConstraints: real alpha transparency outside and between all15parts; NO background/colorfill/gradient/white checkerboard, gridlines/labels/text/watermark/HUD, extrafigure/parts/weapons/effects. Keep capletteringonly. No touching/overlap between parts, no clipped braids/toes/knuckles, no extra16thpart. Do not paint a whole character or seven poses.",
+      "references": [
+        {
+          "path": "assets/mac-street-review/mac-poses-v3.png",
+          "sha256": "691a384a9a1a30757a35ab3f81fcc17a5e4aca7e24b65873068660d29ee63b80",
+          "authority": "approved Mac identity and wardrobe"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-402e3350-d72e-4f8a-9238-a13d55696ec2.png",
+      "generatedSHA256": "857999bfd971132fe43a18740711442bc885c2e8332d5197dbf075d76dcdf27a",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "destination": "docs/source-pack/review-mac-combat-rigs/candidates/mac-modem-v1.png",
+      "pixelEditingPerformed": false,
+      "untrackedWorkingOriginalPreserved": "assets/mac-combat-rigs/mac-modem-v1.png"
+    },
+    {
+      "version": "mac-modem-v2",
+      "kind": "mac",
+      "operation": "targeted-edit",
+      "status": "technical-art-selected; parent-native-assembly-reviewed; owner-acceptance-pending",
+      "selected": true,
+      "prompt": "Edit the supplied transparent 15-part Mac body-layer atlas. Make ONLY the two wardrobe-lettering corrections: on the black cap replace the red word MODEM with red uppercase MAC; on the black shirt inside the burgundy torso replace the red word MODEM with red uppercase MAC. Match existing red ink style and the same approved character wardrobe. Preserve every part silhouette, anatomy, native relative scale, position, hair/braid/beard/face paint, texture, tattoo, rounded joint surface, shoe, alpha transparency, transparent gutters, 4x4 arrangement with final empty cell, and all other pixels as closely as possible. Do not add any parts, labels, figures, background, grid, effects, or opaque fills. This is a narrow text edit to game-art layers, not a new layout or costume.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-combat-rigs/candidates/mac-modem-v1.png",
+          "sha256": "857999bfd971132fe43a18740711442bc885c2e8332d5197dbf075d76dcdf27a",
+          "authority": "existing 15-part cutout anatomy; only cap/chest lettering corrected to MAC"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-95445d23-687c-4f8a-b06c-007b77881bac.png",
+      "generatedSHA256": "ebe80694aba0984651cbdfaaee8f7991d318e0768d627b06c1ec18c9b3188733",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "destination": "assets/mac-combat-rigs/mac-modem-v2.png",
+      "registration": "assets/mac-combat-rigs/mac-modem-v2-rig.json",
+      "registrationSHA256": "abc7ceac3eba61a0ba20ff90c246c0356af8e2701f2f73cf426d87f9d9344f21",
+      "pixelEditingPerformed": false,
+      "technicalReview": {
+        "reviewer": "parent-agent",
+        "nativeAssembly": "covered joints, species identity and planted/airborne foot contacts reviewed",
+        "ownerAcceptance": "pending"
+      }
+    },
+    {
+      "version": "chitin_scuttler-v1",
+      "kind": "chitin_scuttler",
+      "operation": "generation-from-existing-character",
+      "selected": true,
+      "status": "technical-art-selected; parent-native-assembly-reviewed; owner-acceptance-pending",
+      "prompt": "Use case: identity-preserve. Asset type: transparent articulated 2D game-character body-part atlas for smooth continuous joint animation. The supplied existing character atlas is EXACT identity/color/costume/style authority, not a layout to copy. Rebuild that same single authored fictional alien as EXACTLY15 independent painted game-art layers in a clear4x4 layout. small compact JADE-GREEN insect humanoid with layered dark-green chitin, luminous lime compound eyes, ivory mandibles, long fine antennae, ochre utility vest and neck scarf, brown belt pouch and wrist/ankle wraps, broad three-clawed green feet. Preserve compact muscular insect body, not human skin or robotic armor. All parts compatible right-facing three-quarter view, crisp comic ink/textured cel painting matching reference. ROW1 left to right: HEAD+NECK; TORSO without head/arms/pelvis; PELVIS without thighs; REAR UPPER ARM shoulder-to-elbow. ROW2: REAR FOREARM elbow-to-wrist; REAR FIST/HAND with short wrist; FRONT UPPER ARM; FRONT FOREARM. ROW3: FRONT FIST/HAND; REAR THIGH hip-to-knee; REAR SHIN knee-to-ankle; REAR COMPLETE FOOT ankle-to-ground, toes right. ROW4: FRONT THIGH; FRONT SHIN; FRONT COMPLETE FOOT toes right; last cell EMPTY. All head antennae/fins/crown intact inside head part. Attached garment edges/props remain on their stated owning part. Arms/thighs/shins point vertically DOWN in a neutral straight rest orientation, not action poses. Each joint end has a smooth rounded OVERLAP cap painted with the same natural chitin/skin/cloth; torso and pelvis have covered attachment surfaces. Hand parts have rounded wrist overlap; feet have ankle overlap. These are non-gory game animation artwork pieces, not dissection or severed body props. Uniform one common anatomical scale across all parts: fists/feet NOT enlarged to fill cells, head/torso/leg lengths reproduce model proportions after assembly. Keep complete silhouettes far apart with generous true-alpha gutters, no touching/overlap or clipped edge. Large outer margin. Native transparent square canvas around2048x2048. No full figure, no seven poses, no duplicate part, no background/colorfill/glow/shadow clouds/checkerboard/gridlines/text/labels/HUD/watermark. No blood painted onto sprites, no new costume or generic robot.",
+      "references": [
+        {
+          "path": "assets/mac-city-review/chitin_scuttler-v1.png",
+          "sha256": "3659348f202e51fea25127d36c667e2142197653dc37a7d1f75bec65c6c18302",
+          "authority": "existing authored alien identity/color/props"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-214609da-0785-4b76-83d4-7e6b4e20cead.png",
+      "destination": "assets/mac-combat-rigs/chitin_scuttler-v1.png",
+      "generatedSHA256": "f83802d24eb3e26855f0e0b02f0e56674764bff744b9c8070b8ff19b27738b88",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "bytes": 1088772,
+      "registration": "assets/mac-combat-rigs/chitin_scuttler-v1-rig.json",
+      "pixelEditingPerformed": false,
+      "registrationSHA256": "c3325113a7b48fd2e8117102f17d9929f8ddfc4288023b9a07a599b5782c30c3",
+      "technicalReview": {
+        "reviewer": "parent-agent",
+        "nativeAssembly": "covered joints, species identity and planted/airborne foot contacts reviewed",
+        "ownerAcceptance": "pending"
+      }
+    },
+    {
+      "version": "psion_lancer-v1",
+      "kind": "psion_lancer",
+      "operation": "generation-from-existing-character",
+      "selected": true,
+      "status": "technical-art-selected; parent-native-assembly-reviewed; owner-acceptance-pending",
+      "prompt": "Use case: identity-preserve. Asset type: transparent articulated 2D game-character body-part atlas for smooth continuous joint animation. The supplied existing character atlas is EXACT identity/color/costume/style authority, not a layout to copy. Rebuild that same single authored fictional alien as EXACTLY15 independent painted game-art layers in a clear4x4 layout. lanky TEAL-BLUE organic humanoid with long swept indigo-blue head fin, three small pale amber eyes, narrow face, plum diagonal sash and ragged waistcloth, gold bands and belt. Preserve long slim limbs and organic ivory spear plate projecting from the FRONT FOREARM, blue claw hands and bare three-toed teal feet. Spear belongs to front forearm layer; no separate floating weapon. All parts compatible right-facing three-quarter view, crisp comic ink/textured cel painting matching reference. ROW1 left to right: HEAD+NECK; TORSO without head/arms/pelvis; PELVIS without thighs; REAR UPPER ARM shoulder-to-elbow. ROW2: REAR FOREARM elbow-to-wrist; REAR FIST/HAND with short wrist; FRONT UPPER ARM; FRONT FOREARM. ROW3: FRONT FIST/HAND; REAR THIGH hip-to-knee; REAR SHIN knee-to-ankle; REAR COMPLETE FOOT ankle-to-ground, toes right. ROW4: FRONT THIGH; FRONT SHIN; FRONT COMPLETE FOOT toes right; last cell EMPTY. All head antennae/fins/crown intact inside head part. Attached garment edges/props remain on their stated owning part. Arms/thighs/shins point vertically DOWN in a neutral straight rest orientation, not action poses. Each joint end has a smooth rounded OVERLAP cap painted with the same natural chitin/skin/cloth; torso and pelvis have covered attachment surfaces. Hand parts have rounded wrist overlap; feet have ankle overlap. These are non-gory game animation artwork pieces, not dissection or severed body props. Uniform one common anatomical scale across all parts: fists/feet NOT enlarged to fill cells, head/torso/leg lengths reproduce model proportions after assembly. Keep complete silhouettes far apart with generous true-alpha gutters, no touching/overlap or clipped edge. Large outer margin. Native transparent square canvas around2048x2048. No full figure, no seven poses, no duplicate part, no background/colorfill/glow/shadow clouds/checkerboard/gridlines/text/labels/HUD/watermark. No blood painted onto sprites, no new costume or generic robot.",
+      "references": [
+        {
+          "path": "assets/mac-city-review/psion_lancer-v2.png",
+          "sha256": "be1939968ea1e6cb5dde4b249d0b5e9ef3ed0b3e2550734fde0cf2827029b4fe",
+          "authority": "existing authored alien identity/color/props"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-17577ed0-6b68-42e7-bedf-d2a62be6c733.png",
+      "destination": "assets/mac-combat-rigs/psion_lancer-v1.png",
+      "generatedSHA256": "c11e10a7bf8396b7b0d0b2584abc0aa94e21109d430d439022bd94bb4f3f8e7c",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "bytes": 808693,
+      "registration": "assets/mac-combat-rigs/psion_lancer-v1-rig.json",
+      "pixelEditingPerformed": false,
+      "registrationSHA256": "1cac35e44758666737e7c8feeb1aa6a8a5080e237cc6332d64147ae17b4dddb3",
+      "technicalReview": {
+        "reviewer": "parent-agent",
+        "nativeAssembly": "covered joints, species identity and planted/airborne foot contacts reviewed",
+        "ownerAcceptance": "pending"
+      }
+    },
+    {
+      "version": "bile_spitter-v1",
+      "kind": "bile_spitter",
+      "operation": "generation-from-existing-character",
+      "selected": true,
+      "status": "technical-art-selected; parent-native-assembly-reviewed; owner-acceptance-pending",
+      "prompt": "Use case: identity-preserve. Asset type: transparent articulated 2D game-character body-part atlas for smooth continuous joint animation. The supplied existing character atlas is EXACT identity/color/costume/style authority, not a layout to copy. Rebuild that same single authored fictional alien as EXACTLY15 independent painted game-art layers in a clear4x4 layout. stocky BLUE amphibian humanoid with spotted textured skin, broad frog/lizard muzzle, yellow eyes, a large pale LIME throat sac attached to HEAD+NECK, battered olive sleeveless work tunic, brown pouch/rope belt and ragged waistcloth, blue webbed claw hands and wide webbed bare feet. Preserve stout frog anatomy and sac, not reptile spines or human boots. All parts compatible right-facing three-quarter view, crisp comic ink/textured cel painting matching reference. ROW1 left to right: HEAD+NECK; TORSO without head/arms/pelvis; PELVIS without thighs; REAR UPPER ARM shoulder-to-elbow. ROW2: REAR FOREARM elbow-to-wrist; REAR FIST/HAND with short wrist; FRONT UPPER ARM; FRONT FOREARM. ROW3: FRONT FIST/HAND; REAR THIGH hip-to-knee; REAR SHIN knee-to-ankle; REAR COMPLETE FOOT ankle-to-ground, toes right. ROW4: FRONT THIGH; FRONT SHIN; FRONT COMPLETE FOOT toes right; last cell EMPTY. All head antennae/fins/crown intact inside head part. Attached garment edges/props remain on their stated owning part. Arms/thighs/shins point vertically DOWN in a neutral straight rest orientation, not action poses. Each joint end has a smooth rounded OVERLAP cap painted with the same natural chitin/skin/cloth; torso and pelvis have covered attachment surfaces. Hand parts have rounded wrist overlap; feet have ankle overlap. These are non-gory game animation artwork pieces, not dissection or severed body props. Uniform one common anatomical scale across all parts: fists/feet NOT enlarged to fill cells, head/torso/leg lengths reproduce model proportions after assembly. Keep complete silhouettes far apart with generous true-alpha gutters, no touching/overlap or clipped edge. Large outer margin. Native transparent square canvas around2048x2048. No full figure, no seven poses, no duplicate part, no background/colorfill/glow/shadow clouds/checkerboard/gridlines/text/labels/HUD/watermark. No blood painted onto sprites, no new costume or generic robot.",
+      "references": [
+        {
+          "path": "assets/mac-city-review/bile_spitter-v1.png",
+          "sha256": "7f82901872f4593ed2c428d83fbedda9ea919a568c2977bec39f5d6e2c8d3a21",
+          "authority": "existing authored alien identity/color/props"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-de11b528-347e-4374-bcb5-bf6b93d00104.png",
+      "destination": "assets/mac-combat-rigs/bile_spitter-v1.png",
+      "generatedSHA256": "4628448b84d1a14c16c1dd3649992fd96bfe44eec0140a78921b8f0c186b67ef",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "bytes": 1044489,
+      "registration": "assets/mac-combat-rigs/bile_spitter-v1-rig.json",
+      "pixelEditingPerformed": false,
+      "registrationSHA256": "770a32fb5746a98ee50ded203e7fee955ee39e5b21fb745e43ed5fa68ee322b1",
+      "technicalReview": {
+        "reviewer": "parent-agent",
+        "nativeAssembly": "covered joints, species identity and planted/airborne foot contacts reviewed",
+        "ownerAcceptance": "pending"
+      }
+    },
+    {
+      "version": "prism_guard-v1",
+      "kind": "prism_guard",
+      "operation": "generation-from-existing-character",
+      "selected": true,
+      "status": "technical-art-selected; parent-native-assembly-reviewed; owner-acceptance-pending",
+      "prompt": "Use case: identity-preserve. Asset type: transparent articulated 2D game-character body-part atlas for smooth continuous joint animation. The supplied existing character atlas is EXACT identity/color/costume/style authority, not a layout to copy. Rebuild that same single authored fictional alien as EXACTLY15 independent painted game-art layers in a clear4x4 layout. tall muscular VIOLET organic armored humanoid, ridged purple head with cyan eyes, violet plate/chitin skin, lavender crystal shoulder accents, dark ragged waistcloth with bronze sash/belt. Signature broad faceted lavender crystal SHIELD stays attached to FRONT FOREARM, other forearm has slimmer crystal plates. Violet claw hands and bare purple feet; organic armored body, no robot. All parts compatible right-facing three-quarter view, crisp comic ink/textured cel painting matching reference. ROW1 left to right: HEAD+NECK; TORSO without head/arms/pelvis; PELVIS without thighs; REAR UPPER ARM shoulder-to-elbow. ROW2: REAR FOREARM elbow-to-wrist; REAR FIST/HAND with short wrist; FRONT UPPER ARM; FRONT FOREARM. ROW3: FRONT FIST/HAND; REAR THIGH hip-to-knee; REAR SHIN knee-to-ankle; REAR COMPLETE FOOT ankle-to-ground, toes right. ROW4: FRONT THIGH; FRONT SHIN; FRONT COMPLETE FOOT toes right; last cell EMPTY. All head antennae/fins/crown intact inside head part. Attached garment edges/props remain on their stated owning part. Arms/thighs/shins point vertically DOWN in a neutral straight rest orientation, not action poses. Each joint end has a smooth rounded OVERLAP cap painted with the same natural chitin/skin/cloth; torso and pelvis have covered attachment surfaces. Hand parts have rounded wrist overlap; feet have ankle overlap. These are non-gory game animation artwork pieces, not dissection or severed body props. Uniform one common anatomical scale across all parts: fists/feet NOT enlarged to fill cells, head/torso/leg lengths reproduce model proportions after assembly. Keep complete silhouettes far apart with generous true-alpha gutters, no touching/overlap or clipped edge. Large outer margin. Native transparent square canvas around2048x2048. No full figure, no seven poses, no duplicate part, no background/colorfill/glow/shadow clouds/checkerboard/gridlines/text/labels/HUD/watermark. No blood painted onto sprites, no new costume or generic robot.",
+      "references": [
+        {
+          "path": "assets/mac-city-review/prism_guard-v1.png",
+          "sha256": "db0bfacbd45f5507d6191d4f2b5ce4d15f1e559b83d320b7fa85314b1a951998",
+          "authority": "existing authored alien identity/color/props"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-83654dc7-134e-46e6-8180-f750ef1c0754.png",
+      "destination": "assets/mac-combat-rigs/prism_guard-v1.png",
+      "generatedSHA256": "482383ad3388d481cdeb6fde531d12dfe8e8383d797f4016301f4c3951e8002d",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "bytes": 984261,
+      "registration": "assets/mac-combat-rigs/prism_guard-v1-rig.json",
+      "pixelEditingPerformed": false,
+      "registrationSHA256": "2b2ebbd0fcdd0c00a485e03cfb07c6b634f342333da4c85e26b3ad9122c873a5",
+      "technicalReview": {
+        "reviewer": "parent-agent",
+        "nativeAssembly": "covered joints, species identity and planted/airborne foot contacts reviewed",
+        "ownerAcceptance": "pending"
+      }
+    },
+    {
+      "version": "rift_stalker-v1",
+      "kind": "rift_stalker",
+      "operation": "generation-from-existing-character",
+      "selected": true,
+      "status": "technical-art-selected; parent-native-assembly-reviewed; owner-acceptance-pending",
+      "prompt": "Use case: identity-preserve. Asset type: transparent articulated 2D game-character body-part atlas for smooth continuous joint animation. The supplied existing character atlas is EXACT identity/color/costume/style authority, not a layout to copy. Rebuild that same single authored fictional alien as EXACTLY15 independent painted game-art layers in a clear4x4 layout. lean CREAM-and-CHARCOAL moth humanoid, pale ivory moth-mask face with black oval eyes and long thin antennae, charcoal ridged body, long ragged cream feather/moth mantle attached to TORSO behind the body, dark shredded waistcloth, elongated charcoal claw hands and narrow claw feet. Preserve eerie narrow moth anatomy and pale shoulder mantle, not human hood/robe or bat wings. All parts compatible right-facing three-quarter view, crisp comic ink/textured cel painting matching reference. ROW1 left to right: HEAD+NECK; TORSO without head/arms/pelvis; PELVIS without thighs; REAR UPPER ARM shoulder-to-elbow. ROW2: REAR FOREARM elbow-to-wrist; REAR FIST/HAND with short wrist; FRONT UPPER ARM; FRONT FOREARM. ROW3: FRONT FIST/HAND; REAR THIGH hip-to-knee; REAR SHIN knee-to-ankle; REAR COMPLETE FOOT ankle-to-ground, toes right. ROW4: FRONT THIGH; FRONT SHIN; FRONT COMPLETE FOOT toes right; last cell EMPTY. All head antennae/fins/crown intact inside head part. Attached garment edges/props remain on their stated owning part. Arms/thighs/shins point vertically DOWN in a neutral straight rest orientation, not action poses. Each joint end has a smooth rounded OVERLAP cap painted with the same natural chitin/skin/cloth; torso and pelvis have covered attachment surfaces. Hand parts have rounded wrist overlap; feet have ankle overlap. These are non-gory game animation artwork pieces, not dissection or severed body props. Uniform one common anatomical scale across all parts: fists/feet NOT enlarged to fill cells, head/torso/leg lengths reproduce model proportions after assembly. Keep complete silhouettes far apart with generous true-alpha gutters, no touching/overlap or clipped edge. Large outer margin. Native transparent square canvas around2048x2048. No full figure, no seven poses, no duplicate part, no background/colorfill/glow/shadow clouds/checkerboard/gridlines/text/labels/HUD/watermark. No blood painted onto sprites, no new costume or generic robot.",
+      "references": [
+        {
+          "path": "assets/mac-city-review/rift_stalker-v1.png",
+          "sha256": "8293c3f59c8b271b5b9be3b2b7c0873b7f92fff660e4b70755e0266a06d165d8",
+          "authority": "existing authored alien identity/color/props"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-847e3dcd-5b1b-43fd-874e-4a1b0a07e2d7.png",
+      "destination": "assets/mac-combat-rigs/rift_stalker-v1.png",
+      "generatedSHA256": "1e09802c43684347a3b43d1b9d351ce59b6da349c5b50a82e72653669c825eeb",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "bytes": 989880,
+      "registration": "assets/mac-combat-rigs/rift_stalker-v1-rig.json",
+      "pixelEditingPerformed": false,
+      "registrationSHA256": "2dcf209cea66a87a798f898b4fcd9a233d4d48fbabe4946a4c4976cd39375faa",
+      "technicalReview": {
+        "reviewer": "parent-agent",
+        "nativeAssembly": "covered joints, species identity and planted/airborne foot contacts reviewed",
+        "ownerAcceptance": "pending"
+      }
+    },
+    {
+      "version": "shock_mantid-v1",
+      "kind": "shock_mantid",
+      "operation": "generation-from-existing-character",
+      "selected": true,
+      "status": "technical-art-selected; parent-native-assembly-reviewed; owner-acceptance-pending",
+      "prompt": "Use case: identity-preserve. Asset type: transparent articulated 2D game-character body-part atlas for smooth continuous joint animation. The supplied existing character atlas is EXACT identity/color/costume/style authority, not a layout to copy. Rebuild that same single authored fictional alien as EXACTLY15 independent painted game-art layers in a clear4x4 layout. ORANGE insect humanoid with ivory/bone overlapping chitin plates, giant emerald compound eyes, long orange antennae, ivory beak mandibles, muscular orange segmented limbs, serrated ivory/orange blade armor attached to BOTH FOREARMS, small dark loincloth/belt, complete orange/ivory feet with black hooked toes. Preserve mantis chitin anatomy; no robot or human skin. All parts compatible right-facing three-quarter view, crisp comic ink/textured cel painting matching reference. ROW1 left to right: HEAD+NECK; TORSO without head/arms/pelvis; PELVIS without thighs; REAR UPPER ARM shoulder-to-elbow. ROW2: REAR FOREARM elbow-to-wrist; REAR FIST/HAND with short wrist; FRONT UPPER ARM; FRONT FOREARM. ROW3: FRONT FIST/HAND; REAR THIGH hip-to-knee; REAR SHIN knee-to-ankle; REAR COMPLETE FOOT ankle-to-ground, toes right. ROW4: FRONT THIGH; FRONT SHIN; FRONT COMPLETE FOOT toes right; last cell EMPTY. All head antennae/fins/crown intact inside head part. Attached garment edges/props remain on their stated owning part. Arms/thighs/shins point vertically DOWN in a neutral straight rest orientation, not action poses. Each joint end has a smooth rounded OVERLAP cap painted with the same natural chitin/skin/cloth; torso and pelvis have covered attachment surfaces. Hand parts have rounded wrist overlap; feet have ankle overlap. These are non-gory game animation artwork pieces, not dissection or severed body props. Uniform one common anatomical scale across all parts: fists/feet NOT enlarged to fill cells, head/torso/leg lengths reproduce model proportions after assembly. Keep complete silhouettes far apart with generous true-alpha gutters, no touching/overlap or clipped edge. Large outer margin. Native transparent square canvas around2048x2048. No full figure, no seven poses, no duplicate part, no background/colorfill/glow/shadow clouds/checkerboard/gridlines/text/labels/HUD/watermark. No blood painted onto sprites, no new costume or generic robot.",
+      "references": [
+        {
+          "path": "assets/mac-city-review/shock_mantid-v2.png",
+          "sha256": "5720d575f5f93a7294d81fe290042877f6a6e5855773d715028a50b71a779f0d",
+          "authority": "existing authored alien identity/color/props"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-369808ca-f315-4cbf-adbd-cfff99735b66.png",
+      "destination": "assets/mac-combat-rigs/shock_mantid-v1.png",
+      "generatedSHA256": "2202cd3149424663881f7f2e691467288637ea27e9f9edf355525c8ae3f1a29e",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "bytes": 1049198,
+      "registration": "assets/mac-combat-rigs/shock_mantid-v1-rig.json",
+      "pixelEditingPerformed": false,
+      "registrationSHA256": "b1e18ca01506ecdf3c32d8bdce4bd5ba7c4e4a1693315bf7845561df18e298d3",
+      "technicalReview": {
+        "reviewer": "parent-agent",
+        "nativeAssembly": "covered joints, species identity and planted/airborne foot contacts reviewed",
+        "ownerAcceptance": "pending"
+      }
+    },
+    {
+      "version": "null-regent-generation-v1",
+      "kind": "null_regent",
+      "operation": "generation-from-existing-character",
+      "selected": false,
+      "status": "rejected-candidate; forearms-contained-hands-and-one-upper-arm-not-separated",
+      "prompt": "Use case: identity-preserve. Asset type: transparent articulated 2D game-character body-part atlas for smooth continuous joint animation. The supplied existing character atlas is EXACT identity/color/costume/style authority, not a layout to copy. Rebuild that same single authored fictional alien as EXACTLY21 independent painted game-art layers in a clear5x5 layout. massive FOUR-ARMED VIOLET organic humanoid boss with heavy muscular spotted purple skin, swept deep-purple crest and pale ivory crown/face mask, three amber glowing eyes, bronze/burgundy ceremonial chest armor and long waist tabard. TWO large upper arms and TWO smaller lower arms, all purple with black hooked claw hands; massive violet claw feet. Preserve exactly four arms, broad torso, boss scale and ornate bronze shapes, not robot. All parts compatible right-facing three-quarter view, crisp comic ink/textured cel painting matching reference. 5x5 row order: ROW1 HEAD+NECK, TORSO, PELVIS, REAR UPPER ARM, REAR FOREARM. ROW2 REAR HAND, FRONT UPPER ARM, FRONT FOREARM, FRONT HAND, REAR THIGH. ROW3 REAR SHIN, REAR FOOT, FRONT THIGH, FRONT SHIN, FRONT FOOT. ROW4 EXTRA LOWER REAR UPPER ARM, its FOREARM, its HAND, EXTRA LOWER FRONT UPPER ARM, its FOREARM. ROW5 EXTRA LOWER FRONT HAND then FOUR EMPTY CELLS. Exactly21 parts, not twenty or twenty-two. Torso has four covered round shoulder attachment surfaces. All head antennae/fins/crown intact inside head part. Attached garment edges/props remain on their stated owning part. Arms/thighs/shins point vertically DOWN in a neutral straight rest orientation, not action poses. Each joint end has a smooth rounded OVERLAP cap painted with the same natural chitin/skin/cloth; torso and pelvis have covered attachment surfaces. Hand parts have rounded wrist overlap; feet have ankle overlap. These are non-gory game animation artwork pieces, not dissection or severed body props. Uniform one common anatomical scale across all parts: fists/feet NOT enlarged to fill cells, head/torso/leg lengths reproduce model proportions after assembly. Keep complete silhouettes far apart with generous true-alpha gutters, no touching/overlap or clipped edge. Large outer margin. Native transparent square canvas around2048x2048. No full figure, no seven poses, no duplicate part, no background/colorfill/glow/shadow clouds/checkerboard/gridlines/text/labels/HUD/watermark. No blood painted onto sprites, no new costume or generic robot.",
+      "references": [
+        {
+          "path": "assets/mac-city-review/null_regent-v2.png",
+          "sha256": "c6cbc83c6be0c75669283c237fc5caea23c3064f125e51e044eb297f5cd1c717",
+          "authority": "existing authored Null Regent anatomy"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-e672b521-cdc2-438a-8afa-a386967f479f.png",
+      "destination": "docs/source-pack/review-mac-combat-rigs/candidates/null-regent-rig-inseparable-hands-v1.png",
+      "generatedSHA256": "c1fbc3cb0a162be53746e3f8c4dc4c5be562e23dfb246a342225acedc5c37646",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "bytes": 1145054,
+      "pixelEditingPerformed": false
+    },
+    {
+      "version": "null-regent-joint-repair-v2",
+      "kind": "null_regent",
+      "operation": "targeted-anatomy-edit",
+      "selected": false,
+      "status": "rejected-candidate; arm-layer-caps-corrected-but-front-foot-altered",
+      "prompt": "Edit this supplied transparent 21-piece four-armed Null Regent game body-layer atlas. Preserve head/crown/face, torso, pelvis, legs/feet, colors, model, native common scale, clear5x5 layout and true alpha gaps. Critical anatomy repair ONLY on the arm-segment layers: ROW1 COLUMN4 must be just REAR UPPER ARM shoulder-to-elbow, with a covered rounded elbow overlap cap at bottom, NO forearm or hand/fingers attached. ROW1 COLUMN5, ROW2 COLUMN3, ROW4 COLUMN2 and ROW4 COLUMN5 are the FOUR FOREARM layers: each starts at elbow cap and ENDS at a rounded covered wrist overlap cap, absolutely NO hand/claws/fingers attached to these forearms. The FOUR separate hand layers already exist at ROW2COLUMN1,ROW2COLUMN4,ROW4COLUMN3,ROW5COLUMN1 and must remain complete unchanged. Other UPPER ARM layers ROW2COLUMN2,ROW4COLUMN1,ROW4COLUMN4 already have rounded joint caps and must remain. Exactly21 separated full illustrated layers total. Neutral upper/forearm bone axes point down, all matching violet organic skin and black claws ONLY on separate hands. This is non-gory clean connected game-art anatomy with covered round joint caps, no exposed flesh. Keep generous alpha gutters and outer margin, no duplicate hands, no full figures, no background/grid/text/checkerboard. Maintain one shared native anatomical scale; don't enlarge parts to fill cells.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-combat-rigs/candidates/null-regent-rig-inseparable-hands-v1.png",
+          "sha256": "c1fbc3cb0a162be53746e3f8c4dc4c5be562e23dfb246a342225acedc5c37646",
+          "authority": "existing authored Null Regent anatomy"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-03101b03-6342-4628-8b6b-0da8d58aa686.png",
+      "destination": "docs/source-pack/review-mac-combat-rigs/candidates/null-regent-rig-foot-altered-v2.png",
+      "generatedSHA256": "3066eea5c3eb30163222b00d53e815cd7dc98d78dfccedaf7bada276d9d985f1",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "bytes": 1067340,
+      "pixelEditingPerformed": false
+    },
+    {
+      "version": "null-regent-selected-foot-repair-v3",
+      "kind": "null_regent",
+      "operation": "targeted-anatomy-edit",
+      "selected": true,
+      "status": "technical-art-selected; parent-native-assembly-reviewed; owner-acceptance-pending",
+      "prompt": "Make ONE exact isolated repair to reference1, the transparent 21-piece Null Regent body-layer atlas. The piece in ROW3 COLUMN5 (rightmost piece on third row, at about85%canvaswidth and60%canvasheight) is incorrectly a forearm segment. Replace ONLY that single piece with the complete FRONT FOOT: heavy violet boss foot with short rounded ankle overlap at top, purple scaled instep, three black hooked claws, toes pointing RIGHT, matching the original FOOT visible at the same location in reference2. Foot length/width/anatomical scale matches the rear foot at ROW3COLUMN2 in reference1. DO NOT alter any of the other20 pieces, in particular all four now-separated forearm wrist caps MUST remain correctly detached from hands; maintain head/crown/face, torso/pelvis/four-arm anatomy, source positions,15base+6extra exact21 total, black claws only on hands/feet, generous true-alpha gutters and finalrow4emptycells. No extra arm, no full figure, no labels/grid/background/checkerboard. This is game animation artwork, no gore. Reference1 is the layout/geometry to preserve; reference2 is ONLY authority for the restored foot appearance.",
+      "references": [
+        {
+          "path": "docs/source-pack/review-mac-combat-rigs/candidates/null-regent-rig-foot-altered-v2.png",
+          "sha256": "3066eea5c3eb30163222b00d53e815cd7dc98d78dfccedaf7bada276d9d985f1",
+          "authority": "21-layer layout with separated arm/wrist caps"
+        },
+        {
+          "path": "docs/source-pack/review-mac-combat-rigs/candidates/null-regent-rig-inseparable-hands-v1.png",
+          "sha256": "c1fbc3cb0a162be53746e3f8c4dc4c5be562e23dfb246a342225acedc5c37646",
+          "authority": "original front-foot appearance only"
+        }
+      ],
+      "originalToolOutput": "C:/Users/jondh/.codex/generated_images/01a10de1-6583-7fa3-9bcd-d59d6627d875/exec-a3442494-b891-45b2-95b2-6c9bc2fe761b.png",
+      "destination": "assets/mac-combat-rigs/null_regent-v1.png",
+      "generatedSHA256": "b2a4fdf9608200855367377a83f765d71fa593509ee1a316619193c3dde31bed",
+      "nativeDimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "bytes": 1067734,
+      "registration": "assets/mac-combat-rigs/null_regent-v1-rig.json",
+      "pixelEditingPerformed": false,
+      "registrationSHA256": "b0477611168523ea46a62a71c89a286e37f1e8667c241b28fac2710eea40925a",
+      "technicalReview": {
+        "reviewer": "parent-agent",
+        "nativeAssembly": "covered joints, species identity and planted/airborne foot contacts reviewed",
+        "ownerAcceptance": "pending"
+      }
+    }
+  ],
+  "manifestSHA256": "a8416eac90f71ef286f1a137649214c1b712999649fe6d0a7604f1705c90be75",
+  "parentNativeAssemblyEvidence": [
+    {
+      "path": "docs/source-pack/review-mac-combat-rigs/assembled/bile_spitter-assembled-motion-v1.png",
+      "sha256": "3a2f07ae2dee846380a616de687d4f92ad91772ab7ea62993b843981a91c92c3",
+      "scope": "Committed source-pack sibling copied byte-identically from parent native game-renderer motion contact sheet; parent visually reviewed; owner acceptance pending",
+      "originalEvidencePath": "verification/mac-combat-overhaul-20261005/bile_spitter-assembled-motion-v1.png"
+    },
+    {
+      "path": "docs/source-pack/review-mac-combat-rigs/assembled/chitin_scuttler-assembled-motion-v1.png",
+      "sha256": "ac93cb9c022cd305b398b46102e366d47a3530b329b62a435f944792699eaa46",
+      "scope": "Committed source-pack sibling copied byte-identically from parent native game-renderer motion contact sheet; parent visually reviewed; owner acceptance pending",
+      "originalEvidencePath": "verification/mac-combat-overhaul-20261005/chitin_scuttler-assembled-motion-v1.png"
+    },
+    {
+      "path": "docs/source-pack/review-mac-combat-rigs/assembled/mac-articulated-poses-v2.png",
+      "sha256": "a9baeee346e94a879a1dca99e3e131f0d5bbe7bb21b52b696d52cc2cf8bb3a30",
+      "scope": "Committed source-pack sibling copied byte-identically from parent native game-renderer motion contact sheet; parent visually reviewed; owner acceptance pending",
+      "originalEvidencePath": "verification/mac-combat-overhaul-20261005/mac-articulated-poses-v2.png"
+    },
+    {
+      "path": "docs/source-pack/review-mac-combat-rigs/assembled/null_regent-assembled-motion-v1.png",
+      "sha256": "445ebef780c72efdb0647ddaa1958a638363d4d5e8af894dd964bc3955d13147",
+      "scope": "Committed source-pack sibling copied byte-identically from parent native game-renderer motion contact sheet; parent visually reviewed; owner acceptance pending",
+      "originalEvidencePath": "verification/mac-combat-overhaul-20261005/null_regent-assembled-motion-v1.png"
+    },
+    {
+      "path": "docs/source-pack/review-mac-combat-rigs/assembled/prism_guard-assembled-motion-v1.png",
+      "sha256": "e5e099676808276eb5077b6f1ea986b5f5222b7e5a0a46a87ca4d00bf4a2f943",
+      "scope": "Committed source-pack sibling copied byte-identically from parent native game-renderer motion contact sheet; parent visually reviewed; owner acceptance pending",
+      "originalEvidencePath": "verification/mac-combat-overhaul-20261005/prism_guard-assembled-motion-v1.png"
+    },
+    {
+      "path": "docs/source-pack/review-mac-combat-rigs/assembled/psion_lancer-assembled-motion-v1.png",
+      "sha256": "18a44e0cc53b301d6ff4dc620325b79ca79e3929319588acebe600d911b9fdf1",
+      "scope": "Committed source-pack sibling copied byte-identically from parent native game-renderer motion contact sheet; parent visually reviewed; owner acceptance pending",
+      "originalEvidencePath": "verification/mac-combat-overhaul-20261005/psion_lancer-assembled-motion-v1.png"
+    },
+    {
+      "path": "docs/source-pack/review-mac-combat-rigs/assembled/rift_stalker-assembled-motion-v1.png",
+      "sha256": "d6e71cc51ab8159696c523a0ef4d1ce7dddb6d02b1d20abf9d68561a93345bb9",
+      "scope": "Committed source-pack sibling copied byte-identically from parent native game-renderer motion contact sheet; parent visually reviewed; owner acceptance pending",
+      "originalEvidencePath": "verification/mac-combat-overhaul-20261005/rift_stalker-assembled-motion-v1.png"
+    },
+    {
+      "path": "docs/source-pack/review-mac-combat-rigs/assembled/shock_mantid-assembled-motion-v1.png",
+      "sha256": "ff1a574fa9cade56713b8e644a6ba965a5d0f79413d6f2bf2af359c6ce04d044",
+      "scope": "Committed source-pack sibling copied byte-identically from parent native game-renderer motion contact sheet; parent visually reviewed; owner acceptance pending",
+      "originalEvidencePath": "verification/mac-combat-overhaul-20261005/shock_mantid-assembled-motion-v1.png"
+    }
+  ],
+  "reviewEvidencePackaging": "All eight hashed assembled motion review bitmaps are retained as source-pack siblings; original external verification paths preserved for origin."
+}

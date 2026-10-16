@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-02",
+  "kind": "native Canvas visual review; arranged contacts and poses, not an earned complete race or device acceptance",
+  "checks": [
+    "three canonical crew portraits visibly recognizable and text readable at runtime size",
+    "crew panel clear of mirror/captures/left receipts/right pad guidance",
+    "two events originate from production swept pedestrian contact",
+    "impact and settled blood at road ground below struck body",
+    "normal and Reduced Motion settled pedestrian poses",
+    "fallen rider blood follows separate rider ground lane",
+    "repeated draws leave gameplay state byte-identical"
+  ],
+  "productionSources": {
+    "index.html": "c30f612e70e07034f601a49d2ff76656325acb4297e0d9cefe9df9e26875dde1",
+    "src/engine/presentation-assets.js": "6aa8ed7016eb2a10133f8f6530d90f40a32ce0883456376ddab40ed3f1f32ce9",
+    "src/game/cache-road-proof.js": "bbfad95e06fab8847272f78fbb9eca55f89ca2f283496ee50702d4470d7e34e1",
+    "src/game/cache-road-combat-art.js": "9638d7d4510f9d1e2ec578147feebe22a0e427f022b848b83d9e1556800fa1f2",
+    "src/game/cache-road-crew-callouts.js": "58fce76966d69d645bfa0d2e6ddb36d4336a462b39c88ffd92716e6191d6accc",
+    "src/game/cache-road-crosswalks.js": "43dd44dda10563a9fdb6b817a55f4dbfdf8d88685b629de6fedce19a049dc070",
+    "src/game/cache-road-combat.js": "3d5c4d49da8e4459fa1cb33679988bf5faf34d009369dc9a56f208a63564f5d8"
+  },
+  "screenshots": [
+    {
+      "filename": "custom-assets-road-1.png",
+      "sha256": "9c6bcc4fca80f845789d71e5b068a88a8873aa08f61dda8cddc3da5d39447c2f",
+      "retention": "temporary native diagnostic outside repository"
+    },
+    {
+      "filename": "custom-assets-road-3.png",
+      "sha256": "5089e8f9039ba55438a3f4c7a510f4e787fb6f227f4096c755757e8bdb3a631f",
+      "retention": "temporary native diagnostic outside repository"
+    },
+    {
+      "filename": "custom-assets-road-2.png",
+      "sha256": "5580a4e23dfd00635104e80ada9f7992d1302fa38ad050252ada397b1e10be20",
+      "retention": "temporary native diagnostic outside repository"
+    },
+    {
+      "filename": "custom-assets-settled-false.png",
+      "sha256": "6beb6a07b8f5971b65549d70b32878f56560371921b70842472714e048c7cba6",
+      "retention": "temporary native diagnostic outside repository"
+    },
+    {
+      "filename": "custom-assets-settled-true.png",
+      "sha256": "27c07bb9e7fc04abfa054d5255e3a99ce481fe61fb7dcd9eee2da0cd6503dc94",
+      "retention": "temporary native diagnostic outside repository"
+    },
+    {
+      "filename": "custom-assets-rider.png",
+      "sha256": "4372b80d4dac30ea60aff17dea41afe90fdaf4b068e3ae5ce44557b4bbb59afb",
+      "retention": "temporary native diagnostic outside repository"
+    },
+    {
+      "filename": "cache-blood-art-native.png",
+      "sha256": "7060042ab0e1992d516f74adbd2a18a4ca702c6d030d9cd7258fb3fcffbf178f",
+      "retention": "temporary native diagnostic outside repository"
+    }
+  ],
+  "limits": [
+    "arranged native visual fixtures do not establish human driving feel, device FPS, physical controller, listening or Makko acceptance"
+  ]
+}

@@ -388,11 +388,120 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         lensRadius:args.width*radius,poolRadius:args.height*.21};
     });
   }
+  function beginGpuScene(nativeCtx,options) {
+    const hud=B.CacheRoadCinematics?.hudContextInfo?.(nativeCtx),frameCtx=hud?.frameContext||nativeCtx;
+    let scene=null;
+    if(nativeCtx&&!nativeCtx.isGpuScene&&frameCtx===window.renderer?.ctx&&
+      frameCtx.canvas?.width===1920&&frameCtx.canvas?.height===1080) {
+      // Keep the proxy as the recorder's source: it exposes the authored
+      // logical alpha. Only submission uses the underlying shared context.
+      if(options?.kind==='rear'&&options.direct)options.opacity=hud?.opacity??1;
+      try {scene=B.CacheRoadGPU?.begin?.(nativeCtx,options)||null;}
+      catch {scene=null;}
+    }
+    if(!scene&&options?.kind==='rear'&&options.direct)
+      B.CacheRoadGPU?.rejectFrame?.('direct-rear-capture-unavailable');
+    return scene;
+  }
+  function finishGpuScene(gpuCtx,nativeCtx,options) {
+    const frameCtx=B.CacheRoadCinematics?.hudContextInfo?.(nativeCtx)?.frameContext||nativeCtx;
+    let rendered=false;
+    try {rendered=B.CacheRoadGPU?.render?.(gpuCtx.commands,frameCtx,options)===true;}
+    catch {rendered=false;B.CacheRoadGPU?.rejectFrame?.('scene-submit-error');}
+    // The captured original operations are also the same-frame fallback.
+    // The native camera's enclosing save/restore remains its existing owner.
+    if(rendered)gpuCtx.applyState(nativeCtx);
+    else gpuCtx.replay(nativeCtx);
+    return rendered;
+  }
+  let gpuMirrorClip=null;
+  function exactGpuMirrorClip(ctx,x,y,w,h) {
+    if(!gpuMirrorClip) {
+      const recorder=new B.CacheRoadGPUContext(ctx);
+      recorder.setTransform(1,0,0,1,0,0);
+      mirrorOutline(recorder,x,y,w,h);recorder.clip();recorder.fillRect(x,y,1,1);
+      gpuMirrorClip=recorder.commands[0].clips[0];
+    }
+    return gpuMirrorClip;
+  }
+  function copySampledWorldPixels(ctx,width,height,budget,preferPixels=true) {
+    return copyOpaqueCanvasPixels(ctx,0,0,width,height,0,0,1920,1080,budget,
+      preferPixels&&width<=480&&height<=270);
+  }
+  function copyOpaqueCanvasPixels(ctx,sx,sy,width,height,dx,dy,dw,dh,budget,preferPixels=true) {
+    let frame,used=false;
+    // Synchronous cropped readback and drawing stay inside the existing
+    // production frame. No Canvas, callback, clock or source is retained.
+    const pixelCopy=preferPixels&&budget&&!budget.pixelCopyUnavailable&&
+      typeof window.HTMLCanvasElement==='function'&&
+      ctx.canvas instanceof window.HTMLCanvasElement&&
+      typeof window.VideoFrame==='function'&&
+      typeof ctx.getContextAttributes==='function'&&
+      [sx,sy,width,height].every(Number.isInteger)&&sx>=0&&sy>=0&&
+      width>0&&height>0&&width*height<=480*270&&
+      sx+width<=ctx.canvas.width&&sy+height<=ctx.canvas.height;
+    if(pixelCopy)try {
+      if(ctx.getContextAttributes()?.colorSpace==='srgb') {
+        const pixels=ctx.getImageData(sx,sy,width,height,{colorSpace:'srgb'});
+        let opaque=pixels.colorSpace==='srgb'&&pixels.width===width&&
+          pixels.height===height&&pixels.data.length===width*height*4;
+        for(let at=3;opaque&&at<pixels.data.length;at+=4)
+          if(pixels.data[at]!==255)opaque=false;
+        if(opaque) {
+          frame=new window.VideoFrame(pixels.data,{format:'RGBA',
+            codedWidth:width,codedHeight:height,timestamp:0,
+            colorSpace:{primaries:'bt709',transfer:'iec61966-2-1',matrix:'rgb',fullRange:true}});
+          ctx.drawImage(frame,0,0,width,height,dx,dy,dw,dh);
+          used=true;
+        }
+      }
+    }catch(error) {
+      // Keep original source semantics and avoid per-frame API failures.
+      budget.pixelCopyUnavailable=true;
+    }finally {
+      if(frame)try{frame.close();}catch(error){}
+    }
+    if(!used)ctx.drawImage(ctx.canvas,sx,sy,width,height,dx,dy,dw,dh);
+    return used;
+  }
+  function clipLightBlend(ctx,bounds) {
+    const matrix=ctx.getTransform?.();
+    // Native/non-DOM hosts keep their original blend path exactly; their
+    // screen-layer rounding can change when an extra clip is introduced.
+    const browserCanvas=typeof window.HTMLCanvasElement==='function'&&
+      ctx.canvas instanceof window.HTMLCanvasElement;
+    const unfilteredLightBounds=browserCanvas&&ctx.filter==='none'&&!ctx.shadowBlur&&
+      !ctx.shadowOffsetX&&!ctx.shadowOffsetY&&matrix&&
+      ['a','b','c','d'].every(key=>Number.isFinite(matrix[key]))&&
+      bounds.length&&bounds.every(bound=>bound.every(Number.isFinite));
+    if(!unfilteredLightBounds)return;
+    const determinant=Math.abs(matrix.a*matrix.d-matrix.b*matrix.c);
+    if(determinant<1e-9)return;
+    // A lower bound for the smallest transform scale gives at least two
+    // device pixels of margin even with rotation, scale or shear.
+    const margin=2*Math.hypot(matrix.a,matrix.b,matrix.c,matrix.d)/determinant;
+    const left=Math.min(...bounds.map(bound=>bound[0]))-margin;
+    const top=Math.min(...bounds.map(bound=>bound[1]))-margin;
+    const right=Math.max(...bounds.map(bound=>bound[2]))+margin;
+    const bottom=Math.max(...bounds.map(bound=>bound[3]))+margin;
+    // Screen is pointwise; transparent source pixels leave the backdrop
+    // unchanged. Restrict its layer to the original light paintings.
+    ctx.beginPath();ctx.rect(left,top,right-left,bottom-top);ctx.clip();
+  }
   function drawLampLight(ctx,key,args,pass) {
     if(args.height<5 || B.PresentationAssets?.ready?.(key)===false)return;
     const geometry=lampLightGeometry(key,args);
     if(!geometry.length)return;
-    ctx.save();ctx.globalCompositeOperation='screen';
+    const detail=B.PresentationAssets?.rasterDetail?.(ctx)??1;
+    const matrix=detail<1?ctx.getTransform?.():null;
+    const sampleScale=matrix?Math.hypot(matrix.a,matrix.b):1;
+    ctx.save();
+    clipLightBlend(ctx,geometry.map(light=>{
+      const radius=pass==='pool'?light.poolRadius:Math.max(light.poolRadius,light.lensRadius);
+      return pass==='pool'?[light.x-radius,light.groundY-radius*.24,light.x+radius,light.groundY+radius*.24]:
+        [light.x-radius,Math.min(light.y,light.groundY),light.x+radius,Math.max(light.y,light.groundY)];
+    }));
+    ctx.globalCompositeOperation='screen';
     for(const light of geometry) {
       const {x,y,groundY,lensRadius,poolRadius}=light;
       if(pass==='pool') {
@@ -414,9 +523,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         beam.addColorStop(1,'rgba(255,208,124,.045)');
         ctx.fillStyle=beam;
         const alpha=ctx.globalAlpha;
-        for(let j=0;j<10;j++) {
-          const a=-1+j/5,b=a+.2;
-          ctx.globalAlpha=alpha*Math.pow(Math.max(0,1-Math.abs((a+b)/2)),.8);
+        // Merge bands that fall below the background's sampled footprint.
+        // Average the original ten weights, preserving total light energy.
+        // Native detail keeps the exact original geometry and opacity.
+        const sampledWidth=poolRadius*2*sampleScale*(sampleScale>=.5?detail:1);
+        const bands=detail<1?(sampledWidth<8?2:sampledWidth<20?5:10):10;
+        const stride=10/bands;
+        for(let j=0;j<bands;j++) {
+          const a=-1+j*2/bands,b=a+2/bands;
+          let weight=0;
+          for(let k=j*stride;k<(j+1)*stride;k++)
+            weight+=Math.pow(Math.max(0,1-Math.abs(-.9+k*.2)),.8)/stride;
+          ctx.globalAlpha=alpha*weight;
           ctx.beginPath();ctx.moveTo(x+lensRadius*a,y);
           ctx.lineTo(x+lensRadius*b,y);
           ctx.lineTo(x+poolRadius*b,groundY);
@@ -636,6 +754,48 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
     return fixed;
   }
+  // Keep the whole level's textures resident before its first playable frame.
+  // These are the same original sources used by both painters, including the
+  // complete rear actor atlases. Level 1 and unrelated artwork stay outside
+  // this bounded Level 2 source set.
+  const GPU_ROUTE_COMMON = [
+    'cacheDistantCity','cacheMidCity','cacheOutskirts','cacheFly1','cacheFly3',
+    'cacheOuterGround','cacheRollingGrain','cacheLocalStreet','cacheBlacktop',
+    'cacheJoinLTurn','cacheJoinRTurn','cacheJoinLCurb','cacheJoinRCurb',
+    'cacheJoinLStreetWall','cacheJoinRStreetWall','cacheJoinLEndcap','cacheJoinREndcap',
+    'cacheGroundClusterL1','cacheGroundClusterL2','cacheGroundClusterL3',
+    'cacheGroundClusterR1','cacheGroundClusterR2','cacheGroundClusterR3','cachePylon',
+    'cacheDecalCrosswalk','cacheDecalStopLine','cacheDecalDrainage',
+    'cacheDecalLoadingBay','cacheDecalServiceStencil','cacheDecalWetRepairPatch',
+    'cacheResidentialPaving','cachePlantedGravelCourt','cacheServiceCourtPaving',
+    'cacheSidewalk','cacheParapet',
+    'cacheFreight','cacheCourier','cacheBarricade','cacheRival','cacheAudit',
+    'cacheSweeper','cacheTrike','cacheShuttle','cacheBrakeReflection',
+    'cacheDamagedExhaust','cacheSpeedMist','cacheCombatBike','cacheCombatHostiles',
+    'cacheCombatBikeCrash','cacheCombatBlast','cacheBloodSplatter',
+    'cachePursuitRig','cachePursuitImpact',
+    'cachePersonCrateCarrierTravel','cachePersonHandheldPlayerTravel'
+  ];
+  function gpuLevelKeys() {
+    const keys=new Set(GPU_ROUTE_COMMON);
+    for(const area of SCENERY) {
+      const key=area.plate?.art[0]||area.scene?.art[0]||
+        (area.place?.kind!=='parking'?
+          (SIDE_VARIANTS[area.place?.variant]?.art||PLACE_ART[area.place?.kind])?.[0]:null);
+      if(key)keys.add(key);
+      if(area.plate&&AMBIENT_PLATES.has(area.plate)) {
+        const family=area.plate.family;
+        keys.add('cacheAmbient'+family[0].toUpperCase()+family.slice(1));
+      }
+    }
+    for(const {item} of STREET_ITEMS) {
+      const key=item.id===undefined?item.key:
+        pedestrianTravel(item,{elapsedMs:0},false)?.key||PEDESTRIANS[item.id]?.[0];
+      if(key)keys.add(key);
+    }
+    return [...keys];
+  }
+  const GPU_LEVEL_KEYS=gpuLevelKeys();
   const clone = value => JSON.parse(JSON.stringify(value));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const smooth = value => {const t=clamp(value,0,1);return t*t*(3-2*t);};
@@ -651,8 +811,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     return 0;
   }
 
-  function mirrorOutline(ctx, x, y, w, h) {
-    ctx.beginPath(); ctx.moveTo(x + 16, y); ctx.lineTo(x + w - 16, y);
+  function mirrorOutline(ctx, x, y, w, h, begin=true) {
+    if(begin)ctx.beginPath(); ctx.moveTo(x + 16, y); ctx.lineTo(x + w - 16, y);
     ctx.quadraticCurveTo(x + w, y, x + w, y + 16);
     ctx.lineTo(x + w - 7, y + h - 12);
     ctx.quadraticCurveTo(x + w - 9, y + h, x + w - 24, y + h);
@@ -683,7 +843,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     return boss.phase;
   }
 
-  function drawRearRoad(ctx, s, x, y, w, h, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose) {
+  function mirrorSceneryInGlass(candidate,x,y,w,h) {
+    const a=candidate.args;
+    // The generous whole-body envelope includes atlas padding, authored
+    // activity width, lamp haze/pools and far more than the 2.3px blur tail.
+    // Only complete scenery outside the glass is skipped; visible source
+    // order, world addresses and full foreground exits remain unchanged.
+    const reach=Math.max(a.width*.8,a.height*(candidate.person?.82:.21)),blurPadding=12;
+    return a.x+reach>=x-blurPadding&&a.x-reach<=x+w+blurPadding&&
+      a.y+a.height*.24>=y-blurPadding&&a.y-a.height*1.02<=y+h+blurPadding;
+  }
+  function drawRearRoad(ctx, s, x, y, w, h, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose, opaqueBackdrop=false, pixelBudget=null) {
     const progress = s.progress, reach = 440, horizon = y + 47, floor = y + h + 4;
     const profile = at => {
       const distance = clamp(progress - at, 0, reach);
@@ -702,6 +872,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const bankY=(p,side,radial)=>p.y+p.t*miniature*
       (heightSample?.(side,p.at,Math.max(220,radial))??24);
     const paintQuad=(key,corners,sourceRect,alpha=1)=>{
+      // Skip only complete reflection slabs beyond the glass/blur envelope.
+      // Every visible triangle keeps its original source and projection.
+      const xs=corners.map(point=>point[0]),ys=corners.map(point=>point[1]);
+      if(Math.max(...xs)<x-12||Math.min(...xs)>x+w+12||
+        Math.max(...ys)<y-12||Math.min(...ys)>y+h+12)return;
       const [a,b,c,d]=corners;
       const half=(vertices,matrix)=>{
         ctx.save();ctx.beginPath();ctx.moveTo(...a);
@@ -717,7 +892,29 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         (d[0]-a[0])/256,(d[1]-a[1])/256]);
     };
     const far = profile(progress-reach);
+    const nativeRearContext=ctx,gpuRearOptions={kind:'rear',direct:B.CacheRoadGPU?.directFrameActive?.()===true,
+      viewport:{x:x-12,y:y-12,width:w+24,height:h+24}};
+    if(gpuRearOptions.direct)gpuRearOptions.glassClip=exactGpuMirrorClip(ctx,x,y,w,h);
+    const gpuRearContext=beginGpuScene(nativeRearContext,gpuRearOptions);
+    if(gpuRearContext) {
+      ctx=gpuRearContext;
+      if(gpuRearOptions.direct) {
+        // Supply the same glass backdrop within the complete blur footprint.
+        // Cache's face and the glass markings remain on the foreground Canvas.
+        const glass=ctx.createLinearGradient(0,y,0,y+h);
+        glass.addColorStop(0,'#0e1b2d');glass.addColorStop(.53,'#394a60');glass.addColorStop(1,'#10232e');
+        ctx.fillStyle=glass;ctx.fillRect(x-12,y-12,w+24,h+24);
+      }
+    }
+    // Blur the completed reflection once on the existing display Canvas.
+    // Per-object filters repeatedly allocate/rasterize intermediate surfaces.
+    const mirrorTransform=ctx.getTransform?.();
+    const compositeBlur=ctx.canvas?.width>0&&ctx.canvas?.height>0&&
+      ['a','b','c','d','e','f'].every(field=>Number.isFinite(mirrorTransform?.[field]))&&
+      typeof window.HTMLCanvasElement==='function'&&ctx.canvas instanceof window.HTMLCanvasElement&&
+      typeof ctx.setTransform==='function';
     ctx.save(); ctx.filter = 'blur(2.3px)';
+    if(compositeBlur)ctx.filter='none';
     ctx.fillStyle = accent; ctx.globalAlpha = .11;
     ctx.beginPath(); ctx.arc(x+425-(reduced?0:progress*.012)%55,y+31,29,0,Math.PI*2);ctx.fill();
     ctx.globalAlpha = 1;
@@ -925,6 +1122,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           side:scene.side,kind:'life',scene,item})))
       .filter(item=>item.at<progress&&item.at>progress-reach)
       .map(item=>({item,...mirrorGeometry(item)}))
+      .filter(candidate=>mirrorSceneryInGlass(candidate,x,y,w,h))
       // Wide card foundations sort by the same authored ground contacts
       // as their full-size view; roof heights do not determine occlusion.
       .sort((a,b)=>a.args.y-b.args.y||a.item.at-b.item.at);
@@ -982,12 +1180,47 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       drawCrosswalkPerson(ctx,person,{x:laneX(person.lane,p),y:p.y,height:8+37*p.t,reduced});
     }
     ctx.restore();
+    if(gpuRearContext) {
+      const rendered=finishGpuScene(gpuRearContext,nativeRearContext,gpuRearOptions);
+      ctx=nativeRearContext;
+      if(rendered&&gpuRearOptions.direct) {
+        ctx.save();mirrorOutline(ctx,x,y,w,h);ctx.clip();ctx.clearRect(x,y,w,h);ctx.restore();
+        return;
+      }
+    }
+    if(compositeBlur) {
+      const m=mirrorTransform,xs=[],ys=[];
+      for(const [px,py]of [[x,y],[x+w,y],[x,y+h],[x+w,y+h]]) {
+        xs.push(m.a*px+m.c*py+m.e);ys.push(m.b*px+m.d*py+m.f);
+      }
+      const sx=clamp(Math.floor(Math.min(...xs))-12,0,ctx.canvas.width);
+      const sy=clamp(Math.floor(Math.min(...ys))-12,0,ctx.canvas.height);
+      const right=clamp(Math.ceil(Math.max(...xs))+12,0,ctx.canvas.width);
+      const bottom=clamp(Math.ceil(Math.max(...ys))+12,0,ctx.canvas.height);
+      if(right>sx&&bottom>sy) {
+        ctx.save();ctx.setTransform(1,0,0,1,0,0);
+        ctx.globalAlpha=1;
+        // A native, opaque playing frame already supplies every backdrop
+        // sample inside the glass. Source-over then matches copy, avoiding
+        // its full-display replacement surface; scaled/fading callers retain copy.
+        const opaqueNative=opaqueBackdrop&&m.a===1&&m.b===0&&m.c===0&&
+          m.d===1&&m.e===0&&m.f===0;
+        ctx.globalCompositeOperation=opaqueNative?'source-over':'copy';
+        ctx.filter = 'blur(2.3px)';
+        // Crop the opaque native source before applying the same single blur.
+        // Original self-copy preserves all other caller/viewport semantics.
+        if(pixelBudget)pixelBudget.mirrorPixelCopyUsed=copyOpaqueCanvasPixels(ctx,
+          sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy,pixelBudget,false);
+        else ctx.drawImage(ctx.canvas,sx,sy,right-sx,bottom-sy,sx,sy,right-sx,bottom-sy);
+        ctx.restore();
+      }
+    }
     // Only reflected scenery gets softened. Cache and the glass markings are
     // painted afterward at the HUD's native resolution.
   }
 
   // One piece of glass contains both the passing road and Cache's eyes.
-  function drawRearview(ctx, s, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose) {
+  function drawRearview(ctx, s, accent, reduced, heightSample=LANDSCAPE.height, combatPose, crosswalkPose, boundedClip=false, opaqueBackdrop=false, pixelBudget=null) {
     const x = 638, y = 12, w = 690, h = 117;
     const expression = mirrorExpression(s);
     const edge = expression === 4 ? '#ff7c89' : expression === 5 ? '#f7b376' :
@@ -995,12 +1228,21 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     ctx.fillStyle = '#45616f'; ctx.fillRect(x + 338, 0, 14, 14);
     ctx.fillStyle = '#25394a'; mirrorOutline(ctx, x - 6, y - 5, w + 12, h + 10); ctx.fill();
     ctx.fillStyle = edge; mirrorOutline(ctx, x - 3, y - 2, w + 6, h + 4); ctx.fill();
-    ctx.save(); mirrorOutline(ctx, x, y, w, h); ctx.clip();
+    ctx.save();
+    if(boundedClip) {
+      // A rectangular raster clip avoids repeating the curved glass mask on
+      // every reflected triangle, actor and lamp. Repaint its exact bezel
+      // silhouette once after the completed native reflection/face.
+      ctx.beginPath();ctx.rect(x,y,w,h);
+    } else mirrorOutline(ctx,x,y,w,h);
+    ctx.clip();
     const glass = ctx.createLinearGradient(0, y, 0, y + h);
     glass.addColorStop(0, '#0e1b2d'); glass.addColorStop(.53, '#394a60');
     glass.addColorStop(1, '#10232e');
     ctx.fillStyle = glass; ctx.fillRect(x, y, w, h);
-    drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose);
+    const priorRasterDetail=B.PresentationAssets?.setRasterDetail?.(ctx,1)??1;
+    try {drawRearRoad(ctx,s,x,y,w,h,accent,reduced,heightSample,combatPose,crosswalkPose,opaqueBackdrop,pixelBudget);}
+    finally {B.PresentationAssets?.setRasterDetail?.(ctx,priorRasterDetail);}
     // Cache sits on the driver's side. His eyes face the windshield
     // for ordinary driving; only the impact cell glances across the mirror.
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
@@ -1026,6 +1268,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle = '#ff74857d'; ctx.fillRect(x + 5, y + 87, w - 10, 3);
     }
     ctx.restore();
+    if(boundedClip) {
+      ctx.fillStyle='#25394a';
+      mirrorOutline(ctx,x-6,y-5,w+12,h+10);
+      mirrorOutline(ctx,x,y,w,h,false);ctx.fill('evenodd');
+      ctx.fillStyle=edge;
+      mirrorOutline(ctx,x-3,y-2,w+6,h+4);
+      mirrorOutline(ctx,x,y,w,h,false);ctx.fill('evenodd');
+    }
   }
   // Every supplied stem runs for the complete song. Some recorded passages
   // are softer, but that is not a reason to reject their lane captures.
@@ -1079,6 +1329,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         (proof.gateOpen===true&&!combat.boss?.defeated))return false;
       if(proof.crosswalks!==undefined&&!B.CacheRoadCrosswalks?.restore?.(proof.crosswalks,
         {bar:proof.musicBar,progress:proof.progress}))return false;
+      if(proof.adrenaline!==undefined) {
+        const adrenaline=B.CacheRoadAdrenaline?.restore?.(proof.adrenaline);
+        if(!adrenaline||adrenaline.receipts.some(receipt=>!chart?.pulses.some(pulse=>
+          pulse.id===receipt.id&&pulse.target<=proof.musicBar*4+.001)))return false;
+      }
     }
     if(!chart||chart.version!==chartVersion(chapter))return false;
     const section=proof.driveSection;
@@ -1418,7 +1673,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const light = kind === 'cache' ? braking ? .76 : hit ? .56 : .11 :
           kind === 'shuttle' ? .34 : kind === 'freight' ? .23 : .16;
         ctx.save();ctx.globalAlpha*=light;
-        if(kind==='trike'||kind==='audit')ctx.filter='hue-rotate(315deg)';
+        const tintedReflection=kind==='trike'||kind==='audit';
+        const preparedTint=tintedReflection&&B.PresentationAssets?.brakeTintReady?.(ctx);
+        if(tintedReflection&&!ctx.shadowBlur&&!ctx.shadowOffsetX&&!ctx.shadowOffsetY) {
+          // Hue rotation is pointwise: it cannot paint beyond these source
+          // rectangles. Bound its filter layer to the original reflections,
+          // with a margin outside their antialiased edges, instead of the
+          // whole display/glass inherited by each miniature traffic painter.
+          const bounds=lamps.map(lamp=>{
+            const lampX=jolt+lamp.x*Math.cos(roll)-lamp.y*Math.sin(roll);
+            const width=lamp.width*2.8,height=h*(.66+(1-lamp.v)*.75);
+            return {left:lampX-width/2,right:lampX+width/2,bottom:-h*.22+height};
+          });
+          const left=Math.min(...bounds.map(bound=>bound.left))-2;
+          const right=Math.max(...bounds.map(bound=>bound.right))+2;
+          const top=-h*.22-2,bottom=Math.max(...bounds.map(bound=>bound.bottom))+2;
+          ctx.beginPath();ctx.rect(left,top,right-left,bottom-top);ctx.clip();
+        }
+        if(tintedReflection)ctx.filter=preparedTint?'none':'hue-rotate(315deg)';
         for(const lamp of lamps) {
           // Project one broken reflection beneath each real light. The
           // narrow source crop contains one column, not the old fixed pair.
@@ -1426,7 +1698,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const lampX=jolt+lamp.x*Math.cos(roll)-lamp.y*Math.sin(roll);
           B.PresentationAssets.draw('cacheBrakeReflection',ctx,{
             x:lampX,y:-h*.22,width:lamp.width*2.8,
-            height:h*(.66+(1-lamp.v)*.75),sourceRect:[0,0,192,290] });
+            height:h*(.66+(1-lamp.v)*.75),sourceRect:[0,0,192,290],tone:preparedTint?'hue315':null });
         }
         ctx.restore();
       }
@@ -1505,6 +1777,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // Small changing reflections animate the painted rear lamps without
         // replacing the hand-painted vehicle poses or flashing a whole car.
         ctx.save();ctx.translate(jolt,bounce);ctx.rotate(roll);
+        clipLightBlend(ctx,lamps.map(lamp=>[lamp.x-lamp.width*.42,lamp.y-lamp.height*.33,
+          lamp.x+lamp.width*.42,lamp.y+lamp.height*.33]));
         ctx.globalCompositeOperation='screen';
         ctx.globalAlpha*=kind==='cache' && braking ? .72 :
           reduced?.18:.15+.14*(.5+.5*Math.sin(phase*.17+x*.01));
@@ -1644,7 +1918,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     const lanePos = saved.lanePos ?? saved.lane ?? 1;
     return { progress, lanePos, lane: Math.round(lanePos), visualLane: lanePos,
       captures: [], queuedCaptures: [], hitRecovery: false,
-      caughtPulses: {}, missedPulses: {}, driveFeedback: null, mixFeedback: null,
+      caughtPulses: {}, missedPulses: {}, driveFeedback: null, beatFeedback: null, mixFeedback: null,
       pulseTargets: {}, pulsePlaces: {}, pendingPulseAwards: [], streetMotion: {},
       gear: Number.isInteger(saved.gear)?clamp(saved.gear,0,2):
         (saved.speed<=36?0:saved.speed>=61?2:1),
@@ -1678,7 +1952,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Road lessons are momentary guidance, not save or music state.
       opening: { held: false, sealed: false, turbo: false, echo: false, auditFollowedEcho: false },
       message: '', messageMs: 0, recordHoldMs: 0, recordIndex: -1,
-      mirrorState:B.CacheRoadMirror?.create(saved),crosswalkToast:null,crosswalkMessages:[],
+      mirrorState:B.CacheRoadMirror?.create(saved),crosswalkToast:null,crosswalkMessages:[],crosswalkCalloutIds:[],
       recordFlashMs: 0, recordFlashIndex: -1, recordSigns: {},
       gateOpen: !!saved.gateOpen, gateFailure: null,
       // Camera follow is transient presentation state, never a save or clock.
@@ -1715,6 +1989,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
   function drawCrosswalkPerson(ctx,person,{x,y,height,reduced}) {
     const carrier=person.side==='left',key=carrier?'cachePersonCrateCarrierTravel':'cachePersonHandheldPlayerTravel';
     const width=height*(carrier?432/384:278/384),hit=person.phase==='hit';
+    if(hit)B.CacheRoadCombatArt?.drawBlood?.(ctx,{x,y,width:height*.96,height:height*.46,
+      ageMs:person.hitAgeMs||0,variant:carrier?0:1,reduced,
+      flashes:window.BARCODE_RENDER_QUALITY?.flashes!==false});
     const frame=reduced||person.phase==='waiting'?0:
       Math.floor((person.walkingMs||0)/210)%(carrier?8:4);
     ctx.save();ctx.globalAlpha*=hit?.82:1;
@@ -1753,7 +2030,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       alpha:actor.alpha??1,phase:elapsedMs*.054+actor.at*.17,steer:actor.steer||0,reduced});
     ctx.restore();
   }
-  function drawCombatWorld(ctx,s,{depth,laneX,laneEdge,roadY,frontNear,reduced,camera,cameraWarnings,vehicleAtDepth,combatPose}) {
+  function drawCombatWorld(ctx,s,{depth,laneX,laneEdge,roadY,frontNear,reduced,camera,cameraWarnings,vehicleAtDepth,combatPose,feedback=true}) {
     const pose=combatPose;
     for(const actor of [...pose.actors,...pose.wrecks]
       .sort((a,b)=>b.at-a.at)) {
@@ -1766,7 +2043,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           x,y:y-h*.55,width:w*2.35,height:h*2.05,ageMs:actor.ageMs,reduced,
           flashes:window.BARCODE_RENDER_QUALITY?.flashes!==false,alpha:actor.alpha??1});
         const threatening=['windup','committed'].includes(actor.phase);
-        if(threatening) {
+        if(feedback&&threatening) {
           const lane=actor.lockLane??actor.targetLane??actor.lane;
           const left=laneEdge(Math.round(lane),t),right=laneEdge(Math.round(lane)+1,t);
           ctx.save();ctx.globalAlpha=actor.phase==='committed'?.62:.32;
@@ -1775,17 +2052,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.textAlign='center';ctx.fillText(actor.phase==='committed'?'LOCKED':'WINDUP',laneX(lane,t),y-h-14);
           ctx.restore();
         }
-        if(actor.kind!=='rig'&&Number.isFinite(actor.hp)&&actor.hp>0) {
+        if(feedback&&actor.kind!=='rig'&&Number.isFinite(actor.hp)&&actor.hp>0) {
           ctx.fillStyle='#241b20';ctx.fillRect(x-w*.35,y-h-6,w*.7,4);
           ctx.fillStyle='#ffb39b';ctx.fillRect(x-w*.35,y-h-6,w*.7*actor.hp/(actor.maxHp||actor.hp),4);
         }
       });
-      if(d>=-8&&d<=260) {
+      if(feedback&&d>=-8&&d<=260) {
         const marker=cameraEdgeMarker(camera,{x,y,width:actor.kind==='rig'?46+t*192:w*1.35,
           height:actor.kind==='rig'?55+t*215:h*1.25});
         if(marker)cameraWarnings.push({lane:actor.lane,d,marker});
       }
     }
+    if(!feedback)return;
     for(const shot of pose.projectiles) {
       const d=shot.at-s.progress;if(d<frontNear||d>520)continue;
       const t=depth(d),x=laneX(shot.lane,t),y=roadY(t);
@@ -1825,6 +2103,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
   }
   function drawCombatSkills(ctx,s,pose) {
+    if(!B.CacheRoadInstruments?.drawSkills?.(ctx,s,pose)) {
     for(const [i,name] of ['attack','turbo','defend','disrupt'].entries()) {
       const skill=pose.skills[name],x=1366+i*128,action=`road_${name}`;
       const fallback={attack:'F',turbo:'SPACE',defend:'G',disrupt:'V'}[name];
@@ -1842,6 +2121,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     }
     ctx.fillStyle=pose.syncCount===4?'#eaffbc':'#a8d3c8';ctx.font='bold 13px Oxanium, monospace';ctx.textAlign='right';
     ctx.fillText(`SYNC ${pose.syncCount}/4 · POWER ×${pose.benefits.power.toFixed(2)} · AMMO ${(pose.benefits.ammoMs/1000).toFixed(1)}s`,1872,167);
+    }
     if(pose.boss?.hp>0&&pose.boss?.arrived!==false) {
       ctx.fillStyle='#071b26e8';ctx.fillRect(672,176,576,48);
       ctx.fillStyle='#ffceac';ctx.font='bold 17px Oxanium, monospace';ctx.textAlign='left';
@@ -1898,17 +2178,37 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     pose.zoom=clamp(pose.zoom,1,1.335);
     pose.x=clamp(pose.x,-30,30);pose.y=clamp(pose.y,-6,6);pose.roll=clamp(pose.roll,-.017,.017);
   }
-  function speedCamera(s,{reduced=false,intro=null,playing=true}={}) {
+  function speedCamera(s,{reduced=false,intro=null,playing=true,outroMs=null}={}) {
     reduced=reduced||window.BARCODE_RENDER_QUALITY?.flashes===false;
     if(intro!==null)return {zoom:reduced?1.045:1.13-.13*clamp((intro-1100)/3100,0,1),x:0,y:0,roll:0};
-    if(reduced||!playing)return {zoom:1,x:0,y:0,roll:0};
+    if(reduced||(!playing&&outroMs===null))return {zoom:1,x:0,y:0,roll:0};
     const base=s.cameraMotion||cameraTarget(s);
     // One soft impact oscillation replaces the rapid alternating jitter.
     const hit=clamp(s.stumbleMs/650,0,1),pass=clamp(s.passFlashMs/780,0,1);
     const impact=Math.sin((1-hit)*Math.PI*2)*hit;
     const glide=Math.sin((1-pass)*Math.PI)*pass*(s.passSide||1);
-    return {zoom:base.zoom,x:base.x+impact*7+glide*2,
+    const pose={zoom:base.zoom,x:base.x+impact*7+glide*2,
       y:base.y+impact*5,roll:base.roll+impact*.002};
+    // Earned clear keeps the last live view on the first departure frame.
+    // The existing outro clock then opens the aperture with no status snap.
+    if(outroMs!==null) {
+      const settle=smooth(clamp(outroMs/1100,0,1));
+      return {zoom:pose.zoom+(1-pose.zoom)*settle,x:pose.x*(1-settle),
+        y:pose.y*(1-settle),roll:pose.roll*(1-settle)};
+    }
+    return pose;
+  }
+  function cameraViewport(camera) {
+    // Conservative inverse bounds include every screen corner plus the
+    // antialias fringe. All world culling reads the actual rendered camera.
+    const cos=Math.cos(camera.roll),sin=Math.sin(camera.roll),points=[];
+    for(const x of [-2,1922])for(const y of [-2,1082]) {
+      const dx=x-960-camera.x,dy=y-CAMERA_PIVOT_Y-camera.y;
+      points.push({x:960+(dx*cos+dy*sin)/camera.zoom,
+        y:CAMERA_PIVOT_Y+(-dx*sin+dy*cos)/camera.zoom});
+    }
+    return {left:Math.min(...points.map(p=>p.x)),right:Math.max(...points.map(p=>p.x)),
+      top:Math.min(...points.map(p=>p.y)),bottom:Math.max(...points.map(p=>p.y))};
   }
   function cameraPoint(camera,x,y) {
     const dx=(x-960)*camera.zoom,dy=(y-CAMERA_PIVOT_Y)*camera.zoom;
@@ -2008,6 +2308,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         B.CacheRoadCombat?.restore?.(saved.combat,{bar:s.musicBar,progress:s.progress}) :
         B.CacheRoadCombat?.create?.({difficultyId:this.chapter.difficultyId}) : null;
       if(this.chapter.encounterVersion===4&&!s.combat)return false;
+      s.adrenaline=s.combat&&B.CacheRoadAdrenaline ? saved?.adrenaline ?
+        B.CacheRoadAdrenaline.restore(saved.adrenaline) : B.CacheRoadAdrenaline.create() : null;
+      if(saved?.adrenaline&&!s.adrenaline)return false;
+      if(s.adrenaline)s.lockEnergy=s.adrenaline.value;
       s.crosswalks=s.combat&&B.CacheRoadCrosswalks ? saved?.crosswalks ?
         B.CacheRoadCrosswalks.restore(saved.crosswalks,{bar:s.musicBar,progress:s.progress}) :
         B.CacheRoadCrosswalks.create({bar:s.musicBar,progress:s.progress}) : null;
@@ -2036,10 +2340,34 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         boss:s.pursuit?.version===3?B.CacheRoadPursuit.boss(s.pursuit,{progress:s.progress}):null};
     },
     exiting: false, audioDegraded: false, oldHint: null, introMs: null,
+    handoffMs:null,outroMs:null,cinematicLane:1,
+    cinematicPose() {
+      if(this.chapter?.encounterVersion!==4||!B.CacheRoadCinematics)return null;
+      const kind=this.introMs!=null?'opening':this.outroMs!=null?'outro':this.handoffMs!=null?'handoff':null;
+      if(!kind)return null;
+      return B.CacheRoadCinematics.pose(kind,kind==='opening'?this.introMs:kind==='outro'?this.outroMs:this.handoffMs,
+        {reducedMotion:!!B.Preferences?.values?.reducedMotion,baseLane:this.cinematicLane});
+    },
+    cinematicEngine(view) {
+      if(!view)return;
+      const leaving=view.kind==='outro';
+      window.audioSystem?.updateRoadEngine?.({active:true,gear:this.state.gear,
+        speed:leaving?52+20*view.timeMs/view.durationMs:52,boost:0,shifting:0,
+        load:leaving?.65*(1-view.timeMs/view.durationMs):view.phase==='ram'?.9:.48,
+        damage:0,pan:0,trackTimeSec:(this.state.musicBeatFloat||0)*60/128});
+    },
+    finishOutro() {
+      if(!this.active||this.status!=='clear'||this.outroMs===null||
+          window.isPaused||window.gameState?.paused)return false;
+      this.outroMs=null;
+      window.audioSystem?.stopRoadEngine?.();
+      this.armResultControls();this.resumeEnding({fresh:true});return true;
+    },
     finishIntro() {
-      if (!this.active || this.status !== 'playing' || this.introMs === null ||
+      if (!this.active || this.presentationPreparing || this.status !== 'playing' || this.introMs === null ||
           window.isPaused || window.gameState?.paused) return false;
-      this.introMs = null;
+      const staged=this.chapter?.encounterVersion===4&&!!B.CacheRoadCinematics;
+      this.introMs = null;this.handoffMs=staged?0:null;
       let started;
       try { started = window.audioSystem?.startRuntimeGameplayMusic?.(); }
       catch (_) { started = { ok: false }; }
@@ -2192,6 +2520,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         this.configureEncounters(resume?.levelState?.proof);
         this.status = this.state.status; this.active = true;
         this.introMs = !resume && this.status === 'playing' ? 0 : null;
+        this.handoffMs=null;this.outroMs=null;this.cinematicLane=this.state.lanePos;
+        await this.preparePresentation();
+        if(entryGeneration!==this.entryGeneration)return {ok:false,reason:'handoff-cancelled'};
         this.setHint();
         B.Campaign.intermission = false; B.Campaign.run = null;
         window.gameState.victory = false; window.gameState.gameOver = false;
@@ -2225,7 +2556,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.chapter = B.CacheChapter?.normalize(saved.levelState.chapter) || null;
       this.configureEncounters(saved.levelState.proof);
       this.status = this.state.status; this.active = true; this.exiting = false;
-      this.introMs = null;
+      this.introMs = null;this.handoffMs=null;this.outroMs=null;this.cinematicLane=this.state.lanePos;
       if (this.status === 'clear') {
         window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
         window.audioSystem?.stopRoadEngine?.();
@@ -2254,6 +2585,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           boost: s.boost, score: s.score, peakStack: s.peakStack,
           cleanBars: s.cleanBars, integrity: Math.max(1, s.integrity),
           ...(s.combat ? {combat:B.CacheRoadCombat.snapshot(s.combat,{progress:checkpointProgress})} : {}),
+          ...(s.adrenaline ? {adrenaline:B.CacheRoadAdrenaline.snapshot(s.adrenaline)} : {}),
           ...(s.crosswalks ? {crosswalks:B.CacheRoadCrosswalks.snapshot(s.crosswalks,{progress:checkpointProgress})} : {}),
           ...(s.pursuit?.version===3 ? {pursuit:B.CacheRoadPursuit.snapshot(s.pursuit)} : {}),
           ...(s.encounters ? {encounters:B.CacheRoadEncounters.snapshot(s.encounters),
@@ -2280,6 +2612,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       window.inputManager?.resetActionEdges?.();
     },
     resumeEnding({ fresh = false } = {}) {
+      if(this.outroMs!=null)return false;
       const ending = this.chapter?.delivery?.ending;
       if (this.active && this.status === 'clear' && ending && !ending.done && !B.CacheEnding?.active)
         return B.CacheEnding?.start(fresh ? undefined : ending) || false;
@@ -2303,7 +2636,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       return !!result?.ok;
     },
     dispose() {
+      this.cancelPresentation?.();this.cancelPresentation=null;
       this.entryGeneration=(this.entryGeneration||0)+1;this.pending=false;
+      this.presentationGeneration=(this.presentationGeneration||0)+1;
+      this.presentationPreparing=false;this.gpuLevelSources=null;this.presentationResult=null;
+      B.CacheRoadGPU?.releaseLevel?.();
+      if(this.active)B.PresentationAssets?.releaseScene?.();
       window.audioSystem?.stopRoadEngine?.();
       const hint = document.querySelector?.('.hint');
       if (hint && this.oldHint !== null) hint.textContent = this.oldHint;
@@ -2311,6 +2649,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       B.CacheEnding?.dispose?.();
       this.active = false; this.status = null; this.state = null; this.chapter = null;
       this.returnTo = null; this.exiting = false; this.audioDegraded = false; this.introMs = null;
+      this.handoffMs=null;this.outroMs=null;
     },
     retry() {
       if (!this.active || this.status === 'playing') return false;
@@ -2332,13 +2671,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         timeMs: Math.max(fromCheckpoint.timeMs || 0, 30000), echoEnergy: Math.max(fromCheckpoint.echoEnergy || 0, 100) } : {});
       this.configureEncounters(fromCheckpoint, true);
       this.status = 'playing';
-      this.introMs = null;
+      this.introMs = null;this.handoffMs=null;this.outroMs=null;this.cinematicLane=this.state.lanePos;
       // A retry deliberately resumes at the saved bar. Steering never seeks.
       window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
       this.selectMusicProfile();
-      window.audioSystem?.startRuntimeGameplayMusic?.();
       this.checkpoint(this.status === 'playing' && fromCheckpoint ? saved.checkpointId : 'road-start');
       window.inputManager?.resetActionEdges?.();
+      const retryState=this.state,generation=this.entryGeneration;
+      const startMusic=()=>{
+        if(!this.active||this.state!==retryState||generation!==this.entryGeneration||this.exiting||
+            window.isPaused||window.gameState?.paused)return;
+        window.audioSystem?.startRuntimeGameplayMusic?.();
+        window.inputManager?.resetActionEdges?.();
+      };
+      if(window.renderer?.ctx&&B.CacheRoadGPU?.warmup)
+        this.preparePresentation().then(startMusic,startMusic);
+      else startMusic();
       return true;
     },
     resultButtons() {
@@ -2346,19 +2694,22 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const authored = !!this.chapter?.delivery;
       const prompt = (key,index) => B.GamepadUI?.connected ? B.ControllerSettings?.button(index) || key : key;
       const buttons = authored ? [
-        { id: 'ending', label: this.chapter.delivery.ending.done ? 'REPLAY ENDING' : 'RESUME ENDING', key: prompt('ENTER',0) },
+        ...(this.chapter.delivery.ending.done ? [{ id: 'continue', label: this.macHandoffPending ? 'LOADING LEVEL 3...' : 'CONTINUE TO LEVEL 3', key: prompt('ENTER',0) }] : []),
+        { id: 'ending', label: this.chapter.delivery.ending.done ? 'REPLAY ENDING' : 'RESUME ENDING', key: this.chapter.delivery.ending.done ? prompt('E',1) : prompt('ENTER',0) },
         { id: 'race', label: 'REPLAY RACE', key: prompt('R',2) },
         { id: 'title', label: 'TITLE', key: prompt('C',3) }
       ] : [
         { id: 'race', label: this.status === 'clear' ? 'REPLAY RACE' : 'RETRY FROM MARKER', key: prompt('ENTER',0) },
         { id: 'back', label: 'LEVEL 1 RESULTS', key: prompt('C',3) }
       ];
-      return buttons.map((button,index)=>({ ...button, x: authored ? 435 + index * 355 : 565 + index * 430,
-        y: 572, w: authored ? 340 : 360, h: 72 }));
+      return buttons.map((button,index)=>({ ...button, x: authored ? 400 + index * (buttons.length === 4 ? 285 : 375) : 565 + index * 430,
+        y: 572, w: authored ? (buttons.length === 4 ? 270 : 350) : 360, h: 72 }));
     },
     resultAction(action) {
       if (!this.active || this.status === 'playing' || this.resultControlsReady === false ||
           window.isPaused || window.gameState?.paused || B.CacheEnding?.active) return false;
+      if (this.macHandoffPending) return false;
+      if (action === 'continue') return B.MacCombatPreview?.enterCampaign?.(this) || false;
       if (action === 'race') return this.retry();
       if (action === 'back') return this.exit();
       if (!this.chapter?.delivery) return false;
@@ -2385,13 +2736,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             !['b0','b1','b2','b3'].some(key=>input?.held?.[key])) this.resultControlsReady = true;
         return true;
       }
-      if (p.b0) this.resultAction(this.chapter?.delivery ? 'ending' : 'race');
+      if(this.outroMs!=null) {
+        if(p.b0)this.finishOutro();
+        return true;
+      }
+      if (p.b0) this.resultAction(this.chapter?.delivery ? this.chapter.delivery.ending.done ? 'continue' : 'ending' : 'race');
       else if (p.b2 && this.chapter?.delivery) this.resultAction('race');
       else if (p.b3) this.resultAction(this.chapter?.delivery ? 'title' : 'back');
-      else if (p.b1 && this.chapter?.delivery) this.resultAction('save');
+      else if (p.b1 && this.chapter?.delivery) this.resultAction(this.chapter.delivery.ending.done ? 'ending' : 'save');
       return true;
     },
     pointerClick(x,y) {
+      if(this.outroMs!=null)return x>=1510&&y>=1000?this.finishOutro():false;
       const button = this.resultButtons().find(b=>x>=b.x && x<=b.x+b.w && y>=b.y && y<=b.y+b.h);
       if (button) { this.resultAction(button.id); return true; }
       if (this.chapter?.delivery && x>=715 && x<=1205 && y>=682 && y<=723) {
@@ -2400,6 +2756,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       return false;
     },
     keyDown(e) {
+      if(this.presentationPreparing) {e.preventDefault?.();return true;}
+      if(this.outroMs!=null) {
+        const key=e.key.toLowerCase();
+        if(key==='p') {e.preventDefault?.();if(!e.repeat)B.RuntimeLifecycle?.togglePause?.();return true;}
+        if(key==='enter'||key===' ') {
+          e.preventDefault?.();if(!e.repeat&&this.resultControlsReady!==false)this.finishOutro();return true;
+        }
+        return false;
+      }
       if (this.introMs !== null) {
         if (e.key.toLowerCase() === 'p') {
           e.preventDefault?.();
@@ -2421,10 +2786,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         return true;
       }
       const authored = !!this.chapter?.delivery;
-      if (!(authored ? ['enter', ' ', 'r', 'c', 's'] : ['enter', ' ', 'c']).includes(key)) return false;
+      if (!(authored ? ['enter', ' ', 'r', 'c', 's', 'e'] : ['enter', ' ', 'c']).includes(key)) return false;
       e.preventDefault?.();
       if (!e.repeat) this.resultAction(key === 'c' ? authored ? 'title' : 'back' :
-        key === 's' ? 'save' : key === 'r' ? 'race' : authored ? 'ending' : 'race');
+        key === 's' ? 'save' : key === 'e' ? 'ending' : key === 'r' ? 'race' : authored ? this.chapter.delivery.ending.done ? 'continue' : 'ending' : 'race');
       return true;
     },
     mixSnapshot() {
@@ -2630,6 +2995,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         if(target===undefined||s.caughtPulses[pulse.id]||s.missedPulses[pulse.id]||
           (music.grid.beatFloat-target)*music.grid.beatDurationSec<=pulseWindowSec(s)+1e-8)continue;
         s.missedPulses[pulse.id]=true;
+        this.recordAdrenaline(B.CacheRoadAdrenaline?.resolve?.(s.adrenaline,
+          {id:pulse.id,result:'miss',atMs:s.elapsedMs}));
         if(music.grid.beatFloat-target<1&&
           !(s.driveFeedback&&s.elapsedMs<s.driveFeedback.expiresMs))
           this.pulseFeedback('miss',pulse);
@@ -2673,6 +3040,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.driveFeedback={kind,action:pulse?.action,lane:pulse?.lane,
         label:faceLabel(s,pulse?.action)||'NEXT PAD',atMs:s.elapsedMs,
         expiresMs:s.elapsedMs+(['perfect','good','record'].includes(kind)?1300:1000)};
+      if(kind==='miss'&&pulse) {
+        const charge=B.CacheRoadAdrenaline?.pose?.(s.adrenaline);
+        s.beatFeedback={kind,action:pulse.action,lane:pulse.lane,pulseId:pulse.id,
+          atMs:s.elapsedMs,expiresMs:s.elapsedMs+1000,
+          delta:charge?.lastResult==='miss'?charge.lastDelta:0,value:charge?.value||0,
+          tier:charge?.tier||'cold',tierChanged:false,chain:charge?.chain||0};
+      }
     },
     catchPulse(action, pressTimeSec, audiblePressTimeSec) {
       const s = this.state;
@@ -2760,6 +3134,16 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         holdBars, atMs: s.elapsedMs, expiresMs: s.elapsedMs + 1200 };
       s.score += (judgment.timing === 'perfect' ? 80 : 50) * (fast ? 2 : 1) * (s.combat?1+s.captures.length*.5:1);
       if(s.combat)B.CacheRoadCombat.rewardSync(s.combat,judgment.timing==='perfect');
+      const adrenalineGain=B.CacheRoadAdrenaline?.resolve?.(s.adrenaline,
+        {id:pulse.id,result:judgment.timing==='perfect'?'perfect':'good',atMs:s.elapsedMs});
+      this.recordAdrenaline(adrenalineGain,{action:pulse.action,
+        trackTimeSec:startBeat*60/128,pan:(pulse.lane-1.5)*.14});
+      s.beatFeedback={kind:judgment.timing==='perfect'?'perfect':'good',
+        action:pulse.action,lane:pulse.lane,pulseId:pulse.id,
+        atMs:s.elapsedMs,expiresMs:s.elapsedMs+1200,
+        delta:adrenalineGain?.accepted?adrenalineGain.delta:0,
+        value:adrenalineGain?.value||0,tier:adrenalineGain?.tier||'cold',
+        tierChanged:!!adrenalineGain?.tierChanged,chain:s.adrenaline?.chain||s.pulseCombo};
       if (fast && ++s.fastPulses % 2 === 0) s.boost = 1;
       if (slow) s.echoEnergy = clamp(s.echoEnergy + 25, 0, 100);
       switch (action) {
@@ -2795,9 +3179,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.message = 'BUFFER ECHO // SPLIT THE LINE'; s.messageMs = 1700;
       this.cue('data');
     },
+    recordAdrenaline(result,cueOptions={}) {
+      const s=this.state;
+      if(!s?.adrenaline||!result?.accepted)return;
+      s.lockEnergy=s.adrenaline.value;
+      if(!result.tierChanged)return;
+      if(result.delta>0)this.cue(result.tier==='rush'?'roadFull':'roadTurboReady',{intensity:.4,...cueOptions});
+      else if(result.result==='miss')this.cue('roadMiss',{intensity:.3});
+    },
     combatInput() {
       const s=this.state;
       return {progress:s.progress,lanePos:s.lanePos,speed:s.speed,bar:s.musicBeatFloat/4,
+        adrenaline:s.adrenaline?.value||0,
         syncCount:new Set(s.captures.map(part=>part.lane)).size,
         invulnerableMs:s.invulnerableMs,boosting:s.boostMs>0,
         protectedPulses:roadPulses(s).filter(p=>p.target>=s.musicBeatFloat-.3),
@@ -2853,9 +3246,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.rivalWarning=s.combatDanger>0;
     },
     handleActions(actions) {
-      if (!this.active || this.status !== 'playing' || this.exiting || this.introMs !== null) return;
+      if (!this.active || this.presentationPreparing || this.status !== 'playing' || this.exiting || this.introMs !== null) return;
       const s = this.state;
-      s.steer = Number(!!actions.move_right?.held) - Number(!!actions.move_left?.held);
+      const steer=Number(!!actions.move_right?.held)-Number(!!actions.move_left?.held);
+      s.steer=steer*(this.handoffMs!=null?B.CacheRoadCinematics?.pose('handoff',this.handoffMs)?.controlRatio||0:1);
+      if(this.handoffMs!=null)return;
       const down=!!actions.move_down?.held,up=!!actions.move_up?.held&&!down;
       if(actions.move_down?.pressed||down&&!s.braking)this.requestGear(-1);
       else if(actions.move_up?.pressed||up&&!s.throttling)this.requestGear(1);
@@ -2868,6 +3263,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         for(const skill of ['attack','turbo','defend','disrupt'])if(actions[`road_${skill}`]?.pressed) {
           if(skill==='turbo'&&s.queuedTurbo)continue;
           const result=B.CacheRoadCombat.act(s.combat,skill,this.combatInput());
+          if(result.accepted)this.recordAdrenaline(B.CacheRoadAdrenaline?.spend?.(s.adrenaline,skill,{atMs:s.elapsedMs}));
           this.applyCombatEvents(result.events||[]);
           if(!result.accepted) {
             const reason=result.reason==='in-flight'?'SHOT IN FLIGHT':result.reason==='no-target'?'NO TARGET':result.reason==='weapon-recharging'?'WEAPON LOADING':
@@ -2913,6 +3309,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         s.messageMs = 900; this.cue('land'); return;
       }
       react('crash');
+      this.recordAdrenaline(B.CacheRoadAdrenaline?.wreck?.(s.adrenaline,{atMs:s.elapsedMs}));
       if (this.chapter && !this.chapter.delivery) this.chapter.damageTaken++;
       s.recordHoldMs = 0;
       s.integrity--; s.queuedRecovery = true;s.recoveryBeat=this.nextShiftBeat();
@@ -3000,7 +3397,74 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       this.cue('pickup', { intensity: .6, pan: (opportunity.lane - 1.5) * .14 });
       return true;
     },
+    async preparePresentation() {
+      const ctx=window.renderer?.ctx;
+      if(!this.active||!this.state||!ctx||!B.CacheRoadGPU?.warmup)return;
+      this.cancelPresentation?.();
+      const generation=this.presentationGeneration=(this.presentationGeneration||0)+1;
+      const cancelled={cancelled:true};
+      const cancellation=new Promise(resolve=>{this.cancelPresentation=()=>resolve(cancelled);});
+      const awaitOwned=pending=>Promise.race([pending,cancellation]);
+      this.presentationPreparing=true;
+      try {
+        this.draw(ctx);
+        // Level 1's atlas resources are no longer used by this scene. The
+        // lifecycle reloads them before a later Level 1 or Level 3 start.
+        B.StandaloneSprites?.suspend?.();
+        window.parallaxBackground?.disposeSkyAnimation?.();
+        if(B.LevelSceneResources?.releaseLevel1) {
+          const released=await awaitOwned(B.LevelSceneResources.releaseLevel1());
+          if(generation!==this.presentationGeneration||!this.active)return;
+          this.sceneReleaseReport=released;
+        }
+        const keys=GPU_LEVEL_KEYS;
+        if(B.PresentationAssets?.selectRoadScene) {
+          await awaitOwned(B.PresentationAssets.selectRoadScene(keys));
+          if(generation!==this.presentationGeneration||!this.active)return;
+        }
+        const sources=B.PresentationAssets?.waitForGpuSources?
+          await awaitOwned(B.PresentationAssets.waitForGpuSources(keys)):
+          B.PresentationAssets?.gpuSources?.(keys)||[];
+        if(sources===cancelled||generation!==this.presentationGeneration||!this.active)return;
+        this.gpuLevelSources=sources;
+        const result=await awaitOwned(B.CacheRoadGPU.warmup(ctx,sources,
+          {rearViewport:{x:626,y:0,width:714,height:141},
+            cancelled:()=>generation!==this.presentationGeneration||!this.active}));
+        if(result===cancelled||generation!==this.presentationGeneration||!this.active)return;
+        const available=new Set(sources.map(source=>source.key));
+        const missingKeys=keys.filter(key=>!available.has(key));
+        this.presentationResult={...result,requestedSources:keys.length,
+          missingKeys,complete:missingKeys.length===0};
+        return this.presentationResult;
+      } finally {
+        if(generation===this.presentationGeneration) {
+          this.presentationPreparing=false;
+          this.cancelPresentation=null;
+          window.inputManager?.resetActionEdges?.();
+        }
+      }
+    },
     update(delta) {
+      if(this.presentationPreparing)return;
+      // GPU resources are prepared by the existing update owner, never by
+      // scene drawing or a second animation loop. The first draw records the
+      // actual production context when an alternate startup owns the Canvas.
+      const gpuFrameContext=this.gpuFrameContext||window.renderer?.ctx;
+      if(this.active&&gpuFrameContext)try {
+        if(B.CacheRoadGPU&&this.state) {
+          B.CacheRoadGPU.prepare(gpuFrameContext,
+            this.gpuLevelSources||B.PresentationAssets?.gpuSources?.(GPU_LEVEL_KEYS)||[]);
+        }
+      }
+      catch { /* The current frame retains its complete native painter. */ }
+      if(this.active&&this.outroMs!=null&&!this.exiting) {
+        const dt=Math.min(100,Math.max(0,delta));
+        if(!dt||window.isPaused||window.gameState?.paused)return;
+        if(!window.inputManager?.isResultControlHeld?.())this.resultControlsReady=true;
+        this.outroMs+=dt;this.cinematicEngine(this.cinematicPose());
+        if(this.outroMs>=B.CacheRoadCinematics.durations.outro)this.finishOutro();
+        return;
+      }
       if (!this.active || this.status !== 'playing' || this.exiting) {
         if (this.active && this.status !== 'playing' && !window.inputManager?.isResultControlHeld?.())
           this.resultControlsReady = true;
@@ -3009,9 +3473,19 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const s = this.state, dt = Math.min(100, Math.max(0, delta));
       if (!dt) return;
       if (this.introMs !== null) {
+        const beforeIntro=this.introMs;
         this.introMs += dt;
-        if (this.introMs >= 4200) this.finishIntro();
+        const cinema=this.cinematicPose();
+        if(cinema) {
+          this.cinematicEngine(cinema);
+          if(beforeIntro<4300&&this.introMs>=4300)this.cue('roadPush',{intensity:.65});
+        }
+        if (this.introMs >= (cinema?B.CacheRoadCinematics.durations.opening:4200)) this.finishIntro();
         return;
+      }
+      if(this.handoffMs!=null) {
+        this.handoffMs+=dt;
+        if(this.handoffMs>=B.CacheRoadCinematics.durations.handoff)this.handoffMs=null;
       }
       const before = s.progress,previousLanePos=s.lanePos;
       const audio=window.audioSystem;
@@ -3042,7 +3516,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       s.stumbleMs = Math.max(0, s.stumbleMs - dt);
       s.cutFlashMs = Math.max(0, s.cutFlashMs - dt);
       s.messageMs = Math.max(0, s.messageMs - dt);
-      if(s.crosswalkToast) {
+      if(B.CacheRoadCrewCallouts)B.CacheRoadCrewCallouts.step(s,dt);
+      else if(s.crosswalkToast) {
         s.crosswalkToast.remainingMs=Math.max(0,s.crosswalkToast.remainingMs-dt);
         if(!s.crosswalkToast.remainingMs)s.crosswalkToast=null;
       }
@@ -3147,10 +3622,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const events=B.CacheRoadCrosswalks.step(s.crosswalks,dt,{before,progress:s.progress,
           previousLanePos,lanePos:s.lanePos,speed:s.speed,bar:s.musicBeatFloat/4});
         for(const event of events)if(event.type==='pedestrian-hit') {
-          s.crosswalkMessages.push({message:event.message,id:event.id});
+          if(B.CacheRoadCrewCallouts)B.CacheRoadCrewCallouts.enqueue(s,event);
+          else s.crosswalkMessages.push({message:event.message,id:event.id});
           this.cue('damage',{material:'pedestrian',intensity:.35});
         }
-        if(!s.crosswalkToast&&s.crosswalkMessages.length)
+        if(!B.CacheRoadCrewCallouts&&!s.crosswalkToast&&s.crosswalkMessages.length)
           s.crosswalkToast={...s.crosswalkMessages.shift(),remainingMs:2000};
       }
       if(s.pursuit) {
@@ -3266,7 +3742,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           window.audioSystem?.stopRuntimeAudio?.({ stopMusic: true });
           window.audioSystem?.stopRoadEngine?.();
           this.armResultControls();
-          this.resumeEnding({ fresh: true });
+          if(this.chapter.encounterVersion===4&&s.combat?.boss?.defeated&&B.CacheRoadCinematics) {
+            this.outroMs=0;this.handoffMs=null;this.cinematicLane=s.visualLane;
+          } else this.resumeEnding({ fresh: true });
           return;
         } else { this.checkpoint('road-clear'); this.armResultControls(); }
       }
@@ -3285,8 +3763,52 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
     },
     draw(ctx) {
       if (!ctx || !this.active) return;
-      const s = this.state, progress = s.progress;
+      if(this.presentationPreparing) {
+        B.CacheRoadGPU?.hide?.();
+        ctx.save();ctx.setTransform(1,0,0,1,0,0);
+        ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';ctx.filter='none';
+        ctx.fillStyle='#07121f';ctx.fillRect(0,0,1920,1080);
+        ctx.fillStyle='#a4f2d7';ctx.textAlign='center';ctx.font='bold 30px Oxanium, monospace';
+        ctx.fillText('PREPARING ROUTE',960,540);ctx.restore();return;
+      }
+      const live=this.state,cinema=this.cinematicPose();
+      const s=cinema?{...live,progress:live.progress+cinema.progressOffset,
+        visualLane:cinema.kind==='handoff'?live.visualLane:cinema.car.lane,
+        lanePos:cinema.kind==='handoff'?live.lanePos:cinema.car.lane,
+        steer:cinema.kind==='handoff'?live.steer:cinema.car.steer,
+        elapsedMs:cinema.kind==='opening'?this.introMs:cinema.kind==='outro'?live.elapsedMs+this.outroMs:live.elapsedMs}:live;
+      const progress=s.progress,frameContext=ctx,showFeedback=cinema?.kind!=='outro';
+      if(ctx===window.renderer?.ctx)this.gpuFrameContext=ctx;
+      const directGpu=B.CacheRoadGPU?.beginFrame?.(frameContext)===true;
+      const budgetOwner=B.CacheRoadRenderBudget;
+      const budgetEligible=!this.gpuRecoveryPainting&&!!budgetOwner&&ctx===window.renderer?.ctx&&
+        ctx.canvas?.width===1920&&ctx.canvas?.height===1080&&
+        typeof window.performance?.now==='function'&&typeof ctx.getTransform==='function';
+      if(budgetEligible&&this.renderBudgetState!==live) {
+        this.renderBudget=budgetOwner.create();this.renderBudgetState=live;
+      }
+      if(budgetEligible){this.renderBudget.worldPixelCopyUsed=false;this.renderBudget.mirrorPixelCopyUsed=false;}
+      // Native artwork quality is unconditional; the budget records cost only.
+      const worldScale=1;
+      const assets=B.PresentationAssets;
+      const priorRasterDetail=assets?.setRasterDetail?.(ctx,worldScale)??1;
+      const priorDecorationDetail=assets?.setDecorationDetail?.(ctx,worldScale)??1;
+      const renderStarted=budgetEligible?window.performance.now():0;
+      const finishRender=()=>{
+        if(directGpu&&B.CacheRoadGPU.present(frameContext)!==true) {
+          this.gpuRecoveryPainting=true;
+          try {B.CacheRoadGPU.withNativeFallback(()=>this.draw(frameContext));}
+          finally {this.gpuRecoveryPainting=false;}
+        }
+        assets?.setRasterDetail?.(frameContext,priorRasterDetail);
+        assets?.setDecorationDetail?.(frameContext,priorDecorationDetail);
+        if(budgetEligible) {
+        this.renderBudget.drawnScale=worldScale;
+        budgetOwner.observe(this.renderBudget,window.performance.now()-renderStarted,
+          {paused:!!window.isPaused,frameIntervalMs:this.renderFrameIntervalMs});
+      }};
       const combatPose=s.combat?B.CacheRoadCombat.pose(s.combat,{progress,lanePos:s.lanePos,
+        adrenaline:s.adrenaline?.value||0,
         syncCount:new Set(s.captures.map(part=>part.lane)).size}):null;
       const crosswalkPose=s.crosswalks?B.CacheRoadCrosswalks.pose(s.crosswalks,{progress}):null;
       const heightSample=LANDSCAPE.createFrameHeightSampler?.()||LANDSCAPE.height;
@@ -3317,8 +3839,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const frontNear = -360, bankNearDistance = -420, bankMaxDepth = 2.2;
       const depth = d => clamp(1 - (d + 80) / 520, 0, 1.65);
       const inFrame = (x,y,width,height,anchor=.5,padding=0) =>
-        x+width*(1-anchor)+padding>=0 && x-width*anchor-padding<=1920 &&
-        y+padding>=0 && y-height-padding<=bottom;
+        x+width*(1-anchor)+padding>=worldViewport.left && x-width*anchor-padding<=worldViewport.right &&
+        y+padding>=worldViewport.top && y-height-padding<=worldViewport.bottom;
+      const quadInFrame = points =>
+        Math.max(...points.map(point=>point[0]))>=worldViewport.left &&
+        Math.min(...points.map(point=>point[0]))<=worldViewport.right &&
+        Math.max(...points.map(point=>point[1]))>=worldViewport.top &&
+        Math.min(...points.map(point=>point[1]))<=worldViewport.bottom;
       const lightInFrame = (key,args) => lampLightGeometry(key,args).some(light=>{
         const radius=Math.max(light.lensRadius,light.poolRadius);
         const top=Math.min(light.y,light.groundY-light.poolRadius*.24);
@@ -3369,9 +3896,12 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const fi=point(far,inner),fo=point(far,outer);
         const ni=point(near,inner),no=point(near,outer);
         // Fully offscreen slabs do not need a texture transform or clip.
-        if(Math.max(fi.x,fo.x,ni.x,no.x)<0||
-          Math.min(fi.x,fo.x,ni.x,no.x)>1920||
-          Math.min(fi.y,fo.y,ni.y,no.y)>1080)return;
+        if(!quadInFrame([[fi.x,fi.y],[fo.x,fo.y],[ni.x,ni.y],[no.x,no.y]]))return;
+        // At reduced world detail, a texture slab thinner than one sample
+        // contributes no readable material. Its opaque ground remains painted.
+        // Keep every native-detail slab and all visible near/foreground pieces.
+        if(worldScale<1&&(Math.max(fi.y,fo.y,ni.y,no.y)-
+          Math.min(fi.y,fo.y,ni.y,no.y))*worldScale*camera.zoom<.75)return;
         const farWidth=Math.hypot(fo.x-fi.x,fo.y-fi.y);
         const nearWidth=Math.hypot(no.x-ni.x,no.y-ni.y);
         ctx.save();ctx.beginPath();ctx.moveTo(fi.x,fi.y);
@@ -3384,30 +3914,83 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           sourceRect});
         ctx.restore();
       };
-      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.save();ctx.setTransform(1,0,0,1,0,0);
+      // Keep native foreground blends inside the display as well as the
+      // sampled background. Foreground exits retain their complete projection.
+      ctx.beginPath();ctx.rect(0,0,1920,1080);ctx.clip();
+      // A sampled frame replaces the entire display. Discard its previous
+      // full-size painting before the small opaque backing is built.
+      if(worldScale<1)ctx.clearRect(0,0,1920,1080);
+      ctx.setTransform(worldScale,0,0,worldScale,0,0);
+      // Native artwork retains the shared renderer's high-quality sampling.
+      // Only the legacy reduced backing uses the cheaper bilinear sampler.
+      // The enclosing save/restore keeps the caller's sampling setting intact.
+      if(worldScale<1)ctx.imageSmoothingQuality='low';
+      if(worldScale<1) {
+        // Keep every world blend/filter inside the sampled source footprint.
+        // A scaled transform alone still rasterizes off-crop paint and leaves
+        // full-display blend surfaces active until the world is expanded.
+        ctx.save();ctx.beginPath();ctx.rect(0,0,1920,1080);ctx.clip();
+      }
       // One transform moves the existing world. The dashboard, timing cues
       // and rearview are drawn after it is restored, with no second scene pass.
       ctx.save();
       const intro = this.introMs;
-      const camera=speedCamera(s,{reduced,intro,playing:this.status==='playing'});
+      const camera=speedCamera(s,{reduced,intro,playing:this.status==='playing',
+        outroMs:cinema?.kind==='outro'?this.outroMs:null});
+      const worldViewport=cameraViewport(camera);
       const cameraWarnings=[];
       ctx.translate(960+camera.x,CAMERA_PIVOT_Y+camera.y);ctx.rotate(camera.roll);
       ctx.scale(camera.zoom,camera.zoom);ctx.translate(-960,-CAMERA_PIVOT_Y);
       ctx.globalAlpha=1;
+      let sampledWorld=worldScale<1;
+      const expandSampledWorld=()=>{
+        assets?.setRasterDetail?.(ctx,1);
+        if(!sampledWorld)return;
+        // Preserve the world paint state while lifting its backing clip.
+        // Resume the same camera at native resolution for interactive paint.
+        const transform=ctx.getTransform(),styleKeys=['fillStyle','strokeStyle',
+          'globalAlpha','globalCompositeOperation','lineWidth','lineCap','lineJoin',
+          'miterLimit','font','textAlign','textBaseline','shadowColor','shadowBlur',
+          'shadowOffsetX','shadowOffsetY','imageSmoothingEnabled','imageSmoothingQuality','filter'];
+        const styles=styleKeys.map(key=>ctx[key]),dash=ctx.getLineDash();
+        ctx.restore(); // sampled world camera
+        ctx.restore(); // sampled backing clip
+        ctx.save();ctx.setTransform(1,0,0,1,0,0);
+        ctx.globalAlpha=1;ctx.globalCompositeOperation='copy';ctx.filter='none';
+        ctx.imageSmoothingEnabled=false;
+        this.renderBudget.worldPixelCopyUsed=copySampledWorldPixels(ctx,1920*worldScale,1080*worldScale,this.renderBudget);
+        ctx.restore();ctx.setTransform(1,0,0,1,0,0);ctx.save();
+        ctx.setTransform(transform.a/worldScale,transform.b/worldScale,
+          transform.c/worldScale,transform.d/worldScale,transform.e/worldScale,transform.f/worldScale);
+        styleKeys.forEach((key,index)=>{ctx[key]=styles[index];});ctx.setLineDash(dash);
+        sampledWorld=false;
+      };
+      const nativeSceneryContext=ctx,gpuSceneryOptions={kind:'forward',defer:directGpu};
+      const gpuSceneryContext=beginGpuScene(nativeSceneryContext,gpuSceneryOptions);
+      if(gpuSceneryContext)ctx=gpuSceneryContext;
       const beat = reduced ? 0 : s.musicBeatFloat || 0;
       const stack = Math.min(4,s.captures?.length || 0);
-      const beatPulse = reduced ? 0 : Math.pow(1-((beat%1+1)%1),5);
+      const beatPulse = reduced || window.BARCODE_RENDER_QUALITY?.flashes===false ? 0 :
+        Math.pow(1-((beat%1+1)%1),5);
       const energy = stack/4 + (s.boostMs ? .3 : 0) + beatPulse*.27;
       const hue = (186 + section*65 + Math.sin(beat*.31)*55 + energy*37 + 360)%360;
       const sky = ctx.createLinearGradient(0, 0, 0, horizon + 70);
       sky.addColorStop(0, `hsl(${hue},48%,${9+energy*3}%)`);
       sky.addColorStop(.48, `hsl(${(hue+42)%360},58%,${14+energy*5}%)`);
       sky.addColorStop(1, skyBottoms[section]);
-      ctx.fillStyle = sky; ctx.fillRect(0, 0, 1920, 1080);
-      ctx.fillStyle = '#122236'; ctx.fillRect(0, horizon, 1920, bottom - horizon);
+      // The later opaque land replaces sky below this conservative fringe.
+      // Keep 16 device pixels across its antialiased, transformed boundary.
+      const skyPaintBottom=Math.min(worldViewport.bottom,horizon+16/(worldScale*camera.zoom));
+      ctx.fillStyle = sky; ctx.fillRect(worldViewport.left,worldViewport.top,
+        worldViewport.right-worldViewport.left,skyPaintBottom-worldViewport.top);
+      ctx.fillStyle = '#122236'; ctx.fillRect(0,horizon,1920,Math.max(0,skyPaintBottom-horizon));
       // Wide veils move with the shared beat and the number of parts playing.
       // Reduced Motion holds their geometry in place.
-      ctx.save(); ctx.globalCompositeOperation='screen';
+      ctx.save();
+      ctx.beginPath();ctx.rect(worldViewport.left-32,worldViewport.top-32,
+        worldViewport.right-worldViewport.left+64,skyPaintBottom-worldViewport.top+32);ctx.clip();
+      ctx.globalCompositeOperation='screen';
       for (let k=0;k<4;k++) {
         const cx=230+k*490+Math.sin(beat*(.18+k*.037)+k*1.8)*180;
         const cy=80+k%2*105+Math.cos(beat*.29+k*2)*28;
@@ -3446,7 +4029,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // One opaque landscape continues beneath every roadside location.
       const land=ctx.createLinearGradient(0,horizon,0,bottom);
       land.addColorStop(0,'#263b43');land.addColorStop(1,'#293f43');
-      ctx.fillStyle=land;ctx.fillRect(0,horizon,1920,bottom-horizon);
+      ctx.fillStyle=land;ctx.fillRect(worldViewport.left,horizon,
+        worldViewport.right-worldViewport.left,Math.max(bottom,worldViewport.bottom)-horizon);
       // The three city paintings share the road's world path. All begin at
       // the center of their wider-than-screen source. Near architecture
       // tracks turns most, while the close frontage rises from completely
@@ -3517,6 +4101,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         return [x,terrainAt(side,t,x)+3*t];
       };
       const paintProjectedStreet=(corners,row,key='cacheLocalStreet',alpha=.95)=>{
+        if(!quadInFrame(corners))return;
         const [a,b,c,d]=corners;
         // A single affine image spans a parallelogram, while a road recedes
         // as a trapezoid. Two mapped triangles cover its exact four corners.
@@ -3545,6 +4130,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const right=streetPoint(side,a,-atOff,-radialOff);
         const endRight=streetPoint(side,b,-atOff,-radialOff);
         const endLeft=streetPoint(side,b,atOff,radialOff);
+        if(!quadInFrame([left,right,endRight,endLeft]))return;
         ctx.save();ctx.globalAlpha=.96;
         polygon(ctx,[left,right,endRight,endLeft],'#17242a');
         // An affine map of the whole tapered quad leaves an uncovered
@@ -3717,7 +4303,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const roadward=roadsideX(plate.side,t,base,growth)-
             plate.side*width*socketFraction;
           const x=roadward+plate.side*width*.5;
-          if(x+width*.5<0||x-width*.5>1920)return;
+          if(x+width*.5<worldViewport.left||x-width*.5>worldViewport.right)return;
           const footU=plate.flip?1-fit?.footU:fit?.footU;
           const footX=fit?.footU===undefined?roadward:
             x-width*.5+width*footU;
@@ -3748,7 +4334,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const width=(1190+70*placeRandom(index*83+side*19))*cardScale(t);
           const x=roadsideX(side,t,
             580+80*placeRandom(index*79+side*23)+280*t,300);
-          if(x+width*.5<0||x-width*.5>1920)return;
+          if(x+width*.5<worldViewport.left||x-width*.5>worldViewport.right)return;
           const height=width*sourceH/sourceW;
           const roadward=x-side*width*.5;
           const groundFoot=terrainAt(side,t,x)+60*t;
@@ -3765,7 +4351,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           const width=Math.min(720,maxW)*cardScale(t);
           const sidewalkEdge=roadsideX(side,t,220,190);
           const x=sidewalkEdge+side*(width*.5+29*t);
-          if(x+width*.5<0||x-width*.5>1920)return;
+          if(x+width*.5<worldViewport.left||x-width*.5>worldViewport.right)return;
           const height=width*sourceH/sourceW;
           const fit=B.CacheRoadLandscape.SOURCE_FITS[key];
           const flip=B.CacheRoadLandscape.sourceFlip(key,side);
@@ -3806,6 +4392,17 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       });
       const groundCrest=Array.from({length:65},(_,i)=>[i*30,cityCrestY(i*30)]);
       const lowestCrest=Math.min(...groundCrest.map(point=>point[1]));
+      const highestCrest=Math.max(...groundCrest.map(point=>point[1]));
+      // Every terrain slab uses the same crest mask. Build its native path
+      // once per frame; rebuilding 65 vertices for each slab repeats costly
+      // host Canvas calls. The fallback retains the existing command path.
+      const groundClip=ctx.createPath?.()||
+        (typeof window.Path2D==='function'?new window.Path2D():null);
+      if(groundClip) {
+        groundClip.moveTo(...groundCrest[0]);
+        for(let i=1;i<groundCrest.length;i++)groundClip.lineTo(...groundCrest[i]);
+        groundClip.lineTo(1920,bottom);groundClip.lineTo(0,bottom);groundClip.closePath();
+      }
       // Eight slabs divide the grain repeat exactly, so every world-aligned
       // crop stays in its source band. Wider slabs cut the clipped texture
       // draws that saturated the road's first frame.
@@ -3819,10 +4416,24 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // above the visible bank need no texture or full-screen clip mask.
         // Buildings in those slabs still draw: their roofs can be visible.
         if(roadY(near)+65*near>=lowestCrest) {
-          ctx.save();ctx.beginPath();ctx.moveTo(...groundCrest[0]);
-          for(let i=1;i<groundCrest.length;i++)ctx.lineTo(...groundCrest[i]);
-          ctx.lineTo(1920,bottom);ctx.lineTo(0,bottom);
-          ctx.closePath();ctx.clip();
+          // A slab wholly below every crest vertex only needs the mask's
+          // rectangular side/bottom bounds. Its own quad keeps all texture
+          // pixels below the horizon, including a two-device-pixel AA margin.
+          const crestPadding=2/(worldScale*camera.zoom);
+          const terrainBelowCrest=[-1,1].every(side=>[far,near].every(t=>
+            [[220,190],[2500,440]].every(([base,growth])=>{
+              const x=roadsideX(side,t,base,growth);
+              return terrainAt(side,t,x)>highestCrest+crestPadding;
+            })));
+          ctx.save();
+          if(terrainBelowCrest) {
+            ctx.beginPath();ctx.rect(0,0,1920,bottom);ctx.clip();
+          } else if(groundClip)ctx.clip(groundClip);
+          else {
+            ctx.beginPath();ctx.moveTo(...groundCrest[0]);
+            for(let i=1;i<groundCrest.length;i++)ctx.lineTo(...groundCrest[i]);
+            ctx.lineTo(1920,bottom);ctx.lineTo(0,bottom);ctx.closePath();ctx.clip();
+          }
           for(const side of [-1,1]) {
           ctx.globalAlpha=1;
           drawSurfacePanel('cacheOuterGround',side,far,near,
@@ -3845,6 +4456,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             streetPoint(court.side,{at:court.at-36,radial:700}),
             streetPoint(court.side,{at:court.at-36,radial:575})
           ];
+          if(!quadInFrame(corners))continue;
           ctx.save();ctx.globalAlpha=.88;
           polygon(ctx,corners,'#30414a');
           const material=court.family==='homes'||court.family==='transit'?
@@ -3985,7 +4597,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Adjacent slices read adjacent texels from horizon to car. Advancing
       // progress decreases the source offset so a mark moves toward the car.
       // Blend the wrap over the last 108 pixels into the first 108 pixels.
-      ctx.save();
+      const roadTextureAlpha=ctx.globalAlpha;
+      ctx.save(); ctx.clip();
       for (let i = 0; i < 28; i++) {
         let c=((-progress*.82+i*22)%616+616)%616, consumed=0;
         while (consumed<22) {
@@ -4005,16 +4618,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           consumed+=length; c=(c+length)%616;
         }
       }
-      ctx.restore();
+      ctx.globalAlpha=roadTextureAlpha;
       const roadFog=ctx.createLinearGradient(0,horizon,0,horizon+170);
       roadFog.addColorStop(0,'#1c293b9e'); roadFog.addColorStop(1,'#1c293b00');
-      ctx.save(); ctx.beginPath();
-      for (let i=0;i<=28;i++) {
-        const t=i/28; if (!i) ctx.moveTo(center(t)-half(t),roadY(t));
-        else ctx.lineTo(center(t)-half(t),roadY(t));
-      }
-      for (let i=28;i>=0;i--) { const t=i/28; ctx.lineTo(center(t)+half(t),roadY(t)); }
-      ctx.closePath(); ctx.clip(); ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
+      // Asphalt and fog share this identical road mask and paint order.
+      ctx.fillStyle=roadFog; ctx.fillRect(0,horizon,1920,170);
       ctx.restore();
       // Stretch adjacent wall segments between the same projected road points.
       // This makes one continuous side wall rather than floating sign panels.
@@ -4103,6 +4711,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       for(const drawPool of lampPools)drawPool();
       worldPaint.sort((a,b)=>a.foot-b.foot||b.area.at-a.area.at);
       for(const item of worldPaint)item.draw();
+      if(gpuSceneryContext) {
+        finishGpuScene(gpuSceneryContext,nativeSceneryContext,gpuSceneryOptions);
+        ctx=nativeSceneryContext;
+      }
+      // Expand the background once before functional road paint and vehicles.
+      // Their projection/order is unchanged and their detail remains native.
+      expandSampledWorld();
       // Phrase paint is a road marking, not a second translucent lane overlay.
       // Each bar is bounded by the same depth(), laneEdge() and roadY() used
       // for traffic and studs. Its near edge travels toward the car on the
@@ -4111,92 +4726,15 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const nextPulse = roadPulses(s).find(p => s.pulseTargets[p.id]!==undefined &&
         s.pulseTargets[p.id]>=s.musicBeatFloat-(pulseWindowSec(s)+1e-8)/cueBeatSec&&
         (!s.caughtPulses[p.id]||s.pendingPulseAwards.some(hit=>hit.pulse.id===p.id)));
-      const nextCue=nextPulse&&pulseVisual(nextPulse,s,cueBeatSec);
       // Input calibration adjusts a physical tap only. It must never move
       // the visible countdown away from the song's actual beat.
+      const nextCue=nextPulse&&pulseVisual(nextPulse,s,cueBeatSec);
       const beatDistance=beat=>{
         const at=roadAtBeat(s,beat);
         return at===null?null:STRIKE_DISTANCE+at-progress;
       };
-      const committedEnd=s.driveSections.at(-1)?.beat+4;
-      const floatBar = s.musicBeatFloat / 4;
-      // The confirmed phrase is a continuous four-bar wash, with painted
-      // beat marks placed in each bar below. The wash follows the exact road
-      // curve and stays under cars; upcoming captures keep only their preview.
-      for(let lane=0;lane<4;lane++) {
-        const capture=s.captures.find(c=>c.lane===lane &&
-          c.startBeat<(floatBar+4)*4 && c.endBeat>floatBar*4);
-        if(!capture)continue;
-        const start=Math.max(floatBar,capture.startBeat/4);
-        const end=Math.min(committedEnd/4,capture.endBeat/4,100);
-        if(!Number.isFinite(end)||end<=start)continue;
-        const near=depth(Math.max(-55,beatDistance(start*4)));
-        const far=depth(beatDistance(end*4));
-        if(near<=far)continue;
-        const inset=8;
-        ctx.save();ctx.globalAlpha=.09;ctx.fillStyle=PALETTE[lane];
-        ctx.beginPath();
-        for(let i=0;i<=12;i++) {
-          const t=far+(near-far)*i/12;
-          const px=laneEdge(lane,t)+inset,py=roadY(t);
-          if(!i)ctx.moveTo(px,py);else ctx.lineTo(px,py);
-        }
-        for(let i=12;i>=0;i--) {
-          const t=far+(near-far)*i/12;
-          ctx.lineTo(laneEdge(lane+1,t)-inset,roadY(t));
-        }
-        ctx.closePath();ctx.fill();ctx.restore();
-      }
-      for (let bar = Math.floor(floatBar) + 8; bar >= Math.floor(floatBar); bar--) {
-        if (bar >= 100 || beatDistance(bar*4)===null || beatDistance((bar+1)*4)===null) continue;
-        const near = depth(Math.max(-55,beatDistance(bar*4)));
-        const far = depth(beatDistance((bar+1)*4));
-        if (near <= .12 || near <= far) continue;
-        for (let lane = 0; lane < 4; lane++) {
-          const active = s.captures.find(c => c.lane === lane && c.startBeat < (bar + 1) * 4 && c.endBeat > bar * 4);
-          const queued = !active && s.queuedCaptures.find(c => c.lane === lane &&
-            c.startBeat <= bar * 4 && c.endBeat > bar * 4);
-          if (!active && !queued) continue;
-          const mark = active || queued;
-          const slot = bar - mark.startBeat / 4;
-          const reveal = active || mark.inkAtMs == null ? 1 :
-            clamp((s.elapsedMs - mark.inkAtMs - (3 - slot) * 100) / 260, 0, 1);
-          if (!reveal) continue;
-          // Show the next four lit bars as separate, road-bound ink tiles.
-          // Queued captures keep the thin preview; a successful press swaps
-          // it for the much broader confirmed painting beneath traffic.
-          if(active && bar >= Math.floor(floatBar)+4)continue;
-          const trimFar=far+(near-far)*.08,trimNear=far+(near-far)*.91;
-          const inset=5+near*10;
-          const tile=[
-            [laneEdge(lane,trimNear)+inset,roadY(trimNear)],
-            [laneEdge(lane+1,trimNear)-inset,roadY(trimNear)],
-            [laneEdge(lane+1,trimFar)-inset,roadY(trimFar)],
-            [laneEdge(lane,trimFar)+inset,roadY(trimFar)]];
-          ctx.save();
-          if(active) {
-            ctx.globalAlpha=.30*reveal;
-            if(!paintComicDecal(ctx,'cacheConfirmedBar',tile))
-              polygon(ctx,tile,'#b8ebda');
-          } else {
-            ctx.globalAlpha=.31*reveal;
-            paintComicDecal(ctx,'cachePhraseStrip',tile);
-          }
-          ctx.restore();
-        }
-        if(bar%4===0) {
-          ctx.strokeStyle = '#b4f9ec';
-          ctx.globalAlpha = .25;
-          ctx.lineWidth = 2+near*3;
-          ctx.beginPath();ctx.moveTo(laneEdge(0,near),roadY(near));
-          ctx.lineTo(laneEdge(4,near),roadY(near));ctx.stroke();ctx.globalAlpha=1;
-        }
-        if (bar % 4 === 0 && near > .23 && Math.abs(roadY(near)-strikeY)>50) {
-          ctx.fillStyle = '#d4fff1'; ctx.font = `bold ${Math.round(10 + 17 * near)}px Oxanium, monospace`;
-          ctx.textAlign = 'right'; ctx.fillText(`${songSection(bar)} / ${bar + 1}–${bar + 4}`,
-            laneEdge(0,near)-13, roadY(near)+3);
-        }
-      }
+      // Captures still own the real music layers and duration. Their broad
+      // road washes/tiles duplicated pad/HUD feedback and are omitted here.
       for (const side of [-1, 1]) {
         ctx.strokeStyle = s.fullAdrenaline ? '#ffe4a2' :
           section === 3 ? '#a2f9c9' : '#f0a0ac'; ctx.lineWidth = 4;
@@ -4320,7 +4858,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.restore();
         }
       }
-      if(s.recordFlashMs>0&&s.recordFlashIndex>=0) {
+      if(showFeedback&&s.recordFlashMs>0&&s.recordFlashIndex>=0) {
         const lane=RECORD_ZONES[s.recordFlashIndex][2];
         const x=laneEdge(lane<2?lane:lane+1,STRIKE_DEPTH)+(lane<2?-25:25),y=strikeY-68;
         ctx.save();ctx.globalAlpha=Math.min(1,s.recordFlashMs/220);
@@ -4332,7 +4870,18 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // One permanent timing line sits under the rear tires, including the
       // gaps between actions. Lane-end brackets remain visible around the
       // opaque car. The upcoming lane builds toward the next ONE here.
+      // Timing guides join the HUD fade while authored cinema owns control.
+      // Ordinary road paint, projection and fixed pad addresses are unchanged.
+      const beatProjection={laneEdge,laneX,roadY,depth,strikeDepth:STRIKE_DEPTH,
+        strikeDistance:STRIKE_DISTANCE,strikeY};
+      const timingContext=ctx;
+      if(!B.CacheRoadBeatFeedback?.drawTarget&&
+        (!cinema||cinema.kind==='handoff'||cinema.hudAlpha>.001)) {
       ctx.save();
+      if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<1) {
+        ctx=B.CacheRoadCinematics.withHUDAlpha(timingContext,cinema.hudAlpha);
+        ctx.globalAlpha=1;
+      }
       for(let lane=0;lane<4;lane++) {
         const active=nextCue&&nextCue.remaining<=4&&nextPulse.lane===lane;
         const caught=s.pulseFlashMs>0&&s.pulseFlashLane===lane;
@@ -4382,6 +4931,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle='#b8e1d5';ctx.font='bold 17px Oxanium, monospace';
       ctx.textAlign='center';ctx.fillText('1',laneEdge(0,STRIKE_DEPTH)-26,strikeY+6);
       ctx.restore();
+      ctx=timingContext;
+      }
       // Musical road paint arrives at the car's timing line on its fixed
       // first beat. Traffic is drawn afterward and occludes every cue.
       for (const pulse of roadPulses(s)) {
@@ -4391,7 +4942,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         const near = depth(d - 18), far = depth(d + 18), mid = depth(d);
         if (mid < .17 || near <= far) continue;
         const latched=s.pendingPulseAwards.some(hit=>hit.pulse.id===pulse.id);
-        const spent=!!s.caughtPulses[pulse.id]&&!latched,ready=cue.ready;
+        const spent=(!!s.caughtPulses[pulse.id]||!!s.missedPulses?.[pulse.id])&&!latched,
+          ready=cue.ready;
+        if(B.CacheRoadBeatFeedback?.drawPad(ctx,s,pulse,cue,{projection:beatProjection,
+          spent,latched,reduced,road:this}))continue;
         const downbeatWindow=cue.strike,downbeatCharge=cue.charge;
         const stripNear=STRIKE_DEPTH,stripFar=depth(d+18);
         if(stripNear>stripFar+.005) {
@@ -4464,7 +5018,23 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
         ctx.restore();
       }
-      if(s.pulseFlashMs>0&&s.pulseFlashLane!==null) {
+      // Resolved road pads retire below the next functional timing cue.
+      // Keep this single target pass beneath receipts and actual traffic.
+      if(B.CacheRoadBeatFeedback?.drawTarget&&
+        (!cinema||cinema.kind==='handoff'||cinema.hudAlpha>.001)) {
+        ctx.save();
+        if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<1) {
+          ctx=B.CacheRoadCinematics.withHUDAlpha(timingContext,cinema.hudAlpha);
+          ctx.globalAlpha=1;
+        }
+        B.CacheRoadBeatFeedback.drawTarget(ctx,s,{nextPulse,nextCue,
+          projection:beatProjection,reduced,road:this});
+        ctx.restore();
+        ctx=timingContext;
+      }
+      const beatReceiptDrawn=showFeedback&&B.CacheRoadBeatFeedback?.drawReceipt(ctx,s,
+        {nextPulse,nextCue,projection:beatProjection,reduced,road:this});
+      if(showFeedback&&!beatReceiptDrawn&&s.pulseFlashMs>0&&s.pulseFlashLane!==null) {
         const lane=s.pulseFlashLane;
         const age=1-s.pulseFlashMs/650;
         const near=depth(STRIKE_DISTANCE-12-age*25),far=depth(STRIKE_DISTANCE+22+age*20);
@@ -4476,7 +5046,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           [laneEdge(lane,far)+6,roadY(far)]]);
         ctx.restore();
       }
-      if(s.draftTarget!==null&&s.draftMs>0) {
+      if(showFeedback&&s.draftTarget!==null&&s.draftMs>0) {
         const truck=roadHazards(s).find(h=>h.at===s.draftTarget);
         if(truck) {
           const lane=hazardLane(truck,progress,s.audits),far=depth(truck.at-progress-9);
@@ -4504,7 +5074,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       // Passing traffic can now remain below Cache. Split complete sprites
       // around the player's current projected ground depth, including gear
       // movement, so steering behind a passed car cannot paint over its roof.
-      const carPose=shiftPose(s,reduced),foregroundVehicles=[],backgroundVehicles=[];
+      const carPose=cinema&&cinema.kind!=='handoff'?{depth:cinema.car.depth,scale:cinema.car.scale,offset:0}:
+        shiftPose(s,reduced),foregroundVehicles=[],backgroundVehicles=[];
       const vehicleAtDepth=(t,draw)=>{
         if(t>carPose.depth)foregroundVehicles.push({t,draw});
         else backgroundVehicles.push({t,draw});
@@ -4537,7 +5108,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         // Include suspension, steering lean and lamps around the complete
         // painted body. Cull only after its last edge leaves the viewport.
         if(!inFrame(x,y,w*1.9,h*1.6,.5,h*.15))continue;
-        if (actor.collidable && d < 145 && d > 4 && t > .38) {
+        if (showFeedback && actor.collidable && d < 145 && d > 4 && t > .38) {
           // A braking chevron is printed on the threatened lane, with a
           // narrowing cue as the car approaches the collision plane.
           const markT = depth(d - 23);
@@ -4548,7 +5119,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             [laneEdge(lane,markT)+14,roadY(markT)]], '#ff7488');
           ctx.globalAlpha = 1;
         }
-        if (actor.collidable && hazard.kind === 'audit' && d < 165 && d > 0) {
+        if (showFeedback && actor.collidable && hazard.kind === 'audit' && d < 165 && d > 0) {
           const ahead = depth(d - 38);
           ctx.globalAlpha = .45;
           polygon(ctx, [[laneEdge(lane,t)+9,y],[laneEdge(lane+1,t)-9,y],
@@ -4556,7 +5127,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             [laneEdge(lane,ahead)+15,roadY(ahead)]], '#ff4f82');
           ctx.globalAlpha = 1;
         }
-        if (actor.collidable && (hazard.kind === 'sweeper' || hazard.kind === 'trike') && d <
+        if (showFeedback && actor.collidable && (hazard.kind === 'sweeper' || hazard.kind === 'trike') && d <
             (hazard.kind === 'sweeper' ? 190 : 225) && d > 0) {
           const target = hazard.mergeLane ?? hazard.lane + (hazard.lane === 3 ? -1 : 1);
           const arrowT = depth(d - 48), targetX = laneX(target,arrowT);
@@ -4574,7 +5145,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         vehicleAtDepth(t,()=>drawVehicle(ctx, x, y, w, h, hazard.kind,
           { phase: (s.elapsedMs||0)*.054 + hazard.at*.17,
             alpha:actor.alpha,steer:actor.kind?actor.steer:hazardTurn(hazard,progress).steer, reduced }));
-        if (actor.collidable && d < 210 && d > 0 && t > .38 &&
+        if (showFeedback && actor.collidable && d < 210 && d > 0 && t > .38 &&
             ['audit','sweeper','freight','trike','shuttle'].includes(hazard.kind)) {
           ctx.fillStyle = hazard.kind === 'audit' ? '#ffd0df' :
             hazard.kind === 'trike' ? '#b4fff1' : '#fff2be';
@@ -4586,7 +5157,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
             hazard.kind === 'shuttle' ? 'SLOW / DRAFT' : 'DRAFT', x, y - h - 14);
         }
       }
-      if (s.gateAt != null && s.gateAt-progress>=frontNear) {
+      if (showFeedback && s.gateAt != null && s.gateAt-progress>=frontNear) {
         const t = depth(s.gateAt - progress), y = roadY(t);
         if(s.encounters)B.PresentationAssets?.draw?.('cacheDeliveryBeacon',ctx,{
           x:laneEdge(4,t)+35*t,y,width:18+54*t,height:50+166*t});
@@ -4610,7 +5181,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           B.CacheRoadBossArt?.drawRig?.(ctx,{x,y,width,height,health:boss.health,
             phase:rigArtPhase(s,boss,combatPose),elapsedMs:s.elapsedMs,
             reduced:reduced||!!s.combat&&window.BARCODE_RENDER_QUALITY?.flashes===false,alpha:boss.alpha??1});
-          if(s.bossImpact&&(!s.combat||s.bossImpact.id==='rig')&&s.elapsedMs-s.bossImpact.atMs<1100) {
+          if(showFeedback&&s.bossImpact&&(!s.combat||s.bossImpact.id==='rig')&&s.elapsedMs-s.bossImpact.atMs<1100) {
             const age=(s.elapsedMs-s.bossImpact.atMs)/1100;
             B.CacheRoadBossArt?.drawImpact?.(ctx,{x,y:y-height*.4,width:width*(1+age*.5),height:height,
               kind:s.bossImpact.systemIndex===2?'core':s.bossImpact.systemIndex===1?'armor':'sparks',progress:age,alpha:1,
@@ -4652,23 +5223,35 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           }
         }
       }
-      if(s.combat)drawCombatWorld(ctx,s,{depth,laneX,laneEdge,roadY,frontNear,reduced,camera,cameraWarnings,vehicleAtDepth,combatPose});
+      if(s.combat)drawCombatWorld(ctx,s,{depth,laneX,laneEdge,roadY,frontNear,reduced,camera,cameraWarnings,vehicleAtDepth,combatPose,feedback:showFeedback});
+      // Staged opening cars share the existing perspective and body painter.
+      // They never enter physical combat, its ledger or completion conditions.
+      for(const actor of cinema?.actors||[]) {
+        const t=depth(actor.gap),x=laneX(actor.lane,t),y=roadY(t);
+        // A retreating staged foe becomes a complete tiny silhouette at the
+        // horizon; the ordinary roadside safety floor must not pop it away.
+        const exitScale=actor.horizonExit?clamp((520-actor.gap)/100,0,1):1;
+        const width=(26+t*113)*exitScale,height=(24+t*111)*exitScale;
+        if(width<1||height<1)continue;
+        vehicleAtDepth(t,()=>drawCombatBody(ctx,{...actor,at:progress+actor.gap},
+          {x,y,width,height,reduced,elapsedMs:actor.ageMs}));
+      }
       // People and all vehicle owners share ground-depth order. A distant
       // enemy cannot cover a nearby pedestrian simply because it draws later.
       backgroundVehicles.sort((a,b)=>a.t-b.t);
       for(const body of backgroundVehicles)body.draw();
-      const recoil=s.encounters&&!reduced?Math.sin((s.reactionRecoilMs||0)/520*Math.PI)*7:0;
+      const recoil=showFeedback&&s.encounters&&!reduced?Math.sin((s.reactionRecoilMs||0)/520*Math.PI)*7:0;
       const carX=laneX(s.visualLane,carPose.depth)+(s.reactionRecoilSide||1)*recoil,
         carY=roadY(carPose.depth)+Math.abs(recoil)*.6;
       const carWidth=CAR_WIDTH*carPose.scale,carHeight=CAR_HEIGHT*carPose.scale;
-      const guardActive=s.combat?.defendMs>0;
-      const defenseActive=!!(s.shield||s.ramMs||s.defenseFlashMs||guardActive);
+      const guardActive=showFeedback&&s.combat?.defendMs>0;
+      const defenseActive=showFeedback&&!!(s.shield||s.ramMs||s.defenseFlashMs||guardActive);
       const defenseImpact=clamp(s.defenseFlashMs/600,0,1);
       const defenseBrace=guardActive||(defenseImpact>0?
         ['BRACE','SYNC IMPACT','GUARD READY','DEFEND COUNTER','DEFEND BLOCK'].includes(s.defenseKind):!!s.shield);
       const braceHalo=s.encounters&&defenseActive&&defenseBrace&&
         B.PresentationAssets?.ready?.('cacheBraceHalo');
-      if (s.echo) {
+      if (showFeedback&&s.echo) {
         const x = laneX(s.echo.lanePos, .83);
         if(s.encounters) {
           ctx.save();ctx.globalAlpha=reduced?.5:.5+.16*Math.sin(s.elapsedMs*.012);
@@ -4681,7 +5264,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         drawVehicle(ctx, x, carY, 152, 115, 'echo',
           { alpha: .68, phase: progress+37, reduced });
       }
-      if (s.braking || s.stumbleMs) {
+      if (showFeedback&&(s.braking || s.stumbleMs)) {
         // Two short broken wet tire tracks follow the curved road under the
         // car. They are local to the rear tires and disappear on release.
         ctx.save();ctx.globalAlpha=s.stumbleMs?.35:.24;
@@ -4718,7 +5301,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.lineTo(carX+112+spread,carY-46-spread);
         }ctx.stroke();ctx.restore();
       }
-      if(s.boostMs>0&&!reduced) {
+      if(showFeedback&&s.boostMs>0&&!reduced) {
         // Physical exhaust ports move with the car, beneath its painted body.
         // This is elapsed-state paint in the existing draw, not a particle loop.
         const u=(s.elapsedMs%480)/480;
@@ -4726,10 +5309,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           x:carX+side*carWidth*.22,y:carY+19,width:carWidth*.39,height:carHeight*.55,
           kind:'exhaust',progress:u,alpha:.65,reduced});
       }
-      drawVehicle(ctx, carX, carY, carWidth, carHeight, 'cache',
-        { alpha: !s.stumbleMs && s.invulnerableMs && Math.floor(s.invulnerableMs / 90) % 2 ? .55 : 1,
-          turbo: !!s.boostMs, phase: (s.elapsedMs||0)*.054, steer: s.steer, hit: s.stumbleMs,
-          braking:s.braking, damage:(s.maxIntegrity||3)-s.integrity, reduced });
+      if(carWidth>1)drawVehicle(ctx, carX, carY, carWidth, carHeight, 'cache',
+        { alpha: showFeedback&&!s.stumbleMs && s.invulnerableMs && Math.floor(s.invulnerableMs / 90) % 2 ? .55 : 1,
+          turbo: showFeedback&&!!s.boostMs, phase: (s.elapsedMs||0)*.054, steer: s.steer, hit:showFeedback?s.stumbleMs:0,
+          braking:showFeedback&&s.braking, damage:(s.maxIntegrity||3)-s.integrity, reduced });
       if(braceHalo)drawBraceHalo(ctx,carX,carY,carWidth,carHeight,defenseImpact,reduced,true);
       if(s.encounters&&defenseActive&&!defenseBrace) {
         const impact=defenseImpact;
@@ -4738,7 +5321,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         B.PresentationAssets?.draw?.('cachePushArc',ctx,{
           x:carX,y:carY-25,width:310*size,height:155*size});ctx.restore();
       }
-      if (s.cutFlashMs && !reduced) {
+      if (showFeedback&&s.cutFlashMs && !reduced) {
         const pulse = s.cutFlashMs / 740;
         const side=s.passSide||1;
         ctx.save();ctx.globalAlpha=.51*pulse;
@@ -4751,7 +5334,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         drawGrimyPlume(ctx,carX+side*70,carY-10,progress*1.3+42,
           61,pulse*.8,['#ddc2a1','#48545f'],side);
       }
-      if (s.stumbleMs) {
+      if (showFeedback&&s.stumbleMs) {
         const pulse = s.stumbleMs / 650;
         ctx.save();ctx.translate(carX,carY+32);
         ctx.rotate(Math.sin(progress*.07)*.045);
@@ -4767,7 +5350,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       foregroundVehicles.sort((a,b)=>a.t-b.t);
       for(const vehicle of foregroundVehicles)vehicle.draw();
       // Short local receipts keep driving rewards where attention already is.
-      if(s.draftMs>0||s.turboReadyMs>0||s.boostMs>0||s.defenseFlashMs>0) {
+      if(showFeedback&&(s.draftMs>0||s.turboReadyMs>0||s.boostMs>0||s.defenseFlashMs>0)) {
         const x=carX,y=carY-175;
         const turbo=s.turboReadyMs>0||s.boostMs>0;
         const label=s.defenseFlashMs>0?s.combat?s.defenseKind:
@@ -4781,7 +5364,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           ctx.fillStyle='#98f8e8';ctx.fillRect(x-99,y+10,198*clamp(s.draftMs/600,0,1),4);
         }ctx.restore();
       }
-      if(s.passFlashMs>0) {
+      if(showFeedback&&s.passFlashMs>0) {
         const alpha=Math.min(1,s.passFlashMs/230),age=1-s.passFlashMs/780;
         const x=carX+(s.passSide||1)*155,y=carY-88-(reduced?0:age*30);
         ctx.save();ctx.globalAlpha=alpha;ctx.textAlign='center';
@@ -4797,7 +5380,13 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       if(intro===null&&this.status==='playing')drawCameraWarnings(ctx,cameraWarnings,
         nextCue?.ready?{x:laneX(nextPulse.lane,STRIKE_DEPTH),y:strikeY+78,
           width:68,height:68,action:nextPulse.action,strike:nextCue.strike}:null,camera);
-      if (intro !== null) {
+      ctx.setTransform(1,0,0,1,0,0);
+      if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<=.001) {
+        B.CacheRoadCinematics.drawOverlay(ctx,cinema,{reducedMotion:reduced,
+          button:B.GamepadUI?.connected?B.ControllerSettings?.button(0)||'A':'ENTER'});
+        ctx.restore();finishRender();return;
+      }
+      if (intro !== null&&!cinema) {
         const scene=intro<1350?0:intro<2700?1:2;
         const titles=['ORIGINAL RECORDING','AUDIT LOCK INCOMING','DELIVER THE ORIGINAL'];
         const details=['CACHE // COURIER ROUTE','THE CLEAN COPY ERASED THE NAMES','HIT THE MINT PADS ON ONE'];
@@ -4809,7 +5398,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillText(details[scene],960,970);
         ctx.font='18px Oxanium, monospace';
         ctx.fillText('ENTER / A TO SKIP',960,1025);
-        ctx.restore();return;
+        ctx.restore();finishRender();return;
+      }
+      if(cinema&&cinema.kind!=='handoff'&&cinema.hudAlpha<1) {
+        ctx=B.CacheRoadCinematics.withHUDAlpha(frameContext,cinema.hudAlpha);
+        ctx.globalAlpha=1;
       }
       if (s.invulnerableMs) {
         ctx.fillStyle = '#ff697a';
@@ -4847,7 +5440,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       ctx.fillStyle='#bcebd3';ctx.font='bold 17px Oxanium, monospace';
       ctx.fillText(String(s.score).padStart(6,'0'),410,131,73);
       ctx.font='bold 12px Oxanium, monospace';ctx.fillText(`×${stackSize(s)}`,488,131,27);
-      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose);
+      const nativeMirror=budgetEligible&&frameContext===ctx&&
+        typeof window.HTMLCanvasElement==='function'&&ctx.canvas instanceof window.HTMLCanvasElement&&
+        this.status==='playing'&&intro===null&&(!cinema||cinema.hudAlpha===1);
+      drawRearview(ctx, s, ['#f6adbb', '#f3b276', '#d2a4f9', '#9aefce'][section], reduced,heightSample,combatPose,crosswalkPose,
+        false,nativeMirror,budgetEligible?this.renderBudget:null);
       ctx.fillStyle = '#e4ede5'; ctx.font = 'bold 18px Oxanium, monospace'; ctx.textAlign = 'left';
       // Preview the next lane/action before its bar is committed, without
       // inventing a deadline or sliding a future pad when the gear changes.
@@ -4861,7 +5458,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const padReady=padVisible&&nextCue.ready;
       const inPadLane=padReady&&Math.abs(s.lanePos-nextPulse.lane)<=.38;
       const pressNow=inPadLane&&nextCue.strike;
-      const showingCatch=s.pulseFlashMs>0 && s.pulseFlashAction!==null;
+      const showingCatch=showFeedback&&s.pulseFlashMs>0 && s.pulseFlashAction!==null;
       const iconScale=padReady&&inPadLane&&!reduced?1+.28*nextCue.charge:1;
       const shownFace=showingCatch?PULSE_ACTIONS[s.pulseFlashAction]:nextFace;
       const shownButton=showingCatch?(B.GamepadUI?.connected?
@@ -4869,7 +5466,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
       const targetLane=showingCatch?s.pulseFlashLane:previewPulse?.lane;
       ctx.fillStyle=pressNow?'#69432b':padReady?'#183e37':'#10262b';
       ctx.fillRect(1366,31,67,57);
-      if(s.pulseFlashMs&&!reduced) {
+      if(showFeedback&&s.pulseFlashMs&&!reduced) {
         ctx.save();ctx.globalAlpha=.75*s.pulseFlashMs/650;
         B.PresentationAssets?.draw?.('cachePulseBurst',ctx,
           {x:1400,y:57,width:94,height:50});
@@ -4984,7 +5581,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       // One visual guidance layer owns route, split and outcome feedback;
-      if(s.crosswalkToast) {
+      if(this.status==='playing'&&B.CacheRoadCrewCallouts)B.CacheRoadCrewCallouts.draw(ctx,s);
+      else if(this.status==='playing'&&s.crosswalkToast) {
         ctx.save();ctx.fillStyle='#211e2ef0';ctx.fillRect(514,177,892,57);
         ctx.strokeStyle='#ffd19b';ctx.lineWidth=2;ctx.strokeRect(514,177,892,57);
         ctx.fillStyle='#ffe5bc';ctx.textAlign='center';ctx.font='bold 23px Oxanium, monospace';
@@ -5006,7 +5604,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         ctx.fillStyle = '#ffbb8b'; ctx.font = '20px Oxanium, monospace'; ctx.textAlign = 'center';
         ctx.fillText('AUDIO FALLBACK — MIX TIMBRE / ALIGNMENT NEEDS RECHECK', 960, 365);
       }
-      if (this.status !== 'playing') {
+      if (this.status !== 'playing'&&this.outroMs==null) {
         ctx.fillStyle = '#061320ed'; ctx.fillRect(370, 280, 1180, 485);
         ctx.strokeStyle = '#9cf9df'; ctx.lineWidth = 3; ctx.strokeRect(370, 280, 1180, 485);
         ctx.fillStyle = '#f5f1ee'; ctx.font = 'bold 47px Oxanium, monospace'; ctx.textAlign = 'center';
@@ -5026,7 +5624,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
           'Your last road marker remains. Draft, brake and use an Echo to split the audit.', 960, 458);
         ctx.fillStyle = '#e6c8b5'; ctx.font = '22px Oxanium, monospace';
         ctx.fillText(this.status === 'clear' ? this.chapter?.delivery ?
-          'Cache kept the original. Mac takes the route from here.' :
+          (this.macHandoffError || 'Cache kept the original. Continue to Level 3 as Mac.') :
           'Legacy delivery. Replay the full run to recover Bass.' :
           s.combat ? 'Your last road marker remains. Keep data in sync for power and earned points.' :
           s.gateFailure ? 'Retry starts at the Mirror Viaduct marker with a full Echo.' :
@@ -5056,6 +5654,11 @@ window.FILE_MANIFEST.push({ name: 'src/game/cache-road-proof.js', exports: ['BAR
         }
       }
       ctx.restore();
+      if(cinema&&cinema.kind!=='handoff') {
+        B.CacheRoadCinematics.drawOverlay(frameContext,cinema,{reducedMotion:reduced,
+          button:B.GamepadUI?.connected?B.ControllerSettings?.button(0)||'A':'ENTER'});
+      }
+      finishRender();
     }
   };
   B.Campaign.register(ID, { validate: saved => road.validate(saved), restore: saved => road.restore(saved) });

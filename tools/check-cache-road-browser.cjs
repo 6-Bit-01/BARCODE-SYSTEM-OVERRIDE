@@ -23,6 +23,7 @@ const fixture = `<!doctype html><canvas id="gameCanvas" width="1920" height="108
 <script>
 window.requestAnimationFrame=()=>1;window.cancelAnimationFrame=()=>{};
 window.contextCalls=0;
+window.contextRequests=[];
 window.publishedRequests=[];
 ${livePublished ? '' : `const nativeFetch=window.fetch.bind(window);
 window.fetch=(url,...options)=>{
@@ -34,7 +35,10 @@ window.fetch=(url,...options)=>{
 };`}
 const getContext=HTMLCanvasElement.prototype.getContext;
 HTMLCanvasElement.prototype.getContext=function(...args){
-  if(this.id==='gameCanvas' && ++window.contextCalls>4) throw Error('Canvas context creation limit exceeded');
+  if(this.id==='gameCanvas') {
+    window.contextRequests.push({type:args[0],options:args[1]||null});
+    if(++window.contextCalls>4) throw Error('Canvas context creation limit exceeded');
+  }
   return getContext.apply(this,args);
 };
 </script>${scripts.map(file => `<script src="/${file}"></script>`).join('')}`;
@@ -150,15 +154,29 @@ async function main() {
     return;
   }
   const frames = await evaluate(`(()=>{
-    let drawn=0;
+    let drawn=0,readbacks=0;
+    const ctx=renderer.ctx,attributesBefore=ctx.getContextAttributes();
     BARCODE.CacheRoadProof={active:true,update(){},draw(ctx){if(!ctx)throw Error('No road canvas');drawn++;ctx.fillRect(0,0,1,1);}};
     window.inputManager={update(){}};window.audioSystem.updateLayers=()=>{};
     window.isRunning=true;window.lastTime=0;
-    for(let frame=1;frame<=600;frame++)window.gameLoop(frame*16);
-    return {drawn,contextCalls};
+    for(let frame=1;frame<=600;frame++) {
+      window.gameLoop(frame*16);
+      if(frame%10===0){ctx.getImageData(0,0,1,1);readbacks++;}
+    }
+    return {drawn,contextCalls,contextRequests,readbacks,
+      attributesBefore,attributesAfter:ctx.getContextAttributes(),sameContext:getFrameContext()===ctx};
   })()`);
   assert.equal(frames.drawn, 600);
   assert(frames.contextCalls <= 2, `road reacquired its canvas ${frames.contextCalls} times`);
+  assert.deepEqual(frames.contextRequests[0],{type:'2d',options:{willReadFrequently:false}},
+    'actual Renderer initialization forwards the explicit draw-heavy hint at first acquisition');
+  assert.equal(frames.attributesBefore.willReadFrequently,false);
+  assert.equal(frames.attributesBefore.alpha,true);
+  assert.equal(frames.attributesBefore.colorSpace,'srgb');
+  assert.equal(frames.attributesBefore.desynchronized,false);
+  assert.deepEqual(frames.attributesAfter,frames.attributesBefore,
+    'repeated native pixel reads retain original context attributes');
+  assert.equal(frames.readbacks,60);assert.equal(frames.sameContext,true);
 
   async function checkAudio(missingLocal) {
     omitLocalStems = missingLocal;
@@ -311,10 +329,40 @@ async function main() {
   const reviewWorld=require('./cache-road-browser-world.cjs');
   const world=await evaluate(`(${reviewWorld.toString()})()`);
   assert(world.loadedAssets>200&&world.frames.length===192&&world.contextCalls<=4);
-  assert(Object.keys(world.animations).length===56 && world.animationRoutes.animatedKeys===56);
+  assert(Object.keys(world.animations).length===61 && world.animationRoutes.animatedKeys===61);
   assert.equal(world.animationRoutes.legacyAnimatedKeys,51,
     'all original legacy route assertions remain intact');
-  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,56);
+  assert.equal(world.hosted.filter(entry=>entry.frames>1).length,61);
+  assert.deepEqual(world.animationRoutes.authoredBeatKeys,['cacheBeatHardware','cacheBeatEnergy','cacheBeatTiming']);
+  for(const [key,count] of [['cacheBeatHardware',8],['cacheBeatEnergy',12],['cacheBeatTiming',8]]) {
+    const liveFrames={cacheBeatHardware:[0,1,2,3,4,5,6,7],cacheBeatEnergy:[],cacheBeatTiming:[0,1,2]}[key];
+    assert.deepEqual(world.animationRoutes.minimalBeatLiveFrames[key],liveFrames);
+    assert.deepEqual(world.animationRoutes.main[key]||[],liveFrames,
+      `${key}: real production chart paints only the intentional minimal ground cells`);
+    assert(!world.animationRoutes.mirror[key],`${key}: ground timing does not enter the rearview`);
+    const hosted=world.hosted.find(entry=>entry.key===key);
+    assert(hosted&&hosted.bytes>0&&hosted.frames===count&&hosted.productionLoader,
+      `${key}: exact immutable published bytes decode and draw through the remote-first loader`);
+  }
+  assert.deepEqual([...new Set(world.animationRoutes.beatReceipts.map(receipt=>receipt.kind))].sort(),
+    ['good','miss','perfect'],'native real chart judgments cover Good, Perfect and an actual miss');
+  assert.deepEqual([...new Set(world.animationRoutes.beatHUDReceipts.map(receipt=>receipt.quality))].sort(),
+    ['good','miss','perfect'],'existing native HUD retains actual judgment labels, values and nonzero deltas');
+  assert(world.animationRoutes.beatHUDReceipts.some(receipt=>receipt.delta>0&&receipt.texts.includes(receipt.deltaText)),
+    'existing native HUD paints a genuinely earned positive adrenaline gain');
+  assert(world.animationRoutes.groundReceipt.calls>0&&
+    world.animationRoutes.groundReceipt.handled===world.animationRoutes.groundReceipt.calls,
+    'ground receipt is handled so the legacy fallback stays suppressed');
+  assert.equal(world.animationRoutes.groundReceipt.assetSubmissions,0);
+  assert.equal(world.animationRoutes.groundReceipt.textPaints,0);
+  assert.deepEqual(world.animationRoutes.authoredFeedbackKeys,['cacheBloodSplatter','cacheCrewCallouts']);
+  assert.deepEqual(world.animationRoutes.main.cacheBloodSplatter,[0,1,2,3,4,5],
+    'all six blood cells follow real staged pedestrian/rider contacts through the front road');
+  assert.deepEqual(world.animationRoutes.mirror.cacheBloodSplatter,[0,1,2,3,4,5],
+    'the same contacted bodies paint all blood cells through the rearview');
+  assert.deepEqual(world.animationRoutes.main.cacheCrewCallouts,[0,1,2],
+    'physical pedestrian hit events select all three crew portraits in the main HUD');
+  assert(!world.animationRoutes.mirror.cacheCrewCallouts,'crew portraits cannot enter reflected scenery');
   for(const [key,count] of [['cacheCombatBike',8],['cacheCombatHostiles',12],
     ['cacheCombatBikeCrash',6],['cacheCombatBlast',6]]) {
     const frames=Array.from({length:count},(_,i)=>i);

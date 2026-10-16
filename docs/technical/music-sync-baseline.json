@@ -1,5 +1,15 @@
 {
   "base": "a75f33f2321a9e96f3a8fa7677dbf61e586bdb1e",
+  "scopedRevisions": [
+    {
+      "date": "2026-10-06",
+      "scope": "Bounded audio resume and cancellation for the authorized Mac playable power pass; source start/loop timing, transport and profile are unchanged.",
+      "priorMethodHashes": {
+        "pauseRuntimeAudio": "c1f5966cc8ce567611fe625d907ac5f3747db1249e0873f3bca4cfdb2dea66c1",
+        "resumeRuntimeAudio": "e0032765414bdf3b6122383615f247fa3c85f5b32310a8e14811c34d0b1953c5"
+      }
+    }
+  ],
   "methods": {
     "scheduleRuntimeTimeout": "2d57e570f6c3e1ced495faddf14c8c9146aa7ec55083c7bfe19a06655f98f0aa",
     "startAllLayersSimultaneously": "5798dcb6c596e569025cfd65dddbd8b6c6959add5acd6e9cc136fd49b75d32f8",
@@ -7,8 +17,8 @@
     "calculateLoopDuration": "d6aa9b2b9b558bfeddacf753cc728078881ff1190cab964aa5e475ac60881eac",
     "checkLoopCompletion": "d16bc6b586bbaeae1e67c96b909b87fe9da4de7b497fe0be04371e6809b2c714",
     "restartMusicLoop": "c907078aae75fe69413384b8dc72041206ac4d612faf3e667a7ebc6abacb03b9",
-    "pauseRuntimeAudio": "c1f5966cc8ce567611fe625d907ac5f3747db1249e0873f3bca4cfdb2dea66c1",
-    "resumeRuntimeAudio": "e0032765414bdf3b6122383615f247fa3c85f5b32310a8e14811c34d0b1953c5",
+    "pauseRuntimeAudio": "5197be920d2b02e8806d6b87a1b01c173bf0e57cde3318d7975503e915b121b8",
+    "resumeRuntimeAudio": "86e811711e19e79603ef262b23166f795d3532d7238fd9223c005c2112c34bc6",
     "startRuntimeGameplayMusic": "f0e5d9ef216f4ac223a3660bd92d4693d023269e3e72dea24092c3f32678ff3a"
   },
   "transportSha256": "26c19d8e63871472a91055614b5fafe9fab8216ba16486dc02020e1b76ef41dd",

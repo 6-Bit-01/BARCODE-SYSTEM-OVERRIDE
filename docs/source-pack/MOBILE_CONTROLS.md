@@ -1,0 +1,31 @@
+# Whole-game mobile controls
+
+## Direct actions correction
+
+The owner rejected PR185's combat More drawer because it interrupts play. This follow-up puts skills directly in a compact right-thumb cluster with fixed slots: Boost/Jam above Attack/Guard and a large current Sync cue below. Guard and Boost remain accessible for proactive use; recharge seconds, queued-next-beat and active-state badges explain availability without renaming their actions. Strike/Fire follows the real target, Fire checks ammunition and projectile capacity, and Jam appears for nearby enemies or hostile projectiles. Readiness highlights use the existing combat owner. No gameplay menu or extra tap is required; timing, lane judgment and skill activation remain manual.
+
+Level 1 exposes Inspect when the existing stage owner finds a usable nearby detail; the same fixed button becomes Continue/Close for readable messages. Outer-stick movement runs and shows RUN feedback. Jump, Rhythm, Beat and Hack keep fixed slots while availability changes. More remains only in cinematic screens for transcript/skip extras. Empty control-panel space passes through to the game.
+
+The native/GPU renderer, loading pipeline, original assets, music, saves and existing input/frame/audio owners are preserved. Direct-action contracts, bounded browser review and normal exact-head release checks are required; publication is authorized. The contextual-drawer notes below are historical for the published PR185 baseline.
+
+## Contextual controls revision
+
+The owner tested the published joystick release (source PR184, `3daea2cccd1ad21fe096750dc0fd1a270cc448dd`; website PR481) and requests stylish, contextual buttons that leave the road clear. The new design keeps the transparent movement/steering stick, moves gears beside it, and shows one mapped Sync cue plus useful combat actions on the opposite edge. A More drawer holds the four manual face pads and secondary abilities. The primary cue submits the captured mapped action only on a real tap; timing, lane, judgments and rewards remain owned by the game. No input is automated.
+
+Level 1 shows Jump, Rhythm when entering is allowed, Beat while Rhythm is active, and Hack when the existing availability owner allows it. Run/Inspect and cinematic transcript/skip controls are available on demand. Native menu labels, touch-safe sizes, cancellation, physical keys/gamepads and all whole-game screen transitions are retained. Within a gameplay screen, buttons are patched in place and a held control keeps its original action until release; a changing cue cannot cancel steering or discard a completed tap. Opening/closing a drawer clears its hidden holds without affecting the other thumb.
+
+This revision preserves the accepted GPU and loading pipelines, original artwork/audio, music, saves, native frame and existing input/frame/audio owners. Contextual module checks, portrait/landscape browser review and exact-head source/site release checks are pending. The earlier implementation/checkpoint notes below describe the initial mobile release and are historical.
+
+Current work: October 5, 2026. The implementation passes 20 mobile contracts and bounded prototype browser flow. Full source regression, all-file syntax and immutable C113 standalone checks pass. Settings readout/short-road layout corrections are implemented; control-polish and the added real-menu readout group pass. Final strict-build visual/layout recheck, exact corrected-source CI/merge and publication remain pending. Base: merged performance PR183, `42b2a3157638a8742717095fbdea7055b6efeb71`.
+
+The owner requests mobile joystick and touch controls throughout the game before the website release. Cover the real opening/title/menu, difficulty/tutorial, hacking, Level 1, road steering/gears/beat pads/skills, bridge, ending and results. Contextual actions must call the existing screen owners and keep their timing, completion and pause rules.
+
+`src/core/touch-controls.js` exports `BARCODE.TouchControls` and launches once after `src/core/action-input.js` and `src/core/input.js`. Its DOM controls submit a virtual semantic input channel to the existing ActionInput/InputManager. Keep physical keyboard keys independent: releasing a finger must not release a held key, and vice versa. Support simultaneous stick/button touches and preserve short edge-triggered taps.
+
+Controls enable for a primary coarse pointer or an actual touch, keeping a hybrid laptop's fine-pointer use dormant. The 20 passing contracts include refused-capture outside release, unrelated-pointer preservation, shared pointer/keyboard skip holds, independent physical keys and real-menu readout/privacy/pan routing. Actual prototype title/settings, opening/difficulty, Level 1 multitouch and earned Level 2 gestures passed at 390×844, 844×390, 375×667 and 320×568. The prototype's touch-only hash differs from its earlier receipt. Readout/compact-layout corrections are implemented; final strict-build visual acceptance remains pending.
+
+Use responsive safe-area layout and touch targets of at least 44 CSS pixels. Release every virtual hold on pointer cancellation, lost capture, blur, document hiding, layout changes and context transitions; a changed screen must not inherit a held action. Preserve accessible button names and normal browser behavior outside the control surface.
+
+Retain one gameplay-frame/input/audio owner, the retained GPU renderer and complete native recovery. Add no control RAF, timer or Canvas. Preserve the native 1920×1080 frame, all 624 original artwork/audio hashes, judgments, music, economy and compatible saves.
+
+Acceptance must include focused actual-module multi-touch/physical-key/release contracts and real browser touch interactions through the authored flow. Check portrait/landscape layout, opening/audio, menus/tutorial/hack, Level 1, road and comic/results transitions; retain keyboard/gamepad and existing recovery/resource gates. Complete full regression and exact-head source CI before source merge. Then build the final merged source, verify package identity, repeat site CI/preview checks and record deployment/live verification. GPU-only site PR481 has passed its current checks but remains draft; that evidence does not establish mobile acceptance or publication.

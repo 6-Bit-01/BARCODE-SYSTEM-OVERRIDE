@@ -121,8 +121,8 @@ function painterChecks() {
     assert(r.calls.some(call=>call[0]==='translate'&&call[1]===427&&call[2]===310),
       'rider and splat use the road-projected authoritative ground lane');
     assert.equal(r.calls.filter(call=>call[0]==='ellipse').length,5,'bounded distinct comic ink splat');
-    assert(r.calls.some(call=>call[0]==='scale'&&call[1]===1&&call[2]===1),
-      'no-flash and Reduced Motion splats use stable grounded paint');
+    assert(!r.calls.some(call=>call[0]==='scale'||call[0]==='rotate'),
+      'missing-art no-flash and Reduced Motion splats use stable grounded paint');
     assert.equal(JSON.stringify(splat),before);assert.equal(r.stack.length,0);assert.equal(r.ctx.globalAlpha,.7);
   }
   for(let frame=0;frame<6;frame++) {

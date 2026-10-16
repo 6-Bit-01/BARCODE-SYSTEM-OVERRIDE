@@ -42,8 +42,8 @@ def revision(value, name):
 
 def load_record(content):
     record = json.loads(content)
-    require(isinstance(record, dict) and type(record.get('schemaVersion')) is int and record.get('schemaVersion') == 1,
-            'Unsupported checkpoint schemaVersion (expected 1)')
+    require(isinstance(record, dict) and type(record.get('schemaVersion')) is int and record.get('schemaVersion') in (1, 2),
+            'Unsupported checkpoint schemaVersion (expected 1 or 2)')
     stamp = text(record.get('recordedAtUtc'), 'recordedAtUtc')
     require(stamp.endswith('Z'), 'recordedAtUtc must use UTC Z notation')
     datetime.fromisoformat(stamp.replace('Z', '+00:00'))
@@ -113,7 +113,9 @@ def render_header(record):
         'The exported tree/review/merge status and exact test receipt belong to `SOURCE_MANIFEST.json` and `test-evidence.json` when present.',
         'A prior checkpoint or passing CI does not certify this review, owner acceptance, or permission to merge/deploy.',
         'Before continuing, recheck the current owner request and remote branch/PR state; update the record when those facts change.', '',
-        'Earlier task/status descriptions below, including old current/next/candidate/publication wording, are historical. Do not resume an old task from them.',
+        ('Earlier task/status descriptions below, including old current/next/candidate/publication wording, are historical. Do not resume an old task from them.'
+         if record['schemaVersion'] == 1 else
+         'Dated sections below retain their recorded scope, evidence and owner constraints. Check their dates and the newest owner request before resuming work.'),
         'Retained gameplay constraints and engineering rules still apply unless explicitly superseded by the owner.', END])
     return '\n'.join(lines)
 
@@ -123,10 +125,11 @@ def updated_document(content, header, name):
             name + ': expected exactly one current checkpoint marker pair')
     start, end = content.index(START), content.index(END)
     require(start < end, name + ': checkpoint markers are reversed')
-    title = content.split('\n', 1)[0]
-    require(title.startswith('# ') and content[:start] == title + '\n\n',
+    title = re.match(r'(# [^\r\n]+)(\r\n|\n)', content)
+    require(title is not None and content[:start] == title[1] + title[2] * 2,
             name + ': current checkpoint must immediately follow the document title')
-    return content[:start] + header + content[end + len(END):]
+    # Match the document's line endings while leaving its historical suffix byte-identical.
+    return content[:start] + header.replace('\n', title[2]) + content[end + len(END):]
 
 
 def verify_documents(record, documents):

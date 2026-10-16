@@ -49,7 +49,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     ['flashes', 'Flash accents'], ['crtPostEffects', 'CRT effect'],
     ['instantText', 'Instant dialogue'], ['crew', 'Recent crew dialogue'], ['timing', 'Timing calibration'], ['archive', 'Lore archive'], ['resume', 'Resume game'], ['defaults', 'Reset settings'], ['controller', 'Controller settings'], ['reducedMotion', 'Reduced motion'], ['fullscreen', 'Fullscreen']
   ];
-  const visibleRows = () => BARCODE.RunAndGunProof?.active || BARCODE.CacheRoadProof?.active
+  const visibleRows = () => BARCODE.MacCombatPreview?.active || BARCODE.RunAndGunProof?.active || BARCODE.CacheRoadProof?.active
     ? rows.map(([key, label]) => key === 'crew' ? ['exitPreview', BARCODE.CacheRoadProof?.active && BARCODE.CacheRoadProof.chapter ? 'Return to bridge' : 'Exit preview'] : [key, label]) : rows;
   const rowTop = 331, rowStep = 38;
   const roadSkillControls = [
@@ -57,7 +57,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     ['road_defend','Defend',7], ['road_disrupt','Disrupt',6]
   ];
   const levelControls = [['jump','Jump'],['primary','Beat attack'],['interact','Hack'],
-    ['rhythm_mode','Rhythm Mode'],['inspect','Inspect / collect']];
+    ['rhythm_mode','Rhythm Mode'],['inspect','Inspect / collect'],['run','Run (hold)']];
+  const macControls = [['jump','Jump',0],['road_attack','Strike',5],
+    ['road_defend','Guard',7],['road_disrupt','Throw',6],['inspect','Talk',5]];
   const menu = BARCODE.PauseMenu = {
     open: false, dirty: false, focus: 0, drag: null, heldKeys: new Set(), snapshot: null, snapshotContext: null, resumePending: false, message: '',
     captureAction: null, captureReady: false, controllerFocus: 0,
@@ -67,8 +69,57 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const road=BARCODE.CacheRoadProof;
       return !!road?.active&&(road.chapter?.encounterVersion===4||road.state?.combat?.version===4);
     },
-    controllerControls() { return this.combatControls()?roadSkillControls:levelControls; },
+    controllerControls() { return BARCODE.MacCombatPreview?.active ? macControls : this.combatControls()?roadSkillControls:levelControls; },
     controllerRowCount() { return this.controllerControls().length+5; },
+    controllerRowStep() { return this.controllerControls().length > 5 ? 42 : 46; },
+    controllerLabels() {
+      return ['Stick deadzone', 'Button prompts', 'Vibration', ...this.controllerControls().map(([,label]) => label),
+        BARCODE.MacCombatPreview?.active ? 'Reset street controls' : this.combatControls() ? 'Reset skill mapping' : 'Reset controller defaults', this.titleOpen ? 'Back to settings' : 'Back to pause'];
+    },
+    timingLabels() {
+      return ['Input compensation', 'Visual beat delay', 'Reset timing to zero', this.titleOpen ? 'Back to title' : 'Test in play / Resume', this.titleOpen ? 'Back to settings' : 'Back to pause'];
+    },
+    // A phone readout exposes the selected native menu item, using the same
+    // labels and saved values as the canvas. It owns no settings or input.
+    touchReadout() {
+      if (!this.isPaused()) return '';
+      let label = '', value = '';
+      if (this.view === 'controller') {
+        const c = BARCODE.ControllerSettings, i = this.controllerFocus;
+        label = this.controllerLabels()[i] || 'Controller settings';
+        if (i === 0) value = `${Math.round((c?.deadzone || 0) * 100)}%`;
+        else if (i === 1) value = c?.labels === 'playstation' ? 'PlayStation' : c?.labels === 'xbox' ? 'Xbox' : 'Automatic';
+        else if (i === 2) value = c?.vibration === false ? 'OFF' : 'ON';
+        else {
+          const control = this.controllerControls()[i - 3];
+          if (control) value = this.captureAction === control[0] ? 'Press a controller button. Back cancels.' : c?.button?.(c.bindings[control[0]]) || '';
+        }
+      } else if (this.view === 'timing') {
+        label = this.timingLabels()[this.timingFocus] || 'Timing calibration';
+        const key = ['inputOffsetMs', 'visualOffsetMs'][this.timingFocus];
+        if (key) { const offset = preferences.values[key]; value = `${offset > 0 ? '+' : ''}${offset} ms`; }
+      } else if (this.view === 'archive') {
+        const catalog = this.archiveCatalog(), count = catalog.length;
+        if (this.archiveFocus < count) {
+          const record = this.archiveState().records[this.archiveFocus];
+          label = record?.title || `Record ${catalog[this.archiveFocus]?.number || this.archiveFocus + 1}`;
+          value = record ? 'RECOVERED' : 'UNRECOVERED';
+        } else if (this.archiveFocus === count) label = this.titleOpen ? 'Back to settings' : 'Back to pause';
+        else if (this.archiveFocus === count + 1) label = this.titleOpen ? 'Back to title' : 'Resume game';
+        else { label = `Level ${this.archiveChapters()[this.archiveFocus - count - 2]}`; value = 'Lore archive'; }
+      } else if (this.view === 'crew') {
+        const line = window.tutorialSystem?.recentDialogue?.at(-1);
+        label = 'Recent crew dialogue';
+        value = line ? `${line.speaker}: ${line.text}` : 'Crew dialogue will appear here as you play.';
+      } else {
+        const [key, selectedLabel] = visibleRows()[this.focus] || [];
+        label = key === 'resume' && this.titleOpen ? 'Back to title' : selectedLabel || 'Settings';
+        if (typeof defaults[key] === 'boolean') value = preferences.values[key] ? 'ON' : 'OFF';
+        else if (typeof defaults[key] === 'number') value = `${Math.round(preferences.values[key] * 100)}%`;
+        else if (key === 'fullscreen') value = window.fullscreenManager?.isActive ? 'ON' : 'OFF';
+      }
+      return `${label}${value ? `\n${value}` : ''}${this.message ? `\n${this.message}` : ''}`;
+    },
     isPaused() { return this.titleOpen || !!(window.isPaused || window.gameState?.paused); },
     canvas() { return this.titleOpen ? this.titleCanvas : document.getElementById('gameCanvas'); },
     openTitle() {
@@ -116,7 +167,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
             this.snapshotContext = this.snapshot.getContext('2d');
           }
           this.snapshot.width = canvas.width; this.snapshot.height = canvas.height;
-          this.snapshotContext?.drawImage(canvas, 0, 0);
+          if(BARCODE.CacheRoadGPU?.snapshotTo?.(this.snapshotContext,canvas)!==true)
+            this.snapshotContext?.drawImage(canvas, 0, 0);
+          BARCODE.CacheRoadGPU?.hide?.();
         }
       }
     },
@@ -132,7 +185,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
     },
     activate(direction = 1) {
       const key = visibleRows()[this.focus][0];
-      if (key === 'exitPreview') { (BARCODE.CacheRoadProof?.active ? BARCODE.CacheRoadProof : BARCODE.RunAndGunProof).exit(); return; }
+      if (key === 'exitPreview') { (BARCODE.MacCombatPreview?.active ? BARCODE.MacCombatPreview : BARCODE.CacheRoadProof?.active ? BARCODE.CacheRoadProof : BARCODE.RunAndGunProof).exit(); return; }
       if (key === 'fullscreen') { this.toggleFullscreen(); return; }
       if (key === 'controller') { this.view = 'controller'; this.controllerFocus = 0; this.captureAction = null; this.dirty = true; return; }
       if (key === 'resume') { this.resume(); return; }
@@ -262,8 +315,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       if (this.view === 'controller') {
         if (phase !== 'down') return true;
         if (this.captureAction) { this.captureAction = null; this.dirty = true; return true; }
-        const index = Math.floor((y - 350) / 46);
-        if (x >= 440 && x <= 1480 && index >= 0 && index < this.controllerRowCount() && y < 350 + index * 46 + 40) {
+        const step = this.controllerRowStep(), index = Math.floor((y - 350) / step);
+        if (x >= 440 && x <= 1480 && index >= 0 && index < this.controllerRowCount() && y < 350 + index * step + 40) {
           this.controllerFocus = index;
           if (index === 0 && x >= 1110) BARCODE.ControllerSettings.setDeadzone(0.1 + Math.max(0, Math.min(1, (x - 1110) / 280)) * 0.4);
           else this.activateController();
@@ -309,7 +362,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       this.sync();
       if (!this.open || !this.dirty) return;
       const canvas = this.canvas(), ctx = this.titleOpen ? this.titleContext :
-        window.renderer?.canvas === canvas && window.renderer.ctx || canvas?.getContext('2d');
+        window.renderer?.canvas === canvas && window.renderer.ctx ||
+        canvas?.getContext('2d', { willReadFrequently: false });
       if (!ctx) return;
       ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
       if (this.snapshot && !this.titleOpen) ctx.drawImage(this.snapshot, 0, 0); else { ctx.fillStyle = '#081321'; ctx.fillRect(0, 0, 1920, 1080); }
@@ -325,7 +379,8 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       else if (i === 2) { c.vibration = !c.vibration; c.save(); }
       else if (i < end) { this.captureAction = controls[i - 3][0]; this.captureReady = false; }
       else if (i === end) {
-        if(this.combatControls())for(const [action,,button] of roadSkillControls)c.bind(action,button);
+        if(BARCODE.MacCombatPreview?.active)for(const [action,,button] of macControls)c.bind(action,button);
+        else if(this.combatControls())for(const [action,,button] of roadSkillControls)c.bind(action,button);
         else c.restore();
       }
       else this.closeController();
@@ -344,11 +399,10 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       text('CONTROLLER SETTINGS', 440, 248, 38, '#a0ffe4');
       text(BARCODE.GamepadUI?.unsupported ? 'Controller not recognized. Try another connection or browser.' : BARCODE.GamepadUI?.connected ? 'Controller connected' : 'Connect a controller and press a button.', 440, 307, 20, '#cfa2ff');
       const combat=this.combatControls(),controls=this.controllerControls(),end=3+controls.length;
-      const labels = ['Stick deadzone', 'Button prompts', 'Vibration', ...controls.map(([,label])=>label),
-        combat?'Reset skill mapping':'Reset controller defaults',this.titleOpen ? 'Back to settings' : 'Back to pause'];
+      const labels = this.controllerLabels();
       const actions = controls.map(([action])=>action);
       labels.forEach((label, i) => {
-        const y = 350 + i * 46;
+        const y = 350 + i * this.controllerRowStep();
         ctx.fillStyle = i === this.controllerFocus ? '#16394b' : '#0d2032'; ctx.fillRect(440, y, 1040, 40);
         if (i === this.controllerFocus) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(440, y, 1040, 40); }
         text(label, 460, y + 21, 22);
@@ -360,7 +414,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         else if (i < end) text(this.captureAction === actions[i - 3] ? 'Press a new button…' : c.button(c.bindings[actions[i - 3]]), 1210, y + 21, 22, '#a0ffe4');
       });
       text(this.captureAction ? `Release, then press a ${combat?'shoulder / trigger':'face / shoulder / stick'} button. ${c.button(1)} or Esc cancels.` : `Menu controls stay fixed: ${c.button(0)} confirm, ${c.button(1)} back, ${c.button(9)} pause.`, 440, 837, 18, '#cfa2ff');
-      text(combat?`Face sync: ${[0,1,2,3].map(i=>c.button(i)).join(' / ')}. Skill remaps stay on shoulders / triggers.`:
+      text(BARCODE.MacCombatPreview?.active ? 'Move in both axes. Jump, strike, guard, throw and talk use the mappings above.' : combat?`Face sync: ${[0,1,2,3].map(i=>c.button(i)).join(' / ')}. Skill remaps stay on shoulders / triggers.`:
         this.captureAction ? 'Jump and beat may share a button. Other conflicts move automatically.' : `${c.button(8)}: crew dialogue. Shared jump/beat changes with Rhythm Mode.`, 440, 871, 18);
       text(c.saved ? 'Saved on this device.' : 'Applied this session; saving is unavailable.', 440, 915, 18, '#a0ffe4');
     },
@@ -377,7 +431,7 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       text('TIMING CALIBRATION', 440, 250, 42, '#a0ffe4');
       text('Use small steps, then test on the beat in Rhythm Mode.', 440, 320, 23);
       text('Audio keeps its original timing. Scoring windows stay the same.', 440, 360, 21, '#cfa2ff');
-      ['Input compensation', 'Visual beat delay', 'Reset timing to zero', this.titleOpen ? 'Back to title' : 'Test in play / Resume', this.titleOpen ? 'Back to settings' : 'Back to pause'].forEach((label, index) => {
+      this.timingLabels().forEach((label, index) => {
         const y = 430 + index * 86;
         ctx.fillStyle = index === this.timingFocus ? '#16394b' : '#0d2032'; ctx.fillRect(440, y, 1040, 62);
         if (index === this.timingFocus) { ctx.strokeStyle = '#94ffe3'; ctx.strokeRect(440, y, 1040, 62); }
@@ -478,7 +532,9 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
       const chapter = road && BARCODE.CacheRoadProof.chapter;
       const combatRoad=this.combatControls();
       if (road) text(chapter ? 'CACHE LINE' : 'PROTOTYPE CHANNEL 02', 440, 350, 20, '#a0ffe4');
-      const controls = road ? (combatRoad ? (BARCODE.GamepadUI?.connected
+      const controls = BARCODE.MacCombatPreview?.active ? (BARCODE.GamepadUI?.connected
+        ? ['Stick / D-pad: Walk the street in both axes', `${BARCODE.ControllerSettings.prompt('jump')}: Jump`, `${BARCODE.ControllerSettings.prompt('road_attack')}: Strike; ${BARCODE.ControllerSettings.prompt('road_defend')}: Guard; ${BARCODE.ControllerSettings.prompt('road_disrupt')}: Throw`, 'Fresh guard counters a committed attack.', `${BARCODE.ControllerSettings.prompt('inspect')}: Talk at Kave’s desk`, `${BARCODE.ControllerSettings.button(0)} / ${BARCODE.ControllerSettings.button(1)}: choices; ${BARCODE.ControllerSettings.button(9)}: Pause`]
+        : ['WASD / arrows: Walk the street in both axes', 'Space: Jump; J / F: Strike', 'K / G: Guard; L / V: Nearby throw', 'Fresh guard counters a committed attack.', 'E: Talk; Space / Enter: Next; 1 / 2: Choices', 'P / Escape: Pause']) : road ? (combatRoad ? (BARCODE.GamepadUI?.connected
         ? ['Stick / D-pad: Steer; Up / Down: Queue gear', `${BARCODE.ControllerSettings.prompt('road_attack','F')}: Attack; ${BARCODE.ControllerSettings.prompt('road_turbo','SPACE')}: Turbo`, `${BARCODE.ControllerSettings.prompt('road_defend','G')}: Defend; ${BARCODE.ControllerSettings.prompt('road_disrupt','V')}: Disrupt`, 'Face buttons: Four synchronization pieces', 'Match the pad. Press on beat ONE at the rear tires.', 'Fight for openings. Attack breaks the boss systems.']
         : ['A / D or Left / Right: Steer; Up / Down: Queue gear', 'F: Attack; Space: Turbo', 'G: Defend; V: Disrupt', 'K / L / J / I: Four synchronization pieces', 'Match the pad. Press on beat ONE at the rear tires.', 'Fight for openings. Attack breaks the boss systems.']) : BARCODE.GamepadUI?.connected
         ? ['Stick / D-pad: Steer; Up / Down: Queue gear', `${BARCODE.ControllerSettings.button(4)}: Turbo; ${BARCODE.ControllerSettings.button(5)}: Echo`, 'Face buttons: Surge / Push / Brace / Refill', 'Match the pad. Press on beat ONE at the rear tires.', 'A catch brings that lane into the song.', 'Optional record: hold its lane for 0.65s.']
@@ -486,13 +542,14 @@ window.FILE_MANIFEST.push({ name: 'src/game/pause-menu.js', exports: ['BARCODE.P
         : proof ? (BARCODE.GamepadUI?.connected
         ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump`, `${BARCODE.ControllerSettings.prompt('inspect')}: Fire`, 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`]
         : ['A / D or Left / Right: Move', 'Space / W / Up: Jump', 'E: Fire / Hold E for repeat fire', 'Climb: break roof nodes, then relays.', 'Jump the lanes; watch for a runner.', 'P: Pause'])
-        : (BARCODE.GamepadUI?.connected ? ['Stick / D-pad: Move', `${BARCODE.ControllerSettings.prompt('jump')}: Jump / Down + Jump: Drop`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Move', 'Space / W / Up: Jump; Down + Jump: Drop', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause']);
+        : (BARCODE.GamepadUI?.connected ? [`Stick / D-pad: Walk; hold ${BARCODE.ControllerSettings.prompt('run')}: Run`, `${BARCODE.ControllerSettings.prompt('jump')}: Jump / Down + Jump: Drop`, `${BARCODE.ControllerSettings.prompt('rhythm_mode')}: Rhythm Mode`, `${BARCODE.ControllerSettings.prompt('primary')}: Beat attack`, `${BARCODE.ControllerSettings.prompt('interact')}: Hack`, `${BARCODE.ControllerSettings.button(9)}: Pause / Settings`] : ['A / D or Left / Right: Walk; hold Shift: Run', 'Space / W / Up: Jump; Down + Jump: Drop', 'R: Enter Rhythm Mode', 'Down: Attack on the beat', 'H: Hack when unlocked', 'P: Pause']);
       if (road && BARCODE.CacheRoadGuidance) BARCODE.CacheRoadGuidance.drawHelp(ctx, BARCODE.CacheRoadProof);
       else controls.forEach((line, i) => text(line, 440, 448 + i * 46, 21));
-      if (!road) text(proof ? 'PROTOTYPE CHANNEL 03' : 'RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
-      text(chapter ? 'Return to bridge keeps your saved road marker.' : road || proof ? 'Choose Exit preview to return to Cache Back.' : BARCODE.GamepadUI?.connected ? `${BARCODE.ControllerSettings.button(1)} exits so you can move.` : 'R or Escape exits so you can move.', 440, road ? 819 : 810, 20);
+      const mac = BARCODE.MacCombatPreview?.active;
+      if (!road) text(mac ? 'MAC’S STREET' : proof ? 'PROTOTYPE CHANNEL 03' : 'RHYTHM MODE HOLDS YOUR STANCE', 440, 772, 20, '#a0ffe4');
+      text(mac ? 'Strike. Guard the tell, or dodge its lane.' : chapter ? 'Return to bridge keeps your saved road marker.' : road || proof ? 'Choose Exit preview to return to Cache Back.' : BARCODE.GamepadUI?.connected ? `${BARCODE.ControllerSettings.button(1)} exits so you can move.` : 'R or Escape exits so you can move.', 440, road ? 819 : 810, 20);
       const d=BARCODE.LevelDifficulty;
-      text(chapter ? `CHAPTER 02 / ${chapter.difficultyId.toUpperCase()} / CHECKPOINTS` : road ? 'Practice preview: progress saves at road markers.' : proof ? 'Practice preview: progress saves at each relay.' : d?.locked ? `LEVEL RULES: ${d.choice?.label} / ${d.recoveryMode==='full-run'?'FULL RUN':'CHECKPOINTS'}` : 'Difficulty + recovery: choose at level start.',440,855,18,'#cfa2ff');
+      text(mac ? 'Exit returns to title. Progress is not saved.' : chapter ? `CHAPTER 02 / ${chapter.difficultyId.toUpperCase()} / CHECKPOINTS` : road ? 'Practice preview: progress saves at road markers.' : proof ? 'Practice preview: progress saves at each relay.' : d?.locked ? `LEVEL RULES: ${d.choice?.label} / ${d.recoveryMode==='full-run'?'FULL RUN':'CHECKPOINTS'}` : 'Difficulty + recovery: choose at level start.',440,855,18,'#cfa2ff');
       text('Audio, visuals and controls can change anytime.',440,886,18,'#a0ffe4');
       visibleRows().forEach(([key, label], index) => {
         const y = rowTop + index * rowStep, selected = index === this.focus;
